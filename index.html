@@ -74,7 +74,7 @@ a{color:var(--accent); text-decoration:none;}
 .sidebar{
   width:308px; flex-shrink:0; background:var(--bg-elev);
   border-right:1px solid var(--line);
-  height:100vh; position:sticky; top:0;
+  min-height:100vh; position:sticky; top:0; align-self:flex-start;
   display:flex; flex-direction:column;
   padding-top:env(safe-area-inset-top,0px);
 }
@@ -108,7 +108,7 @@ a{color:var(--accent); text-decoration:none;}
 }
 .search-count{font-family:var(--mono); font-size:.68rem; color:var(--text-faint); margin-top:.45rem;}
 
-.nav{flex:1; overflow-y:auto; padding:.6rem 0 1.5rem;}
+.nav{flex:1; overflow-y:visible; padding:.6rem 0 1.5rem;}
 .nav-group{margin-bottom:.15rem;}
 .nav-group-btn{
   width:100%; display:flex; align-items:center; gap:.5rem; justify-content:space-between;
@@ -143,15 +143,17 @@ a{color:var(--accent); text-decoration:none;}
 }
 .main.wide .content{max-width:none;}
 
-.width-toggle{
-  position:fixed; right:1.4rem; bottom:1.4rem; z-index:30;
+.fab{
+  position:fixed; right:1.4rem; z-index:30;
   width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center;
   background:var(--bg-elev); border:1px solid var(--line); color:var(--text-dim);
   cursor:pointer; box-shadow:0 2px 10px rgba(0,0,0,.18);
 }
-.width-toggle:hover{color:var(--text); border-color:var(--accent-dim);}
-.width-toggle svg{width:17px;height:17px; stroke:currentColor;}
-@media (max-width:860px){.width-toggle{display:none;}}
+.fab:hover{color:var(--text); border-color:var(--accent-dim);}
+.fab svg{width:17px;height:17px; stroke:currentColor;}
+.width-toggle{bottom:1.4rem;}
+.theme-toggle{bottom:4.2rem;}
+@media (max-width:860px){.width-toggle{display:none;} .theme-toggle{bottom:1.4rem;}}
 .crumb{
   font-family:var(--mono); font-size:.72rem; color:var(--text-faint);
   letter-spacing:.03em; margin-bottom:.9rem; display:flex; gap:.4rem; align-items:center;
@@ -255,9 +257,11 @@ pre code{font-family:var(--mono); font-size:.8rem; line-height:1.55; background:
 @media (max-width:860px){
   .topbar{display:flex;}
   .sidebar{
-    position:fixed; z-index:50; left:0; top:0; height:100vh;
+    position:fixed; z-index:50; left:0; top:0; height:100vh; min-height:0;
     transform:translateX(-100%); transition:transform .2s ease; width:86vw; max-width:340px;
+    overflow-y:auto;
   }
+  .nav{overflow-y:auto;}
   .sidebar.open{transform:translateX(0);}
   .overlay{
     display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:45;
@@ -282,7 +286,6 @@ pre code{font-family:var(--mono); font-size:.8rem; line-height:1.55; background:
 <div class="shell">
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-head" id="sidebarHead">
-      <div class="kicker">PRZED ROZMOWĄ — SE III</div>
       <h1>.NET &amp; C# Kompendium</h1>
       <div class="sub">Notatki z rozmowy, zorganizowane w dział → temat</div>
     </div>
@@ -301,7 +304,13 @@ pre code{font-family:var(--mono); font-size:.8rem; line-height:1.55; background:
   </main>
 </div>
 
-<button class="width-toggle" id="widthToggle" aria-label="Pełna szerokość" title="Pełna szerokość">
+<button class="fab theme-toggle" id="themeToggle" aria-label="Zmień tryb ciemny/jasny" title="Tryb jasny">
+  <svg id="themeToggleIcon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4" y1="12" x2="2" y2="12"/><line x1="22" y1="12" x2="20" y2="12"/><line x1="19.07" y1="4.93" x2="17.66" y2="6.34"/><line x1="6.34" y1="17.66" x2="4.93" y2="19.07"/><line x1="19.07" y1="19.07" x2="17.66" y2="17.66"/><line x1="6.34" y1="6.34" x2="4.93" y2="4.93"/>
+  </svg>
+</button>
+
+<button class="fab width-toggle" id="widthToggle" aria-label="Pełna szerokość" title="Pełna szerokość">
   <svg id="widthToggleIcon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
   </svg>
@@ -7530,6 +7539,118 @@ int index = Array.BinarySearch(sortedArray, target);
 </table>
 <p><em>Amortyzowane O(1) dla struktur haszowanych - w praktyce prawie zawsze stały czas, ale w rzadkich przypadkach kolizji może być gorzej.
 </em>*<code>List&lt;T&gt;.Add()</code> jest O(1) amortyzowane - czasem trzeba powiększyć wewnętrzną tablicę, co jest O(n), ale zdarza się rzadko.</p>
+<h2>Co właściwie znaczy zapis <code>O(...)</code></h2>
+<p><strong>"O"</strong> pochodzi od "Order of" (rząd wielkości) - matematyczna notacja opisująca, <strong>jak szybko rośnie</strong> czas wykonania (albo pamięć) algorytmu, gdy rozmiar danych wejściowych rośnie. <strong>Nie mówi, ile to jest konkretnie milisekund</strong> - mówi o <strong>tempie wzrostu</strong> względem <code>n</code>.</p>
+<p><strong><code>n</code></strong> to zawsze rozmiar danych wejściowych - liczba elementów w tablicy, liczba wierszy w bazie, długość stringa - cokolwiek, co "skaluje się" w Twoim problemie.</p>
+<p>Kluczowa intuicja: Big-O odpowiada na pytanie <strong>"co się stanie, jeśli podwoję dane wejściowe?"</strong> - nie "jak szybko działa dla 10 elementów", ale "jak zachowanie zmienia się, gdy <code>n</code> rośnie do nieskończoności".</p>
+<h3>O(1) - czas stały</h3>
+<p>Czas wykonania <strong>nie zależy od <code>n</code></strong> - niezależnie czy masz 10 elementów czy 10 milionów, operacja trwa <strong>tyle samo</strong>.</p>
+<pre><code class="language-csharp">int[] numbers = new int[1_000_000];
+
+int first = numbers[0];             // O(1) - dostęp po indeksie, ZAWSZE jeden krok
+int last = numbers[^1];             // O(1) - to samo, niezależnie od rozmiaru tablicy
+bool isEmpty = numbers.Length == 0; // O(1) - Length jest już zapisane, nie liczone na nowo
+</code></pre>
+<p><strong>Ważna pułapka pojęciowa:</strong> O(1) <strong>nie znaczy "szybkie" w sensie absolutnym</strong> - znaczy tylko "stała liczba kroków". Coś, co robi 1000 operacji, ale <strong>zawsze</strong> 1000, niezależnie od <code>n</code>, to wciąż O(1):</p>
+<pre><code class="language-csharp">// To JEST O(1), mimo że robi 1000 iteracji - liczba iteracji jest STAŁA, nie zależy od n
+int Sum1000FixedNumbers()
+{
+    int sum = 0;
+    for (int i = 0; i &lt; 1000; i++) sum += i; // ZAWSZE 1000, obojętnie jakie dane wejściowe
+    return sum;
+}
+</code></pre>
+<h3>O(n) - czas liniowy</h3>
+<p>Czas wykonania rośnie <strong>proporcjonalnie</strong> do <code>n</code> - jeśli podwoisz dane wejściowe, operacja zajmie (z grubsza) <strong>dwa razy dłużej</strong>.</p>
+<pre><code class="language-csharp">int Sum(int[] array) // O(n)
+{
+    int sum = 0;
+    foreach (var n in array) // MUSI odwiedzić KAŻDY element - jeden raz
+        sum += n;
+    return sum;
+}
+</code></pre>
+<p>Dla tablicy o 10 elementach - 10 kroków. Dla 1000 elementów - 1000 kroków. Dla miliona - milion kroków. Liczba operacji <strong>skaluje się razem z <code>n</code></strong>, w stosunku 1:1 (stąd "liniowy" - jak linia na wykresie).</p>
+<pre><code class="language-csharp">bool Contains(int[] array, int target) // O(n) - w NAJGORSZYM przypadku
+{
+    foreach (var n in array)
+        if (n == target) return true; // może znaleźć od razu (best case), albo dopiero na końcu (worst case)
+    return false;
+}
+</code></pre>
+<p><strong>Ważne:</strong> Big-O zwykle opisuje <strong>najgorszy przypadek</strong> (worst case) - <code>Contains</code> może teoretycznie znaleźć element na pierwszej pozycji (1 krok), ale Big-O mówi o <strong>granicy górnej</strong>, czyli sytuacji, gdy trzeba przejrzeć <strong>wszystko</strong> (element na końcu albo go nie ma).</p>
+<h3>Wizualne porównanie - jak rosną razem z <code>n</code></h3>
+<table>
+<thead>
+<tr>
+<th><code>n</code> (rozmiar danych)</th>
+<th>O(1) - liczba kroków</th>
+<th>O(n) - liczba kroków</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>10</td>
+<td>1</td>
+<td>10</td>
+</tr>
+<tr>
+<td>100</td>
+<td>1</td>
+<td>100</td>
+</tr>
+<tr>
+<td>10 000</td>
+<td>1</td>
+<td>10 000</td>
+</tr>
+<tr>
+<td>1 000 000</td>
+<td>1</td>
+<td>1 000 000</td>
+</tr>
+</tbody>
+</table>
+<p>O(1) to <strong>płaska linia</strong> na wykresie - zawsze ta sama wysokość. O(n) to <strong>linia ukośna</strong> - rośnie równo z <code>n</code>.</p>
+<h3>Częsty błąd - "jedna pętla = automatycznie O(n)"</h3>
+<p>To jest uproszczenie, które <strong>czasem</strong> jest prawdą, ale nie zawsze - liczy się, <strong>ile razy odwiedzasz <code>n</code> elementów</strong>, nie liczba pętli w kodzie:</p>
+<pre><code class="language-csharp">// JEDNA pętla, ale O(n) - odwiedza każdy element RAZ
+foreach (var x in array) { Console.WriteLine(x); }
+
+// DWIE pętle, ale WCIĄŻ O(n) - każda pętla osobno przechodzi przez n, więc n + n = 2n,
+// a stałe czynniki (2) IGNORUJEMY w Big-O
+foreach (var x in array) { /* ... */ }
+foreach (var x in array) { /* ... */ }
+
+// JEDNA pętla, ale O(1) - liczba iteracji ma STAŁY GÓRNY LIMIT, niezależny od &quot;n&quot;
+int[] fixedFive = { 1, 2, 3, 4, 5 };
+for (int i = 0; i &lt; fixedFive.Length; i++)
+{
+    Console.WriteLine(fixedFive[i]); // fixedFive.Length jest ZAWSZE 5, nie zmienna &quot;n&quot;
+}
+</code></pre>
+<p>Ostatni przykład to zresztą częste pytanie-pułapka: <em>"Czy pętla <code>for</code> jest zawsze O(n)?"</em> - odpowiedź: <strong>nie</strong>, liczy się, czy górna granica pętli <strong>zależy</strong> od rozmiaru danych wejściowych, czy jest <strong>stałą</strong>. Pętla po tablicy o zawsze-znanym, sztywnym rozmiarze (tu: 5) to O(1), niezależnie od tego, że technicznie jest to "pętla po tablicy".</p>
+<p><strong>Subtelniejszy przypadek</strong> - pętla ograniczona <code>Math.Min()</code>:</p>
+<pre><code class="language-csharp">// Nadal O(1) - liczba iteracji jest OGRANICZONA Z GÓRY przez stałą (5),
+// mimo że wyrażenie odwołuje się do array.Length
+int limit = Math.Min(5, array.Length);
+for (int i = 0; i &lt; limit; i++)
+{
+    Console.WriteLine(array[i]);
+}
+</code></pre>
+<pre><code class="language-csharp">Jeśli array.Length = 3      → limit = 3   → 3 kroki
+Jeśli array.Length = 1000   → limit = 5   → 5 kroków (ograniczone przez stałą!)
+Jeśli array.Length = 10 000 → limit = 5   → 5 kroków (ograniczone przez stałą!)
+</code></pre>
+<p>To jest dokładnie ten sam mechanizm, na którym oparte jest np. <code>Take(5)</code> w LINQ - bierze maksymalnie 5 elementów, bez względu na to, czy kolekcja ma 5 czy 5 milionów.</p>
+<h3>Dlaczego ignorujemy stałe czynniki</h3>
+<p><code>2n</code> i <code>n</code> to <strong>wciąż to samo O(n)</strong> - Big-O interesuje <strong>tempo wzrostu</strong>, nie precyzyjną liczbę operacji. Dla dużych <code>n</code>, różnica między <code>n</code> a <code>2n</code> (dwukrotność) jest <strong>nieistotna</strong> w porównaniu do różnicy między <code>n</code> a <code>n²</code> (kwadrat) - to drugie rośnie <strong>znacznie</strong> szybciej i to jest sedno, o czym Big-O informuje.</p>
+<pre><code class="language-csharp">n = 1000:
+2n    = 2 000
+n     = 1 000
+n²    = 1 000 000   ← O(n²) jest dramatycznie gorsze, niezależnie od stałych czynników
+</code></pre>
 <h2>Praktyczny przykład - dlaczego to ma znaczenie</h2>
 <pre><code class="language-csharp">// ❌ O(n²) - dla każdego zamówienia, PRZESZUKUJE całą listę klientów
 public List&lt;OrderWithCustomer&gt; Combine(List&lt;Order&gt; orders, List&lt;Customer&gt; customers)
@@ -9704,6 +9825,7 @@ Console.WriteLine(weather.Temperature); // ❌ NullReferenceException, jeśli Ge
   const topbarBrand = document.getElementById("topbarBrand");
   const mainArea = document.getElementById("mainArea");
   const widthToggle = document.getElementById("widthToggle");
+  const themeToggle = document.getElementById("themeToggle");
 
   let currentTopicId = null;
 
@@ -9938,6 +10060,40 @@ Console.WriteLine(weather.Temperature); // ❌ NullReferenceException, jeśli Ge
   sidebarHead.addEventListener("click", goHome);
   topbarBrand.addEventListener("click", goHome);
 
+  /* ---------------- dark / light theme toggle ---------------- */
+  const sunIcon = `<circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4" y1="12" x2="2" y2="12"/><line x1="22" y1="12" x2="20" y2="12"/><line x1="19.07" y1="4.93" x2="17.66" y2="6.34"/><line x1="6.34" y1="17.66" x2="4.93" y2="19.07"/><line x1="19.07" y1="19.07" x2="17.66" y2="17.66"/><line x1="6.34" y1="6.34" x2="4.93" y2="4.93"/>`;
+  const moonIcon = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`;
+
+  function setTheme(theme) {
+    // theme: "dark" albo "light"
+    document.documentElement.setAttribute("data-theme", theme);
+    const icon = document.getElementById("themeToggleIcon");
+    if (theme === "light") {
+      icon.innerHTML = moonIcon;
+      themeToggle.title = "Tryb ciemny";
+    } else {
+      icon.innerHTML = sunIcon;
+      themeToggle.title = "Tryb jasny";
+    }
+    try { localStorage.setItem("kompendium-theme", theme); } catch (e) { /* ignore */ }
+  }
+
+  themeToggle.addEventListener("click", () => {
+    const current = document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
+    setTheme(current === "light" ? "dark" : "light");
+  });
+
+  (function initTheme() {
+    let saved = null;
+    try { saved = localStorage.getItem("kompendium-theme"); } catch (e) { /* ignore */ }
+    if (saved === "light" || saved === "dark") {
+      setTheme(saved);
+    } else {
+      const prefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+      setTheme(prefersLight ? "light" : "dark");
+    }
+  })();
+
   /* ---------------- full-width toggle ---------------- */
   const wideIconExpand = `<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>`;
   const wideIconCollapse = `<polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="10" y1="14" x2="3" y2="21"/>`;
@@ -9946,16 +10102,15 @@ Console.WriteLine(weather.Temperature); // ❌ NullReferenceException, jeśli Ge
     mainArea.classList.toggle("wide", isWide);
     widthToggle.title = isWide ? "Wąska treść" : "Pełna szerokość";
     document.getElementById("widthToggleIcon").innerHTML = isWide ? wideIconCollapse : wideIconExpand;
-    try { localStorage.setItem("kompendium-wide", isWide ? "1" : "0"); } catch (e) { /* ignore */ }
   }
 
   widthToggle.addEventListener("click", () => {
     setWide(!mainArea.classList.contains("wide"));
   });
 
-  let initialWide = false;
-  try { initialWide = localStorage.getItem("kompendium-wide") === "1"; } catch (e) { /* ignore */ }
-  setWide(initialWide);
+  // Strona domyślnie ZAWSZE otwiera się na pełną szerokość - użytkownik może
+  // zwęzić treść przyciskiem, ale to nie jest zapamiętywane między wizytami.
+  setWide(true);
 
   /* ---------------- init ---------------- */
   buildNav();
