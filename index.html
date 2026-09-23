@@ -143,17 +143,26 @@ a{color:var(--accent); text-decoration:none;}
 }
 .main.wide .content{max-width:none;}
 
-.fab{
-  position:fixed; right:1.4rem; z-index:30;
-  width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+button.fab{
+  position:fixed !important; right:1.4rem; z-index:2147483000;
+  width:40px; height:40px; border-radius:50%;
+  display:flex !important; align-items:center; justify-content:center;
   background:var(--bg-elev); border:1px solid var(--line); color:var(--text-dim);
   cursor:pointer; box-shadow:0 2px 10px rgba(0,0,0,.18);
+  padding:0; margin:0; -webkit-appearance:none; appearance:none;
+  visibility:visible; opacity:1;
 }
-.fab:hover{color:var(--text); border-color:var(--accent-dim);}
-.fab svg{width:17px;height:17px; stroke:currentColor;}
-.width-toggle{bottom:1.4rem;}
-.theme-toggle{bottom:4.2rem;}
-@media (max-width:860px){.width-toggle{display:none;} .theme-toggle{bottom:1.4rem;}}
+button.fab:hover{color:var(--text); border-color:var(--accent-dim);}
+button.fab svg{width:17px;height:17px; stroke:currentColor; fill:none; flex-shrink:0; display:block;}
+button.width-toggle{bottom:1.4rem;}
+button.theme-toggle{bottom:4.2rem;}
+button.theme-toggle .icon-moon{display:none;}
+button.theme-toggle.is-light .icon-sun{display:none;}
+button.theme-toggle.is-light .icon-moon{display:block;}
+@media (max-width:860px){
+  button.width-toggle{display:none !important;}
+  button.theme-toggle{bottom:1.4rem;}
+}
 .crumb{
   font-family:var(--mono); font-size:.72rem; color:var(--text-faint);
   letter-spacing:.03em; margin-bottom:.9rem; display:flex; gap:.4rem; align-items:center;
@@ -304,13 +313,16 @@ pre code{font-family:var(--mono); font-size:.8rem; line-height:1.55; background:
   </main>
 </div>
 
-<button class="fab theme-toggle" id="themeToggle" aria-label="Zmień tryb ciemny/jasny" title="Tryb jasny">
-  <svg id="themeToggleIcon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<button type="button" class="fab theme-toggle" id="themeToggle" aria-label="Zmień tryb ciemny/jasny" title="Tryb jasny">
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4" y1="12" x2="2" y2="12"/><line x1="22" y1="12" x2="20" y2="12"/><line x1="19.07" y1="4.93" x2="17.66" y2="6.34"/><line x1="6.34" y1="17.66" x2="4.93" y2="19.07"/><line x1="19.07" y1="19.07" x2="17.66" y2="17.66"/><line x1="6.34" y1="6.34" x2="4.93" y2="4.93"/>
+  </svg>
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
   </svg>
 </button>
 
-<button class="fab width-toggle" id="widthToggle" aria-label="Pełna szerokość" title="Pełna szerokość">
+<button type="button" class="fab width-toggle" id="widthToggle" aria-label="Pełna szerokość" title="Pełna szerokość">
   <svg id="widthToggleIcon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
   </svg>
@@ -10061,38 +10073,29 @@ Console.WriteLine(weather.Temperature); // ❌ NullReferenceException, jeśli Ge
   topbarBrand.addEventListener("click", goHome);
 
   /* ---------------- dark / light theme toggle ---------------- */
-  const sunIcon = `<circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4" y1="12" x2="2" y2="12"/><line x1="22" y1="12" x2="20" y2="12"/><line x1="19.07" y1="4.93" x2="17.66" y2="6.34"/><line x1="6.34" y1="17.66" x2="4.93" y2="19.07"/><line x1="19.07" y1="19.07" x2="17.66" y2="17.66"/><line x1="6.34" y1="6.34" x2="4.93" y2="4.93"/>`;
-  const moonIcon = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`;
-
-  function setTheme(theme) {
-    // theme: "dark" albo "light"
-    document.documentElement.setAttribute("data-theme", theme);
-    const icon = document.getElementById("themeToggleIcon");
-    if (theme === "light") {
-      icon.innerHTML = moonIcon;
-      themeToggle.title = "Tryb ciemny";
-    } else {
-      icon.innerHTML = sunIcon;
-      themeToggle.title = "Tryb jasny";
+  if (themeToggle) {
+    function setTheme(theme) {
+      // theme: "dark" albo "light"
+      document.documentElement.setAttribute("data-theme", theme);
+      themeToggle.classList.toggle("is-light", theme === "light");
+      themeToggle.title = theme === "light" ? "Tryb ciemny" : "Tryb jasny";
+      try { localStorage.setItem("kompendium-theme", theme); } catch (e) { /* ignore */ }
     }
-    try { localStorage.setItem("kompendium-theme", theme); } catch (e) { /* ignore */ }
-  }
 
-  themeToggle.addEventListener("click", () => {
-    const current = document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
-    setTheme(current === "light" ? "dark" : "light");
-  });
+    themeToggle.addEventListener("click", () => {
+      const current = document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
+      setTheme(current === "light" ? "dark" : "light");
+    });
 
-  (function initTheme() {
-    let saved = null;
-    try { saved = localStorage.getItem("kompendium-theme"); } catch (e) { /* ignore */ }
-    if (saved === "light" || saved === "dark") {
-      setTheme(saved);
+    let savedTheme = null;
+    try { savedTheme = localStorage.getItem("kompendium-theme"); } catch (e) { /* ignore */ }
+    if (savedTheme === "light" || savedTheme === "dark") {
+      setTheme(savedTheme);
     } else {
       const prefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
       setTheme(prefersLight ? "light" : "dark");
     }
-  })();
+  }
 
   /* ---------------- full-width toggle ---------------- */
   const wideIconExpand = `<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>`;
