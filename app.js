@@ -123,6 +123,79 @@
 
   addCopyButtons();
 
+  /* ---------------- pjax navigation: dociąga TYLKO treść, menu się nie odbudowuje ----------------
+     Każdy plik .html jest wciąż pełną, samodzielną stroną (działa bez JS, dobre dla SEO/no-JS),
+     ale kliknięcie linku wewnętrznego podmienia tylko #content przez fetch(), bez przeładowania
+     całego dokumentu - stąd zero "flasha" menu/topbaru przy nawigacji. */
+  function isPjaxLink(link) {
+    if (!link || !link.href) return false;
+    if (link.target === "_blank" || link.hasAttribute("download")) return false;
+    let url;
+    try { url = new URL(link.href, window.location.href); } catch (e) { return false; }
+    if (url.origin !== window.location.origin) return false;
+    if (!/\.html?$/.test(url.pathname)) return false;
+    return true;
+  }
+
+  function setActiveNavItem(pathname) {
+    allNavItems.forEach(el => el.classList.remove("active"));
+    const match = allNavItems.find(el => {
+      try { return new URL(el.href, window.location.href).pathname === pathname; }
+      catch (e) { return false; }
+    });
+    if (match) {
+      match.classList.add("active");
+      const group = match.closest(".nav-group");
+      if (group) group.open = true;
+    }
+  }
+
+  async function pjaxNavigate(url, push) {
+    let response;
+    try {
+      response = await fetch(url, { credentials: "same-origin" });
+    } catch (e) { return false; }
+    if (!response || !response.ok) return false;
+
+    const html = await response.text();
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    const newContent = doc.getElementById("content");
+    if (!newContent) return false;
+
+    contentEl.innerHTML = newContent.innerHTML;
+    document.title = doc.title;
+
+    const targetPath = new URL(url, window.location.href).pathname;
+    setActiveNavItem(targetPath);
+
+    if (push) window.history.pushState({ pjax: true }, doc.title, url);
+
+    if (window.hljs) {
+      contentEl.querySelectorAll("pre code").forEach(block => hljs.highlightElement(block));
+    }
+    addCopyButtons();
+    window.scrollTo(0, 0);
+    closeMobileSidebar();
+    return true;
+  }
+
+  document.addEventListener("click", function (e) {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const link = e.target.closest("a");
+    if (!isPjaxLink(link)) return;
+
+    e.preventDefault();
+    pjaxNavigate(link.href, true).then(ok => {
+      if (!ok) window.location.href = link.href; // fallback: normalne przejście
+    });
+  });
+
+  window.addEventListener("popstate", () => {
+    pjaxNavigate(window.location.href, false).then(ok => {
+      if (!ok) window.location.reload();
+    });
+  });
+
   /* ---------------- dark / light theme toggle ---------------- */
   if (themeToggle) {
     function setTheme(theme) {
