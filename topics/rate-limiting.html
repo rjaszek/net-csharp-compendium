@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>[CallerMemberName] — .NET / C# Kompendium wiedzy</title>
+<title>Rate Limiting w ASP.NET Core — .NET / C# Kompendium wiedzy</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/nord.min.css">
 <link rel="stylesheet" href="../styles.css">
 </head>
@@ -52,7 +52,7 @@
     <a class="nav-item" data-topic-id="ioc" data-tags="ioc di hollywood principle template method middleware" href="../topics/ioc.html">Inversion of Control (IoC)</a>
   </div>
 </details>
-<details class="nav-group" data-cat-id="wpf" open>
+<details class="nav-group" data-cat-id="wpf">
   <summary class="nav-group-btn">
     <span style="display:flex;align-items:center;gap:.5rem;">
       <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
@@ -64,7 +64,7 @@
     <a class="nav-item" data-topic-id="wpf-recap" data-tags="wpf dependency property routed event data binding visual tree" href="../topics/wpf-recap.html">WPF — co przypomnieć</a>
     <a class="nav-item" data-topic-id="synccontext" data-tags="async await synchronizationcontext configureawait deadlock ui thread" href="../topics/synccontext.html">SynchronizationContext i ConfigureAwait</a>
     <a class="nav-item" data-topic-id="icommand" data-tags="icommand relaycommand canexecute commandmanager async void" href="../topics/icommand.html">ICommand i RelayCommand</a>
-    <a class="nav-item active" data-topic-id="callermembername" data-tags="callermembername inotifypropertychanged magic string nameof" href="../topics/callermembername.html">[CallerMemberName]</a>
+    <a class="nav-item" data-topic-id="callermembername" data-tags="callermembername inotifypropertychanged magic string nameof" href="../topics/callermembername.html">[CallerMemberName]</a>
   </div>
 </details>
 <details class="nav-group" data-cat-id="csharp">
@@ -92,7 +92,7 @@
     <a class="nav-item" data-topic-id="ienumerable-iqueryable" data-tags="ienumerable iqueryable expression func deferred execution ef core" href="../topics/ienumerable-iqueryable.html">IEnumerable vs IQueryable</a>
   </div>
 </details>
-<details class="nav-group" data-cat-id="web">
+<details class="nav-group" data-cat-id="web" open>
   <summary class="nav-group-btn">
     <span style="display:flex;align-items:center;gap:.5rem;">
       <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
@@ -112,7 +112,7 @@
     <a class="nav-item" data-topic-id="blazor-structure" data-tags="blazor wasm server struktura projektu shared client program.cs" href="../topics/blazor-structure.html">Struktura projektu Blazor</a>
     <a class="nav-item" data-topic-id="endpoint-routing" data-tags="endpoint routing middleware useendpoints minimal api authorization metadata" href="../topics/endpoint-routing.html">Endpoint Routing w ASP.NET Core</a>
     <a class="nav-item" data-topic-id="iis-hosting-models" data-tags="iis ancm kestrel w3wp hosting model inprocess outofprocess" href="../topics/iis-hosting-models.html">In-process vs Out-of-process (IIS)</a>
-    <a class="nav-item" data-topic-id="rate-limiting" data-tags="rate limiting throttling fixed window sliding token bucket concurrency 429" href="../topics/rate-limiting.html">Rate Limiting w ASP.NET Core</a>
+    <a class="nav-item active" data-topic-id="rate-limiting" data-tags="rate limiting throttling fixed window sliding token bucket concurrency 429" href="../topics/rate-limiting.html">Rate Limiting w ASP.NET Core</a>
   </div>
 </details>
 <details class="nav-group" data-cat-id="ef">
@@ -236,143 +236,171 @@
   <main class="main wide" id="mainArea">
     <div class="content" id="content">
 <div class="topic">
-  <div class="crumb">.NET / C# <span class="sep">/</span> <span class="cat">WPF</span></div>
+  <div class="crumb">.NET / C# <span class="sep">/</span> <span class="cat">Web API, Blazor</span></div>
   
-  <h1><code>[CallerMemberName]</code> w C</h1>
-<h2>Co to jest - atrybut wstrzykiwany przez kompilator</h2>
-<p><code>[CallerMemberName]</code> to atrybut z przestrzeni <code>System.Runtime.CompilerServices</code>, który <strong>automatycznie wypełnia parametr metody nazwą członu (property, metody), z którego ta metoda została wywołana</strong> - kompilator robi to <strong>w czasie kompilacji</strong>, nie w runtime, więc nie ma żadnego narzutu wydajnościowego (to nie jest refleksja).</p>
-<p>Widziałeś go już wielokrotnie, w <code>ViewModelBase</code>:</p>
-<pre><code class="language-csharp">protected void SetProperty&lt;T&gt;(ref T field, T value, [CallerMemberName] string propertyName = null)
+  <h1>Rate Limiting w ASP.NET Core</h1>
+<h2>Wbudowany middleware (od .NET 7) - <code>Microsoft.AspNetCore.RateLimiting</code></h2>
+<p>Wcześniej rate limiting wymagał zewnętrznych bibliotek (<code>AspNetCoreRateLimit</code>) albo własnej implementacji - od .NET 7 jest <strong>wbudowany</strong> w framework.</p>
+<pre><code class="language-csharp">using System.Threading.RateLimiting;
+
+builder.Services.AddRateLimiter(options =&gt;
 {
-    if (EqualityComparer&lt;T&gt;.Default.Equals(field, value)) return;
-    field = value;
-    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-}
-</code></pre>
-<h2>Problem, który rozwiązuje</h2>
-<p>Implementacja <code>INotifyPropertyChanged</code> wymaga podania <strong>nazwy właściwości jako string</strong> przy każdej zmianie - to jest podatne na błędy i nieporęczne:</p>
-<pre><code class="language-csharp">// BEZ CallerMemberName - musisz ręcznie wpisywać nazwę jako string
-private string _customerName;
-public string CustomerName
-{
-    get =&gt; _customerName;
-    set
+    options.AddFixedWindowLimiter(&quot;fixed&quot;, opt =&gt;
     {
-        _customerName = value;
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(&quot;CustomerName&quot;)); // ⚠️ magic string!
-    }
-}
-</code></pre>
-<p><strong>Problem z magic stringiem <code>"CustomerName"</code>:</strong> jeśli ktoś zmieni nazwę property przez refaktoryzację (Rename w IDE), <strong>string się NIE zmieni automatycznie</strong> - kompilator tego nie sprawdzi, bo to zwykły tekst, nie odwołanie do symbolu. Skutek: binding w WPF przestaje działać, a błąd wychodzi dopiero w runtime (UI po prostu się nie aktualizuje), bez żadnego ostrzeżenia kompilatora.</p>
-<h2>Rozwiązanie z <code>[CallerMemberName]</code></h2>
-<pre><code class="language-csharp">private string _customerName;
-public string CustomerName
-{
-    get =&gt; _customerName;
-    set =&gt; SetProperty(ref _customerName, value); // BEZ podawania nazwy jawnie!
-}
+        opt.Window = TimeSpan.FromSeconds(10);
+        opt.PermitLimit = 5; // maksymalnie 5 requestów na 10 sekund
+        opt.QueueLimit = 2;  // dodatkowo, 2 requesty mogą czekać w kolejce
+    });
+});
 
-protected void SetProperty&lt;T&gt;(ref T field, T value, [CallerMemberName] string propertyName = null)
-{
-    field = value;
-    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-}
+var app = builder.Build();
+app.UseRateLimiter();
+
+app.MapGet(&quot;/api/data&quot;, () =&gt; &quot;wynik&quot;).RequireRateLimiting(&quot;fixed&quot;);
 </code></pre>
-<p>Gdy <code>set</code> właściwości <code>CustomerName</code> wywołuje <code>SetProperty(ref _customerName, value)</code>, <strong>kompilator automatycznie wstawia</strong> <code>"CustomerName"</code> jako wartość parametru <code>propertyName</code> - dokładnie tak, jakbyś napisał:</p>
-<pre><code class="language-csharp">set =&gt; SetProperty(ref _customerName, value, &quot;CustomerName&quot;); // to dzieje się NIEJAWNIE
-</code></pre>
-<p><strong>Kluczowa korzyść:</strong> jeśli zmienisz nazwę property przez Rename w IDE (np. <code>CustomerName</code> → <code>ClientName</code>), wywołanie <code>SetProperty</code> <strong>nie musi być w ogóle dotykane</strong> - kompilator przy następnej kompilacji <strong>sam</strong> wstawi nową, poprawną nazwę. Błąd typu "zapomniałem zaktualizować string po refaktoryzacji" <strong>nie może się zdarzyć</strong>, bo nie ma już żadnego ręcznie wpisywanego stringa.</p>
-<h2>Jak dokładnie działa - "nazwa członu WYWOŁUJĄCEGO"</h2>
-<pre><code class="language-csharp">public class OrderViewModel : ViewModelBase
+<h2>Cztery wbudowane algorytmy - kiedy który</h2>
+<h3>1. Fixed Window - najprostszy</h3>
+<p>Limit resetuje się co N sekund w <strong>stałych</strong> odstępach.</p>
+<pre><code class="language-csharp">options.AddFixedWindowLimiter(&quot;fixed&quot;, opt =&gt;
 {
-    private decimal _totalAmount;
-    public decimal TotalAmount
+    opt.Window = TimeSpan.FromMinutes(1);
+    opt.PermitLimit = 100;
+});
+</code></pre>
+<p><strong>Wada:</strong> możliwy "burst" na granicy okna - 100 requestów na końcu jednej minuty + 100 na początku następnej = 200 w krótkim czasie.</p>
+<h3>2. Sliding Window</h3>
+<p>Jak Fixed Window, ale okno "przesuwa się" płynnie, dzielone na segmenty - eliminuje problem burstów na granicy.</p>
+<pre><code class="language-csharp">options.AddSlidingWindowLimiter(&quot;sliding&quot;, opt =&gt;
+{
+    opt.Window = TimeSpan.FromMinutes(1);
+    opt.PermitLimit = 100;
+    opt.SegmentsPerWindow = 6; // dzieli minutę na 6 segmentów po 10s
+});
+</code></pre>
+<h3>3. Token Bucket</h3>
+<p>"Wiadro tokenów", uzupełniane w stałym tempie; każdy request zabiera token. Pozwala na <strong>kontrolowany burst</strong> (jeśli wiadro było pełne), ale ogranicza <strong>średnie</strong> tempo w długim okresie.</p>
+<pre><code class="language-csharp">options.AddTokenBucketLimiter(&quot;token&quot;, opt =&gt;
+{
+    opt.TokenLimit = 50;                              // maks. rozmiar &quot;wiadra&quot;
+    opt.TokensPerPeriod = 10;                          // ile tokenów dodaje co okres
+    opt.ReplenishmentPeriod = TimeSpan.FromSeconds(10); // jak często uzupełnia
+});
+</code></pre>
+<h3>4. Concurrency Limiter</h3>
+<p>Limituje <strong>równoczesne</strong> requesty (nie w czasie, tylko "w danym momencie"), przydatne dla endpointów kosztownych zasobowo (np. generowanie raportu PDF).</p>
+<pre><code class="language-csharp">options.AddConcurrencyLimiter(&quot;concurrency&quot;, opt =&gt;
+{
+    opt.PermitLimit = 10; // max 10 requestów wykonuje się RÓWNOCZEŚNIE
+    opt.QueueLimit = 20;
+});
+</code></pre>
+<h2>Partycjonowanie - limit PER klient, nie globalnie</h2>
+<p>To jest kluczowa, praktyczna funkcja - bez partycjonowania limit jest <strong>wspólny dla wszystkich</strong> użytkowników naraz (jeden zły klient zajmuje cały limit). Partycjonowanie daje <strong>osobny licznik per klucz</strong> (np. per IP, per użytkownik, per API key):</p>
+<pre><code class="language-csharp">options.AddPolicy(&quot;per-user&quot;, context =&gt;
+    RateLimitPartition.GetFixedWindowLimiter(
+        partitionKey: context.User.Identity?.Name ?? context.Connection.RemoteIpAddress?.ToString() ?? &quot;anonymous&quot;,
+        factory: _ =&gt; new FixedWindowRateLimiterOptions
+        {
+            Window = TimeSpan.FromMinutes(1),
+            PermitLimit = 20
+        }));
+</code></pre>
+<p>Każdy zalogowany użytkownik (albo, dla anonimowych, każdy adres IP) dostaje <strong>własny, niezależny</strong> licznik 20 requestów/minutę - jeden nadaktywny klient nie zjada limitu innych.</p>
+<h2>Reakcja na przekroczenie limitu - status 429</h2>
+<pre><code class="language-csharp">options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+options.OnRejected = async (context, token) =&gt;
+{
+    context.HttpContext.Response.Headers[&quot;Retry-After&quot;] = &quot;10&quot;;
+    await context.HttpContext.Response.WriteAsync(&quot;Zbyt wiele requestów, spróbuj później.&quot;, token);
+};
+</code></pre>
+<p>Standard HTTP dla rate limitingu to kod <strong>429 Too Many Requests</strong>, opcjonalnie z nagłówkiem <code>Retry-After</code> mówiącym klientowi, po ilu sekundach spróbować ponownie.</p>
+<h2>Pełny przykład w Web API - kontroler + globalna i per-endpoint polityka</h2>
+<pre><code class="language-csharp">var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers();
+
+builder.Services.AddRateLimiter(options =&gt;
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    // Polityka GLOBALNA - per adres IP, stosowana domyślnie do WSZYSTKICH endpointów
+    options.GlobalLimiter = PartitionedRateLimiter.Create&lt;HttpContext, string&gt;(context =&gt;
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? &quot;unknown&quot;,
+            factory: _ =&gt; new FixedWindowRateLimiterOptions
+            {
+                Window = TimeSpan.FromMinutes(1),
+                PermitLimit = 100
+            }));
+
+    // Polityka DODATKOWA, bardziej restrykcyjna - dla konkretnego, kosztownego endpointu
+    options.AddTokenBucketLimiter(&quot;expensive-operation&quot;, opt =&gt;
     {
-        get =&gt; _totalAmount;
-        set =&gt; SetProperty(ref _totalAmount, value); // wywołane WEWNĄTRZ setter'a TotalAmount
-    }
+        opt.TokenLimit = 5;
+        opt.TokensPerPeriod = 1;
+        opt.ReplenishmentPeriod = TimeSpan.FromSeconds(30);
+    });
+});
 
-    public void RecalculateTotal()
-    {
-        TotalAmount = 100; // to WYWOŁA setter, który wywoła SetProperty z &quot;TotalAmount&quot;
-    }
+var app = builder.Build();
+app.UseRateLimiter(); // MUSI być po UseRouting(), przed MapControllers/endpointami
 
-    public void LogSomething([CallerMemberName] string caller = null)
-    {
-        Console.WriteLine($&quot;Wywołane z: {caller}&quot;);
-    }
-}
+app.MapControllers();
+app.Run();
 </code></pre>
-<pre><code class="language-csharp">vm.RecalculateTotal();
-// Wewnątrz RecalculateTotal(), jeśli TAM wywołasz LogSomething() bezpośrednio:
-vm.LogSomething(); // wypisze &quot;RecalculateTotal&quot; - bo STAMTĄD zostało wywołane
-</code></pre>
-<p><code>[CallerMemberName]</code> <strong>zawsze</strong> odnosi się do <strong>bezpośredniego</strong> wywołującego (metody/property, w którym fizycznie znajduje się wywołanie) - nie do "pierwotnego" wywołania gdzieś wyżej w stosie.</p>
-<h2>Wymagania składniowe</h2>
-<pre><code class="language-csharp">// ✅ Poprawnie - parametr musi mieć wartość domyślną
-public void Method([CallerMemberName] string caller = null) { }
-public void Method([CallerMemberName] string caller = &quot;&quot;) { }
-
-// ❌ Błąd kompilacji - CallerMemberName wymaga wartości domyślnej
-public void Method([CallerMemberName] string caller) { }
-</code></pre>
-<p>Musi to być <strong>ostatni parametr</strong> (albo przynajmniej mieć wartość domyślną, żeby dało się wywołać metodę bez podawania go jawnie) - dokładnie ta sama zasada co przy zwykłych parametrach opcjonalnych w C#.</p>
-<h2>Można nadal podać wartość jawnie - <code>[CallerMemberName]</code> to tylko wartość DOMYŚLNA</h2>
-<pre><code class="language-csharp">protected void SetProperty&lt;T&gt;(ref T field, T value, [CallerMemberName] string propertyName = null) { }
-
-// Normalne użycie - kompilator wstawia automatycznie
-SetProperty(ref _customerName, value); // propertyName = &quot;CustomerName&quot; (automatycznie)
-
-// Można NADAL podać jawnie, gdy potrzeba
-SetProperty(ref _customerName, value, &quot;InnaWlasciwosc&quot;); // propertyName = &quot;InnaWlasciwosc&quot; (jawnie)
-</code></pre>
-<p>To bywa przydatne, gdy <strong>jedna</strong> właściwość musi powiadomić o zmianie <strong>innej</strong>, powiązanej właściwości - np. gdy <code>TotalAmount</code> zmienia się, a chcesz też odświeżyć <code>FormattedTotalAmount</code> w UI:</p>
-<pre><code class="language-csharp">private decimal _totalAmount;
-public decimal TotalAmount
+<pre><code class="language-csharp">[ApiController]
+[Route(&quot;api/reports&quot;)]
+public class ReportsController : ControllerBase
 {
-    get =&gt; _totalAmount;
-    set
+    [HttpGet]
+    [EnableRateLimiting(&quot;expensive-operation&quot;)] // NADPISUJE globalną politykę TYLKO dla tej akcji
+    public async Task&lt;IActionResult&gt; GenerateReport()
     {
-        SetProperty(ref _totalAmount, value); // propertyName = &quot;TotalAmount&quot; (automatycznie)
-        OnPropertyChanged(nameof(FormattedTotalAmount)); // jawnie - inna właściwość się zmieniła
+        await Task.Delay(2000); // symulacja kosztownej operacji
+        return Ok(new { generated = true });
     }
-}
 
-public string FormattedTotalAmount =&gt; $&quot;{TotalAmount:C}&quot;; // właściwość obliczana, bez backing field
-</code></pre>
-<h2>Powiązane atrybuty z tej samej rodziny (<code>System.Runtime.CompilerServices</code>)</h2>
-<p>Warto wspomnieć, bo czasem pytają o "resztę rodziny":</p>
-<pre><code class="language-csharp">public void LogError(
-    string message,
-    [CallerMemberName] string memberName = &quot;&quot;,
-    [CallerFilePath] string filePath = &quot;&quot;,
-    [CallerLineNumber] int lineNumber = 0)
-{
-    Console.WriteLine($&quot;[{filePath}:{lineNumber}] {memberName}: {message}&quot;);
+    [HttpGet(&quot;summary&quot;)]
+    [DisableRateLimiting] // WYŁĄCZA rate limiting dla tej JEDNEJ akcji (np. health-check)
+    public IActionResult GetSummary() =&gt; Ok(&quot;lekki endpoint, bez limitu&quot;);
 }
 </code></pre>
-<ul>
-<li><strong><code>[CallerFilePath]</code></strong> - pełna ścieżka pliku źródłowego, z którego nastąpiło wywołanie</li>
-<li><strong><code>[CallerLineNumber]</code></strong> - numer linii, w której nastąpiło wywołanie</li>
-</ul>
-<p>To jest bardzo przydatne do <strong>logowania diagnostycznego</strong> - bez ręcznego wpisywania <code>"OrderService.cs"</code> czy numeru linijki, kompilator wstawia to automatycznie, i <strong>zawsze aktualne</strong>, nawet po przesunięciu kodu.</p>
-<h2>Alternatywa - <code>nameof()</code> (dla porównania, inny mechanizm, podobny cel)</h2>
-<p>Warto odróżnić <code>[CallerMemberName]</code> od <code>nameof()</code> - oba rozwiązują podobny problem (unikanie magic stringów), ale działają inaczej:</p>
-<pre><code class="language-csharp">// nameof() - jawne, w miejscu WYWOŁANIA, dowolna nazwa symbolu
-OnPropertyChanged(nameof(TotalAmount)); // &quot;TotalAmount&quot; - sprawdzane przez kompilator, ale trzeba napisać jawnie
-
-// CallerMemberName - niejawne, AUTOMATYCZNE, zawsze nazwa WYWOŁUJĄCEGO
-SetProperty(ref _totalAmount, value); // &quot;TotalAmount&quot; wstawione samo, bo STĄD wywołane
-</code></pre>
-<p><strong>Kiedy <code>nameof()</code>:</strong> gdy chcesz odwołać się do <strong>konkretnej, dowolnej</strong> nazwy symbolu (może być innej niż ta, w której się aktualnie znajdujesz) - jak w przykładzie z <code>FormattedTotalAmount</code> wyżej.</p>
-<p><strong>Kiedy <code>[CallerMemberName]</code>:</strong> gdy chcesz <strong>automatycznie</strong> wiedzieć, "skąd mnie wywołano", bez zmuszania wywołującego kodu do jawnego podawania tej informacji za każdym razem.</p>
-<h2>Podsumowanie - dlaczego to ważne dla WPF/MVVM</h2>
+<p>Ten przykład pokazuje typową, warstwową konfigurację: <strong>globalny</strong> limiter (per IP, 100/min) chroniący całe API, plus <strong>bardziej restrykcyjna</strong> polityka (<code>token bucket</code>, 1 token/30s) nałożona na jeden, kosztowny endpoint przez <code>[EnableRateLimiting]</code>, oraz <code>[DisableRateLimiting]</code> jako wentyl bezpieczeństwa dla endpointów, które <strong>muszą</strong> być zawsze dostępne (np. <code>/health</code>).</p>
+<h2>Podsumowanie - kiedy który algorytm</h2>
+<table>
+<thead>
+<tr>
+<th>Algorytm</th>
+<th>Kiedy używać</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fixed Window</td>
+<td>Prosty limit, akceptowalny mały burst na granicy okna</td>
+</tr>
+<tr>
+<td>Sliding Window</td>
+<td>Potrzebujesz gładszego rozkładu, bez burstów na granicy</td>
+</tr>
+<tr>
+<td>Token Bucket</td>
+<td>Chcesz pozwolić na chwilowy burst, ale ograniczyć średnie tempo</td>
+</tr>
+<tr>
+<td>Concurrency</td>
+<td>Ochrona zasobożernych endpointów przed zbyt wieloma równoczesnymi wywołaniami</td>
+</tr>
+</tbody>
+</table>
+<h2>Podsumowanie</h2>
 <blockquote>
-<p><code>[CallerMemberName]</code> eliminuje magic stringi w implementacji <code>INotifyPropertyChanged</code> - zamiast ręcznie wpisywać nazwę właściwości jako tekst przy każdym <code>SetProperty</code>/<code>OnPropertyChanged</code> (co jest kruche przy refaktoryzacji, bo string nie jest sprawdzany przez kompilator ani aktualizowany przez Rename), kompilator <strong>automatycznie</strong> wstawia nazwę właściwości/metody, z której nastąpiło wywołanie. To jeden z tych detali, które sprawiają, że <code>ViewModelBase</code> jest bezpieczny na refaktoryzację - zmiana nazwy property przez IDE nigdy nie "cichnie zepsuje" bindingu w WPF.</p>
+<p>Rate limiting w ASP.NET Core (od .NET 7, <code>Microsoft.AspNetCore.RateLimiting</code>) chroni API przed nadmiernym obciążeniem przez cztery algorytmy (Fixed/Sliding Window, Token Bucket, Concurrency), konfigurowane globalnie albo per-endpoint (<code>[EnableRateLimiting]</code>/<code>[DisableRateLimiting]</code>). Partycjonowanie (<code>RateLimitPartition</code>) daje niezależny licznik per klient (IP, użytkownik, API key), a przekroczenie limitu standardowo zwraca <code>429 Too Many Requests</code>, opcjonalnie z nagłówkiem <code>Retry-After</code>.</p>
 </blockquote>
   
-  
-  <div class="topic-nav"><a class="prev" href="icommand.html"><span class="lbl">← wstecz</span>ICommand i RelayCommand</a><a class="next" href="delegates.html"><span class="lbl">dalej →</span>Delegaty</a></div>
+  <div class="topic-nav"><a class="prev" href="iis-hosting-models.html"><span class="lbl">← wstecz</span>In-process vs Out-of-process (IIS)</a><a class="next" href="ef-basics.html"><span class="lbl">dalej →</span>Podstawy EF Core</a></div>
 </div>
     </div>
   </main>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>[CallerMemberName] — .NET / C# Kompendium wiedzy</title>
+<title>Endpoint Routing w ASP.NET Core — .NET / C# Kompendium wiedzy</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/nord.min.css">
 <link rel="stylesheet" href="../styles.css">
 </head>
@@ -52,7 +52,7 @@
     <a class="nav-item" data-topic-id="ioc" data-tags="ioc di hollywood principle template method middleware" href="../topics/ioc.html">Inversion of Control (IoC)</a>
   </div>
 </details>
-<details class="nav-group" data-cat-id="wpf" open>
+<details class="nav-group" data-cat-id="wpf">
   <summary class="nav-group-btn">
     <span style="display:flex;align-items:center;gap:.5rem;">
       <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
@@ -64,7 +64,7 @@
     <a class="nav-item" data-topic-id="wpf-recap" data-tags="wpf dependency property routed event data binding visual tree" href="../topics/wpf-recap.html">WPF — co przypomnieć</a>
     <a class="nav-item" data-topic-id="synccontext" data-tags="async await synchronizationcontext configureawait deadlock ui thread" href="../topics/synccontext.html">SynchronizationContext i ConfigureAwait</a>
     <a class="nav-item" data-topic-id="icommand" data-tags="icommand relaycommand canexecute commandmanager async void" href="../topics/icommand.html">ICommand i RelayCommand</a>
-    <a class="nav-item active" data-topic-id="callermembername" data-tags="callermembername inotifypropertychanged magic string nameof" href="../topics/callermembername.html">[CallerMemberName]</a>
+    <a class="nav-item" data-topic-id="callermembername" data-tags="callermembername inotifypropertychanged magic string nameof" href="../topics/callermembername.html">[CallerMemberName]</a>
   </div>
 </details>
 <details class="nav-group" data-cat-id="csharp">
@@ -92,7 +92,7 @@
     <a class="nav-item" data-topic-id="ienumerable-iqueryable" data-tags="ienumerable iqueryable expression func deferred execution ef core" href="../topics/ienumerable-iqueryable.html">IEnumerable vs IQueryable</a>
   </div>
 </details>
-<details class="nav-group" data-cat-id="web">
+<details class="nav-group" data-cat-id="web" open>
   <summary class="nav-group-btn">
     <span style="display:flex;align-items:center;gap:.5rem;">
       <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
@@ -110,7 +110,7 @@
     <a class="nav-item" data-topic-id="signalr-blazor" data-tags="signalr circuit websocket blazor server sticky sessions" href="../topics/signalr-blazor.html">SignalR w Blazor Server</a>
     <a class="nav-item" data-topic-id="pwa-rendermodes" data-tags="pwa progressive web app service worker render modes blazor united" href="../topics/pwa-rendermodes.html">PWA i Render Modes</a>
     <a class="nav-item" data-topic-id="blazor-structure" data-tags="blazor wasm server struktura projektu shared client program.cs" href="../topics/blazor-structure.html">Struktura projektu Blazor</a>
-    <a class="nav-item" data-topic-id="endpoint-routing" data-tags="endpoint routing middleware useendpoints minimal api authorization metadata" href="../topics/endpoint-routing.html">Endpoint Routing w ASP.NET Core</a>
+    <a class="nav-item active" data-topic-id="endpoint-routing" data-tags="endpoint routing middleware useendpoints minimal api authorization metadata" href="../topics/endpoint-routing.html">Endpoint Routing w ASP.NET Core</a>
     <a class="nav-item" data-topic-id="iis-hosting-models" data-tags="iis ancm kestrel w3wp hosting model inprocess outofprocess" href="../topics/iis-hosting-models.html">In-process vs Out-of-process (IIS)</a>
     <a class="nav-item" data-topic-id="rate-limiting" data-tags="rate limiting throttling fixed window sliding token bucket concurrency 429" href="../topics/rate-limiting.html">Rate Limiting w ASP.NET Core</a>
   </div>
@@ -236,143 +236,95 @@
   <main class="main wide" id="mainArea">
     <div class="content" id="content">
 <div class="topic">
-  <div class="crumb">.NET / C# <span class="sep">/</span> <span class="cat">WPF</span></div>
+  <div class="crumb">.NET / C# <span class="sep">/</span> <span class="cat">Web API, Blazor</span></div>
   
-  <h1><code>[CallerMemberName]</code> w C</h1>
-<h2>Co to jest - atrybut wstrzykiwany przez kompilator</h2>
-<p><code>[CallerMemberName]</code> to atrybut z przestrzeni <code>System.Runtime.CompilerServices</code>, który <strong>automatycznie wypełnia parametr metody nazwą członu (property, metody), z którego ta metoda została wywołana</strong> - kompilator robi to <strong>w czasie kompilacji</strong>, nie w runtime, więc nie ma żadnego narzutu wydajnościowego (to nie jest refleksja).</p>
-<p>Widziałeś go już wielokrotnie, w <code>ViewModelBase</code>:</p>
-<pre><code class="language-csharp">protected void SetProperty&lt;T&gt;(ref T field, T value, [CallerMemberName] string propertyName = null)
+  <h1>Endpoint Routing w ASP.NET Core</h1>
+<h2>Problem, który rozwiązuje - rozdzielenie "dopasowania trasy" od "wykonania"</h2>
+<p>W starszym modelu (klasyczny middleware routing) dopasowanie URL do logiki działo się <strong>w jednym miejscu</strong>, blisko samej logiki obsługi. <strong>Endpoint Routing</strong> (domyślny od ASP.NET Core 3.0) <strong>rozdziela to na dwa oddzielne kroki</strong> w pipeline:</p>
+<pre><code class="language-csharp">var app = builder.Build();
+
+app.UseRouting();      // KROK 1: dopasuj URL do endpointu (ale jeszcze NIE wykonuj)
+app.UseAuthentication();
+app.UseAuthorization(); // działa TU, bo już WIE który endpoint został dopasowany (i jego metadane)
+app.UseEndpoints(endpoints =&gt;
 {
-    if (EqualityComparer&lt;T&gt;.Default.Equals(field, value)) return;
-    field = value;
-    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-}
+    endpoints.MapControllers();
+    endpoints.MapGet(&quot;/health&quot;, () =&gt; &quot;OK&quot;);
+});          // KROK 2: dopiero TU faktycznie wykonaj dopasowany endpoint
 </code></pre>
-<h2>Problem, który rozwiązuje</h2>
-<p>Implementacja <code>INotifyPropertyChanged</code> wymaga podania <strong>nazwy właściwości jako string</strong> przy każdej zmianie - to jest podatne na błędy i nieporęczne:</p>
-<pre><code class="language-csharp">// BEZ CallerMemberName - musisz ręcznie wpisywać nazwę jako string
-private string _customerName;
-public string CustomerName
+<h2>Dlaczego to jest ważne - metadane dostępne WCZEŚNIEJ w pipeline</h2>
+<p>Kluczowa zaleta: middleware <strong>między</strong> <code>UseRouting()</code> i <code>UseEndpoints()</code> <strong>wie już</strong>, jaki endpoint zostanie wywołany, i może odczytać jego <strong>metadane</strong> (atrybuty typu <code>[Authorize]</code>, <code>[AllowAnonymous]</code>), zanim faktycznie do niego dojdzie:</p>
+<pre><code class="language-csharp">[Authorize(Roles = &quot;Admin&quot;)]
+[HttpGet(&quot;admin/reports&quot;)]
+public IActionResult GetReports() =&gt; Ok();
+</code></pre>
+<p><code>UseAuthorization()</code> middleware, działając <strong>po</strong> <code>UseRouting()</code>, ale <strong>przed</strong> <code>UseEndpoints()</code>, widzi atrybut <code>[Authorize(Roles = "Admin")]</code> na dopasowanym endpoincie <strong>bez</strong> jego wykonywania - może odrzucić request (<code>403</code>) <strong>zanim</strong> jakikolwiek kod kontrolera się wykona. W starym modelu (bez rozdzielenia) taka kontrola musiałaby być wpisana w każdą akcję ręcznie albo middleware musiałby "zgadywać" co się stanie.</p>
+<h2><code>Endpoint</code> jako obiekt pierwszej klasy</h2>
+<pre><code class="language-csharp">app.Use(async (context, next) =&gt;
 {
-    get =&gt; _customerName;
-    set
+    var endpoint = context.GetEndpoint(); // dostępny PO UseRouting(), przed wykonaniem
+    if (endpoint != null)
     {
-        _customerName = value;
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(&quot;CustomerName&quot;)); // ⚠️ magic string!
+        Console.WriteLine($&quot;Dopasowano endpoint: {endpoint.DisplayName}&quot;);
     }
-}
+    await next();
+});
 </code></pre>
-<p><strong>Problem z magic stringiem <code>"CustomerName"</code>:</strong> jeśli ktoś zmieni nazwę property przez refaktoryzację (Rename w IDE), <strong>string się NIE zmieni automatycznie</strong> - kompilator tego nie sprawdzi, bo to zwykły tekst, nie odwołanie do symbolu. Skutek: binding w WPF przestaje działać, a błąd wychodzi dopiero w runtime (UI po prostu się nie aktualizuje), bez żadnego ostrzeżenia kompilatora.</p>
-<h2>Rozwiązanie z <code>[CallerMemberName]</code></h2>
-<pre><code class="language-csharp">private string _customerName;
-public string CustomerName
-{
-    get =&gt; _customerName;
-    set =&gt; SetProperty(ref _customerName, value); // BEZ podawania nazwy jawnie!
-}
+<p>Endpoint Routing reprezentuje dopasowaną trasę jako <strong>obiekt</strong> (<code>Endpoint</code>) z metadanymi, dostępny przez <code>HttpContext.GetEndpoint()</code> - to jest fundament, na którym stoi Minimal API, routing w Blazor, gRPC i SignalR w ASP.NET Core - <strong>wszystkie</strong> używają tego samego, wspólnego mechanizmu, zamiast każdy mieć swój.</p>
+<h2>Minimal API - routing bez kontrolerów</h2>
+<pre><code class="language-csharp">app.MapGet(&quot;/orders/{id}&quot;, (int id, IOrderService service) =&gt; service.GetOrder(id));
+app.MapPost(&quot;/orders&quot;, (CreateOrderRequest req, IOrderService service) =&gt; service.CreateOrder(req));
+</code></pre>
+<p>To jest ten sam Endpoint Routing "pod spodem" - <code>MapGet</code>/<code>MapPost</code> rejestrują endpoint z takimi samymi metadanymi i takim samym mechanizmem dopasowania jak <code>[HttpGet]</code> w kontrolerze.</p>
+<h2>Route constraints i priorytetyzacja</h2>
+<pre><code class="language-csharp">app.MapGet(&quot;/orders/{id:int}&quot;, (int id) =&gt; $&quot;Zamówienie {id}&quot;);        // TYLKO liczba całkowita
+app.MapGet(&quot;/orders/{id:guid}&quot;, (Guid id) =&gt; $&quot;Zamówienie {id}&quot;);       // TYLKO GUID
+app.MapGet(&quot;/orders/search&quot;, () =&gt; &quot;wyszukiwanie&quot;);                     // bardziej SPECYFICZNY - wygrywa
+</code></pre>
+<p>Endpoint Routing <strong>sam ustala priorytet</strong> dopasowania na podstawie specyficzności trasy (literalny segment <code>search</code> wygrywa z parametrem <code>{id}</code>), bez potrzeby ręcznego ustawiania kolejności rejestracji, jak to bywało konieczne w starszych systemach routingu.</p>
+<h2>Pełny przykład w Web API - jak to się składa w praktyce</h2>
+<pre><code class="language-csharp">var builder = WebApplication.CreateBuilder(args);
 
-protected void SetProperty&lt;T&gt;(ref T field, T value, [CallerMemberName] string propertyName = null)
+builder.Services.AddControllers();
+builder.Services.AddAuthentication(/* ... */);
+builder.Services.AddAuthorization();
+builder.Services.AddScoped&lt;IOrderService, OrderService&gt;();
+
+var app = builder.Build();
+
+app.UseRouting();               // (1) dopasowanie trasy
+
+app.Use(async (context, next) =&gt;
 {
-    field = value;
-    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-}
-</code></pre>
-<p>Gdy <code>set</code> właściwości <code>CustomerName</code> wywołuje <code>SetProperty(ref _customerName, value)</code>, <strong>kompilator automatycznie wstawia</strong> <code>"CustomerName"</code> jako wartość parametru <code>propertyName</code> - dokładnie tak, jakbyś napisał:</p>
-<pre><code class="language-csharp">set =&gt; SetProperty(ref _customerName, value, &quot;CustomerName&quot;); // to dzieje się NIEJAWNIE
-</code></pre>
-<p><strong>Kluczowa korzyść:</strong> jeśli zmienisz nazwę property przez Rename w IDE (np. <code>CustomerName</code> → <code>ClientName</code>), wywołanie <code>SetProperty</code> <strong>nie musi być w ogóle dotykane</strong> - kompilator przy następnej kompilacji <strong>sam</strong> wstawi nową, poprawną nazwę. Błąd typu "zapomniałem zaktualizować string po refaktoryzacji" <strong>nie może się zdarzyć</strong>, bo nie ma już żadnego ręcznie wpisywanego stringa.</p>
-<h2>Jak dokładnie działa - "nazwa członu WYWOŁUJĄCEGO"</h2>
-<pre><code class="language-csharp">public class OrderViewModel : ViewModelBase
+    var endpoint = context.GetEndpoint();
+    var requiresAuth = endpoint?.Metadata.GetMetadata&lt;IAuthorizeData&gt;() != null;
+    Console.WriteLine($&quot;{context.Request.Path} -&gt; wymaga auth: {requiresAuth}&quot;);
+    await next();
+});                              // (2) własny middleware, WIDZI już metadane endpointu
+
+app.UseAuthentication();
+app.UseAuthorization();         // (3) blokuje request, jeśli [Authorize] nie jest spełnione
+
+app.UseEndpoints(endpoints =&gt;   // (4) dopiero TU faktyczne wykonanie
 {
-    private decimal _totalAmount;
-    public decimal TotalAmount
+    endpoints.MapControllers();
+
+    endpoints.MapGet(&quot;/orders/{id:int}&quot;, async (int id, IOrderService service) =&gt;
     {
-        get =&gt; _totalAmount;
-        set =&gt; SetProperty(ref _totalAmount, value); // wywołane WEWNĄTRZ setter'a TotalAmount
-    }
+        var order = await service.GetOrderAsync(id);
+        return order != null ? Results.Ok(order) : Results.NotFound();
+    });
+});
 
-    public void RecalculateTotal()
-    {
-        TotalAmount = 100; // to WYWOŁA setter, który wywoła SetProperty z &quot;TotalAmount&quot;
-    }
-
-    public void LogSomething([CallerMemberName] string caller = null)
-    {
-        Console.WriteLine($&quot;Wywołane z: {caller}&quot;);
-    }
-}
+app.Run();
 </code></pre>
-<pre><code class="language-csharp">vm.RecalculateTotal();
-// Wewnątrz RecalculateTotal(), jeśli TAM wywołasz LogSomething() bezpośrednio:
-vm.LogSomething(); // wypisze &quot;RecalculateTotal&quot; - bo STAMTĄD zostało wywołane
-</code></pre>
-<p><code>[CallerMemberName]</code> <strong>zawsze</strong> odnosi się do <strong>bezpośredniego</strong> wywołującego (metody/property, w którym fizycznie znajduje się wywołanie) - nie do "pierwotnego" wywołania gdzieś wyżej w stosie.</p>
-<h2>Wymagania składniowe</h2>
-<pre><code class="language-csharp">// ✅ Poprawnie - parametr musi mieć wartość domyślną
-public void Method([CallerMemberName] string caller = null) { }
-public void Method([CallerMemberName] string caller = &quot;&quot;) { }
-
-// ❌ Błąd kompilacji - CallerMemberName wymaga wartości domyślnej
-public void Method([CallerMemberName] string caller) { }
-</code></pre>
-<p>Musi to być <strong>ostatni parametr</strong> (albo przynajmniej mieć wartość domyślną, żeby dało się wywołać metodę bez podawania go jawnie) - dokładnie ta sama zasada co przy zwykłych parametrach opcjonalnych w C#.</p>
-<h2>Można nadal podać wartość jawnie - <code>[CallerMemberName]</code> to tylko wartość DOMYŚLNA</h2>
-<pre><code class="language-csharp">protected void SetProperty&lt;T&gt;(ref T field, T value, [CallerMemberName] string propertyName = null) { }
-
-// Normalne użycie - kompilator wstawia automatycznie
-SetProperty(ref _customerName, value); // propertyName = &quot;CustomerName&quot; (automatycznie)
-
-// Można NADAL podać jawnie, gdy potrzeba
-SetProperty(ref _customerName, value, &quot;InnaWlasciwosc&quot;); // propertyName = &quot;InnaWlasciwosc&quot; (jawnie)
-</code></pre>
-<p>To bywa przydatne, gdy <strong>jedna</strong> właściwość musi powiadomić o zmianie <strong>innej</strong>, powiązanej właściwości - np. gdy <code>TotalAmount</code> zmienia się, a chcesz też odświeżyć <code>FormattedTotalAmount</code> w UI:</p>
-<pre><code class="language-csharp">private decimal _totalAmount;
-public decimal TotalAmount
-{
-    get =&gt; _totalAmount;
-    set
-    {
-        SetProperty(ref _totalAmount, value); // propertyName = &quot;TotalAmount&quot; (automatycznie)
-        OnPropertyChanged(nameof(FormattedTotalAmount)); // jawnie - inna właściwość się zmieniła
-    }
-}
-
-public string FormattedTotalAmount =&gt; $&quot;{TotalAmount:C}&quot;; // właściwość obliczana, bez backing field
-</code></pre>
-<h2>Powiązane atrybuty z tej samej rodziny (<code>System.Runtime.CompilerServices</code>)</h2>
-<p>Warto wspomnieć, bo czasem pytają o "resztę rodziny":</p>
-<pre><code class="language-csharp">public void LogError(
-    string message,
-    [CallerMemberName] string memberName = &quot;&quot;,
-    [CallerFilePath] string filePath = &quot;&quot;,
-    [CallerLineNumber] int lineNumber = 0)
-{
-    Console.WriteLine($&quot;[{filePath}:{lineNumber}] {memberName}: {message}&quot;);
-}
-</code></pre>
-<ul>
-<li><strong><code>[CallerFilePath]</code></strong> - pełna ścieżka pliku źródłowego, z którego nastąpiło wywołanie</li>
-<li><strong><code>[CallerLineNumber]</code></strong> - numer linii, w której nastąpiło wywołanie</li>
-</ul>
-<p>To jest bardzo przydatne do <strong>logowania diagnostycznego</strong> - bez ręcznego wpisywania <code>"OrderService.cs"</code> czy numeru linijki, kompilator wstawia to automatycznie, i <strong>zawsze aktualne</strong>, nawet po przesunięciu kodu.</p>
-<h2>Alternatywa - <code>nameof()</code> (dla porównania, inny mechanizm, podobny cel)</h2>
-<p>Warto odróżnić <code>[CallerMemberName]</code> od <code>nameof()</code> - oba rozwiązują podobny problem (unikanie magic stringów), ale działają inaczej:</p>
-<pre><code class="language-csharp">// nameof() - jawne, w miejscu WYWOŁANIA, dowolna nazwa symbolu
-OnPropertyChanged(nameof(TotalAmount)); // &quot;TotalAmount&quot; - sprawdzane przez kompilator, ale trzeba napisać jawnie
-
-// CallerMemberName - niejawne, AUTOMATYCZNE, zawsze nazwa WYWOŁUJĄCEGO
-SetProperty(ref _totalAmount, value); // &quot;TotalAmount&quot; wstawione samo, bo STĄD wywołane
-</code></pre>
-<p><strong>Kiedy <code>nameof()</code>:</strong> gdy chcesz odwołać się do <strong>konkretnej, dowolnej</strong> nazwy symbolu (może być innej niż ta, w której się aktualnie znajdujesz) - jak w przykładzie z <code>FormattedTotalAmount</code> wyżej.</p>
-<p><strong>Kiedy <code>[CallerMemberName]</code>:</strong> gdy chcesz <strong>automatycznie</strong> wiedzieć, "skąd mnie wywołano", bez zmuszania wywołującego kodu do jawnego podawania tej informacji za każdym razem.</p>
-<h2>Podsumowanie - dlaczego to ważne dla WPF/MVVM</h2>
+<p>Ten przykład pokazuje pełny sens rozdzielenia: własny middleware logujący (2) i <code>UseAuthorization()</code> (3) <strong>oba</strong> korzystają z tego, że endpoint został już dopasowany w kroku (1), zanim jego kod faktycznie się wykona w kroku (4) - niezależnie czy to kontroler (<code>MapControllers()</code>) czy Minimal API (<code>MapGet</code>).</p>
+<h2>Podsumowanie</h2>
 <blockquote>
-<p><code>[CallerMemberName]</code> eliminuje magic stringi w implementacji <code>INotifyPropertyChanged</code> - zamiast ręcznie wpisywać nazwę właściwości jako tekst przy każdym <code>SetProperty</code>/<code>OnPropertyChanged</code> (co jest kruche przy refaktoryzacji, bo string nie jest sprawdzany przez kompilator ani aktualizowany przez Rename), kompilator <strong>automatycznie</strong> wstawia nazwę właściwości/metody, z której nastąpiło wywołanie. To jeden z tych detali, które sprawiają, że <code>ViewModelBase</code> jest bezpieczny na refaktoryzację - zmiana nazwy property przez IDE nigdy nie "cichnie zepsuje" bindingu w WPF.</p>
+<p>Endpoint Routing rozdziela dopasowanie trasy (<code>UseRouting()</code>) od jej wykonania (<code>UseEndpoints()</code>/mapowania), udostępniając middleware'owi w tym przedziale metadane dopasowanego endpointu (przez <code>HttpContext.GetEndpoint()</code>) - to jest mechanizm, na którym opiera się <code>UseAuthorization()</code> (blokowanie na podstawie <code>[Authorize]</code> przed wykonaniem kodu), a także wspólny fundament dla kontrolerów, Minimal API, Blazor, gRPC i SignalR w ASP.NET Core.</p>
 </blockquote>
   
-  
-  <div class="topic-nav"><a class="prev" href="icommand.html"><span class="lbl">← wstecz</span>ICommand i RelayCommand</a><a class="next" href="delegates.html"><span class="lbl">dalej →</span>Delegaty</a></div>
+  <div class="topic-nav"><a class="prev" href="blazor-structure.html"><span class="lbl">← wstecz</span>Struktura projektu Blazor</a><a class="next" href="iis-hosting-models.html"><span class="lbl">dalej →</span>In-process vs Out-of-process (IIS)</a></div>
 </div>
     </div>
   </main>
