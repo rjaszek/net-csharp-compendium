@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Apache Kafka — .NET / C# Kompendium wiedzy</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/nord.min.css">
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<div class="topbar">
+  <button class="burger" id="burgerBtn" aria-label="Menu">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <a class="brand" id="topbarBrand" href="../index.html"><b>C#</b> / .NET Kompendium</a>
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <a class="sidebar-head" id="sidebarHead" href="../index.html">
+      <h1>.NET &amp; C# Kompendium</h1>
+      <div class="sub">Notatki z rozmowy, zorganizowane w dział → temat</div>
+    </a>
+    <div class="search-wrap">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="searchInput" placeholder="Szukaj tematu…" autocomplete="off" />
+      </div>
+      <div class="search-count" id="searchCount"></div>
+    </div>
+    <nav class="nav" id="navList">
+<details class="nav-group" data-cat-id="solid">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      SOLID, Clean Code, DI
+    </span>
+    <span class="n">9</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="oop-enterprise" data-tags="oop encapsulation inheritance polymorphism abstraction enterprise overengineering yagni" href="../topics/oop-enterprise.html">OOP i &quot;Enterprise OOP&quot;</a>
+    <a class="nav-item" data-topic-id="solid-basics" data-tags="solid srp ocp lsp isp dip" href="../topics/solid-basics.html">Zasady SOLID</a>
+    <a class="nav-item" data-topic-id="clean-code" data-tags="clean code czytelność nazewnictwo dry" href="../topics/clean-code.html">Clean Code</a>
+    <a class="nav-item" data-topic-id="di-mvvm-concept" data-tags="di dependency injection mvvm viewmodel" href="../topics/di-mvvm-concept.html">DI w MVVM — koncepcja</a>
+    <a class="nav-item" data-topic-id="di-mvvm-wpf" data-tags="wpf mvvm di viewmodelbase servicecollection" href="../topics/di-mvvm-wpf.html">MVVM + DI w WPF (pełny przykład)</a>
+    <a class="nav-item" data-topic-id="lifetimes" data-tags="di lifetime singleton transient scoped captive dependency" href="../topics/lifetimes.html">Singleton vs Transient vs Scoped</a>
+    <a class="nav-item" data-topic-id="scope-factory-threadsafe" data-tags="scope factory singleton thread safe lock interlocked" href="../topics/scope-factory-threadsafe.html">IServiceScopeFactory i thread-safety</a>
+    <a class="nav-item" data-topic-id="di-methods" data-tags="constructor property method injection service locator anti-pattern" href="../topics/di-methods.html">Sposoby wdrożenia DI</a>
+    <a class="nav-item" data-topic-id="ioc" data-tags="ioc di hollywood principle template method middleware" href="../topics/ioc.html">Inversion of Control (IoC)</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="wpf">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      WPF
+    </span>
+    <span class="n">4</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="wpf-recap" data-tags="wpf dependency property routed event data binding visual tree" href="../topics/wpf-recap.html">WPF — co przypomnieć</a>
+    <a class="nav-item" data-topic-id="synccontext" data-tags="async await synchronizationcontext configureawait deadlock ui thread" href="../topics/synccontext.html">SynchronizationContext i ConfigureAwait</a>
+    <a class="nav-item" data-topic-id="icommand" data-tags="icommand relaycommand canexecute commandmanager async void" href="../topics/icommand.html">ICommand i RelayCommand</a>
+    <a class="nav-item" data-topic-id="callermembername" data-tags="callermembername inotifypropertychanged magic string nameof" href="../topics/callermembername.html">[CallerMemberName]</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="csharp">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      C# — fundamenty języka
+    </span>
+    <span class="n">14</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="delegates" data-tags="delegate action func predicate multicast event" href="../topics/delegates.html">Delegaty</a>
+    <a class="nav-item" data-topic-id="callback-vs-function" data-tags="callback funkcja kontrola przepływu inversion" href="../topics/callback-vs-function.html">Callback vs funkcja</a>
+    <a class="nav-item" data-topic-id="underscore" data-tags="discard underscore lambda separator cyfr" href="../topics/underscore.html">Znak &quot;_&quot; w C#</a>
+    <a class="nav-item" data-topic-id="class-vs-record" data-tags="record class equality value reference with init" href="../topics/class-vs-record.html">Class vs record</a>
+    <a class="nav-item" data-topic-id="record-declaration" data-tags="record positional syntax deconstruct equals hashcode generowany kod" href="../topics/record-declaration.html">Deklaracja record vs class</a>
+    <a class="nav-item" data-topic-id="record-vs-class-compare" data-tags="equals gethashcode referenceequals iequatable iequalitycomparer" href="../topics/record-vs-class-compare.html">Jak porównywać record i class</a>
+    <a class="nav-item" data-topic-id="abstract-vs-interface" data-tags="abstract interface dziedziczenie wielokrotne template method" href="../topics/abstract-vs-interface.html">Klasa abstrakcyjna vs interfejs</a>
+    <a class="nav-item" data-topic-id="access-modifiers" data-tags="public private protected internal protected internal private protected" href="../topics/access-modifiers.html">Modyfikatory dostępu</a>
+    <a class="nav-item" data-topic-id="inheritance-modifiers" data-tags="virtual abstract override sealed new method hiding polimorfizm" href="../topics/inheritance-modifiers.html">Modyfikatory dziedziczenia</a>
+    <a class="nav-item" data-topic-id="lock-mutex-semaphore" data-tags="lock mutex semaphore semaphoreslim thread synchronization async" href="../topics/lock-mutex-semaphore.html">lock, Mutex, Semaphore</a>
+    <a class="nav-item" data-topic-id="struct" data-tags="struct value type stack boxing readonly struct" href="../topics/struct.html">struct</a>
+    <a class="nav-item" data-topic-id="struct-vs-record" data-tags="record struct readonly record struct wartość referencja" href="../topics/struct-vs-record.html">struct vs record</a>
+    <a class="nav-item" data-topic-id="icomparable" data-tags="icomparable compareto sortowanie comparer sort orderby" href="../topics/icomparable.html">IComparable</a>
+    <a class="nav-item" data-topic-id="ienumerable-iqueryable" data-tags="ienumerable iqueryable expression func deferred execution ef core" href="../topics/ienumerable-iqueryable.html">IEnumerable vs IQueryable</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="web">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Web API, Blazor
+    </span>
+    <span class="n">9</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="webapi-mvc" data-tags="webapi mvc controller dto apicontroller minimal api" href="../topics/webapi-mvc.html">Web API jako implementacja MVC</a>
+    <a class="nav-item" data-topic-id="model-binding" data-tags="fromroute fromquery frombody fromheader fromservices apicontroller" href="../topics/model-binding.html">Model Binding i [FromBody]</a>
+    <a class="nav-item" data-topic-id="actionresult" data-tags="actionresult ok notfound badrequest problemdetails result pattern" href="../topics/actionresult.html">ActionResult&lt;T&gt; — zwracanie wyniku i błędów</a>
+    <a class="nav-item" data-topic-id="actionresult-client" data-tags="httpclient apiresult wpf blazor consuming api statuscode" href="../topics/actionresult-client.html">ActionResult po stronie klienta</a>
+    <a class="nav-item" data-topic-id="db-webapi" data-tags="dbcontext connection string appsettings migrations di" href="../topics/db-webapi.html">Podłączenie bazy danych do Web API</a>
+    <a class="nav-item" data-topic-id="blazor-mvc" data-tags="blazor komponent mvvm razor lifecycle" href="../topics/blazor-mvc.html">Blazor — NIE jest MVC</a>
+    <a class="nav-item" data-topic-id="signalr-blazor" data-tags="signalr circuit websocket blazor server sticky sessions" href="../topics/signalr-blazor.html">SignalR w Blazor Server</a>
+    <a class="nav-item" data-topic-id="pwa-rendermodes" data-tags="pwa progressive web app service worker render modes blazor united" href="../topics/pwa-rendermodes.html">PWA i Render Modes</a>
+    <a class="nav-item" data-topic-id="blazor-structure" data-tags="blazor wasm server struktura projektu shared client program.cs" href="../topics/blazor-structure.html">Struktura projektu Blazor</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="ef">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Entity Framework Core
+    </span>
+    <span class="n">6</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="ef-basics" data-tags="dbcontext dbset asnotracking include n+1 migrations" href="../topics/ef-basics.html">Podstawy EF Core</a>
+    <a class="nav-item" data-topic-id="repo-uow" data-tags="repository unit of work dbset savechanges extension methods" href="../topics/repo-uow.html">Repository + Unit of Work nad EF Core</a>
+    <a class="nav-item" data-topic-id="ef-async" data-tags="async await io cpu bound task run warstwy" href="../topics/ef-async.html">Async w EF Core — kiedy tak, kiedy nie</a>
+    <a class="nav-item" data-topic-id="change-tracking" data-tags="snapshot statemanager detectchanges identity map entitystate" href="../topics/change-tracking.html">Change Tracking pod spodem</a>
+    <a class="nav-item" data-topic-id="migrations-team" data-tags="migracje modelsnapshot konflikty git idempotent skrypt sql" href="../topics/migrations-team.html">Migracje w zespole</a>
+    <a class="nav-item" data-topic-id="ef-transactions" data-tags="savechangesasync begintransaction executionstrategy isolation level savepoints" href="../topics/ef-transactions.html">EF Core i transakcje</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="cqrs">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      CQRS, MediatR
+    </span>
+    <span class="n">2</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="cqrs-what" data-tags="cqrs cqs command query segregation event sourcing eventual consistency" href="../topics/cqrs-what.html">Czym jest CQRS</a>
+    <a class="nav-item" data-topic-id="cqrs-mediatr" data-tags="mediatr irequest irequesthandler pipeline behavior send" href="../topics/cqrs-mediatr.html">MediatR — jak działa i jak używać</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="testing">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Testy
+    </span>
+    <span class="n">3</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="xunit" data-tags="xunit fact theory inlinedata memberdata classfixture aaa" href="../topics/xunit.html">xUnit — podstawy</a>
+    <a class="nav-item" data-topic-id="moq" data-tags="moq mock setup verify times itisany callback" href="../topics/moq.html">Moq — mockowanie</a>
+    <a class="nav-item" data-topic-id="integration-tests" data-tags="webapplicationfactory testcontainers piramida testow inmemory" href="../topics/integration-tests.html">Testy integracyjne</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="algo">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Algorytmy, struktury danych
+    </span>
+    <span class="n">3</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="bigo" data-tags="big o złożoność hashset dictionary list queue stack" href="../topics/bigo.html">Big O i struktury danych .NET</a>
+    <a class="nav-item" data-topic-id="hashset" data-tags="hashset unikalne elementy equalitycomparer intersect union except" href="../topics/hashset.html">HashSet&lt;T&gt;</a>
+    <a class="nav-item" data-topic-id="extension-methods" data-tags="extension methods this static linq where select" href="../topics/extension-methods.html">Extension Methods</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="automapper">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      AutoMapper
+    </span>
+    <span class="n">1</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="automapper-basics" data-tags="automapper profile projectto reversemap assertconfigurationisvalid" href="../topics/automapper-basics.html">AutoMapper</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="distributed" open>
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Architektura rozproszona
+    </span>
+    <span class="n">7</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="saga" data-tags="saga orchestration choreography compensating transaction idempotencja" href="../topics/saga.html">Saga Pattern</a>
+    <a class="nav-item" data-topic-id="outbox" data-tags="outbox pattern dual write at least once idempotent cdc debezium" href="../topics/outbox.html">Outbox Pattern</a>
+    <a class="nav-item" data-topic-id="reference-data" data-tags="reference data słowniki denormalizacja synchroniczne odpytywanie cache ttl" href="../topics/reference-data.html">Dane słownikowe między mikroserwisami</a>
+    <a class="nav-item active" data-topic-id="kafka" data-tags="kafka topic partition consumer group retention at least once producer consumer" href="../topics/kafka.html">Apache Kafka</a>
+    <a class="nav-item" data-topic-id="docker-k8s" data-tags="docker container image kubernetes pod deployment service self healing" href="../topics/docker-k8s.html">Docker, kontenery, Kubernetes</a>
+    <a class="nav-item" data-topic-id="rebus-servicebus" data-tags="rebus servicebus messagebus rabbitmq masstransit saga" href="../topics/rebus-servicebus.html">Rebus (.NET Service Bus)</a>
+    <a class="nav-item" data-topic-id="rabbitmq-fundamentals" data-tags="rabbitmq amqp broker exchange queue push pull" href="../topics/rabbitmq-fundamentals.html">Jak działa RabbitMQ (AMQP vs HTTP)</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="memory">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Pamięć i wątki
+    </span>
+    <span class="n">2</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="memory-management" data-tags="garbage collector gc generacje loh workstation server gc cgroups datas" href="../topics/memory-management.html">Zarządzanie pamięcią: Framework, Core, .NET</a>
+    <a class="nav-item" data-topic-id="async-thread" data-tags="async await thread pool i/o completion ports task run state machine" href="../topics/async-thread.html">Czy async tworzy nowy wątek?</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="recap">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Przypomnienie / wzorce web
+    </span>
+    <span class="n">3</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="mvc-mvvm-mvp" data-tags="mvc mvvm mvp controller presenter viewmodel przykłady" href="../topics/mvc-mvvm-mvp.html">MVC, MVVM, MVP — porównanie</a>
+    <a class="nav-item" data-topic-id="dto-mvvm-placement" data-tags="dto models folder struktura projektu wpf" href="../topics/dto-mvvm-placement.html">Gdzie umieszczać DTO w projekcie MVVM</a>
+    <a class="nav-item" data-topic-id="code-review-example" data-tags="singleton anti-pattern socket exhaustion httpclientfactory code review" href="../topics/code-review-example.html">Przykład code review — HttpClientFactory</a>
+  </div>
+</details>
+    </nav>
+  </aside>
+
+  <main class="main wide" id="mainArea">
+    <div class="content" id="content">
+<div class="topic">
+  <div class="crumb">.NET / C# <span class="sep">/</span> <span class="cat">Architektura rozproszona</span></div>
+  
+  <h1>Apache Kafka - podstawy</h1>
+<h2>Co to jest Kafka - rozproszony log zdarzeń</h2>
+<p>Kafka to platforma do przesyłania strumieni zdarzeń (event streaming), działająca jako <strong>rozproszony, trwały log</strong> (append-only log) - w przeciwieństwie do tradycyjnego brokera wiadomości (jak RabbitMQ), gdzie wiadomość jest <strong>usuwana</strong> po odebraniu, Kafka <strong>przechowuje</strong> wiadomości przez skonfigurowany czas (retencję), niezależnie od tego, czy zostały już odebrane.</p>
+<p>To jest właśnie technologia, którą naturalnie wykorzystałbyś do implementacji <code>IEventBus</code> z przykładów Sagi/Outboxa, o których mówiliśmy wcześniej.</p>
+<h2>Kluczowe pojęcia</h2>
+<h3>Topic - kanał, do którego publikujesz wiadomości</h3>
+<pre><code class="language-csharp">Topic: &quot;order-events&quot;
+</code></pre>
+<p>Analogicznie do tabeli w bazie danych albo kolejki w RabbitMQ - logiczna kategoria zdarzeń o podobnym charakterze (np. wszystkie zdarzenia dotyczące zamówień).</p>
+<h3>Partycje - jak Kafka skaluje przepustowość</h3>
+<p>Każdy topic jest podzielony na <strong>partycje</strong> - niezależne, uporządkowane logi, które mogą być rozmieszczone na różnych serwerach (brokerach) w klastrze:</p>
+<pre><code class="language-csharp">Topic: &quot;order-events&quot; (3 partycje)
+├── Partition 0: [msg1, msg4, msg7, ...]
+├── Partition 1: [msg2, msg5, msg8, ...]
+└── Partition 2: [msg3, msg6, msg9, ...]
+</code></pre>
+<p><strong>Kluczowa właściwość - kolejność zachowana TYLKO wewnątrz jednej partycji.</strong> Kafka <strong>gwarantuje</strong> porządek wiadomości w ramach jednej partycji, ale <strong>nie</strong> między różnymi partycjami tego samego topicu.</p>
+<pre><code class="language-csharp">// Klucz partycjonowania decyduje, do KTÓREJ partycji trafi wiadomość
+await producer.ProduceAsync(&quot;order-events&quot;, new Message&lt;string, string&gt;
+{
+    Key = order.Id.ToString(), // wszystkie zdarzenia dla TEGO SAMEGO orderId trafią do TEJ SAMEJ partycji
+    Value = JsonSerializer.Serialize(orderEvent)
+});
+</code></pre>
+<p>To jest <strong>praktyczna konsekwencja</strong> dla Sagi - jeśli chcesz, żeby zdarzenia dotyczące <strong>jednego</strong> zamówienia były przetwarzane <strong>w kolejności</strong> (np. <code>OrderPlaced</code> przed <code>PaymentCompleted</code>), musisz użyć <code>orderId</code> jako klucza partycjonowania - Kafka zagwarantuje, że wszystkie zdarzenia z tym samym kluczem trafią do tej samej partycji, a więc zostaną przetworzone w kolejności publikacji.</p>
+<h3>Consumer Groups - jak wiele instancji dzieli pracę</h3>
+<pre><code class="language-csharp">var config = new ConsumerConfig
+{
+    GroupId = &quot;inventory-service-group&quot;, // WSZYSTKIE instancje InventoryService należą do tej samej grupy
+    BootstrapServers = &quot;localhost:9092&quot;
+};
+</code></pre>
+<p><strong>Kluczowa zasada:</strong> wewnątrz <strong>jednej</strong> consumer group, <strong>każda partycja jest przypisana do TYLKO JEDNEGO konsumenta</strong> w danym momencie - to jest naturalny mechanizm <strong>równoważenia obciążenia</strong> (load balancing) między wieloma instancjami tego samego serwisu.</p>
+<pre><code class="language-csharp">Topic &quot;order-events&quot; (3 partycje), Consumer Group &quot;inventory-service-group&quot; (3 instancje InventoryService)
+
+Partition 0 → Consumer Instance A
+Partition 1 → Consumer Instance B
+Partition 2 → Consumer Instance C
+</code></pre>
+<p>Jeśli uruchomisz <strong>więcej</strong> instancji <code>InventoryService</code> niż partycji, <strong>dodatkowe instancje pozostają bezczynne</strong> (idle) - to jest praktyczne ograniczenie, o którym trzeba pamiętać przy planowaniu skalowania: <strong>liczba partycji ograniczą maksymalny równoległy przepustowość</strong> wewnątrz jednej consumer group.</p>
+<p><strong>Wiele różnych consumer groups może czytać ten sam topic niezależnie</strong> - to jest przydatne, gdy zarówno <code>InventoryService</code>, jak i <code>AnalyticsService</code> chcą przetwarzać te same zdarzenia <code>order-events</code>, ale niezależnie od siebie:</p>
+<pre><code class="language-csharp">Topic &quot;order-events&quot;
+├── Consumer Group &quot;inventory-service-group&quot; - czyta i przetwarza dla logiki magazynowej
+└── Consumer Group &quot;analytics-service-group&quot; - czyta te SAME zdarzenia, niezależnie, do raportowania
+</code></pre>
+<h2>Producer - publikowanie wiadomości</h2>
+<pre><code class="language-csharp">public class KafkaEventBus : IEventBus
+{
+    private readonly IProducer&lt;string, string&gt; _producer;
+
+    public async Task PublishAsync&lt;T&gt;(T @event) where T : class
+    {
+        var topic = typeof(T).Name.ToLower(); // np. &quot;orderplacedevent&quot;
+        var payload = JsonSerializer.Serialize(@event);
+
+        await _producer.ProduceAsync(topic, new Message&lt;string, string&gt;
+        {
+            Key = Guid.NewGuid().ToString(),
+            Value = payload
+        });
+    }
+}
+</code></pre>
+<h2>Consumer - pętla nasłuchująca</h2>
+<pre><code class="language-csharp">public class InventoryEventConsumer : BackgroundService
+{
+    private readonly IConsumer&lt;string, string&gt; _consumer;
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        _consumer.Subscribe(&quot;order-events&quot;);
+
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            var result = _consumer.Consume(stoppingToken); // BLOKUJE, dopóki nie przyjdzie wiadomość
+
+            try
+            {
+                var orderEvent = JsonSerializer.Deserialize&lt;OrderPlacedEvent&gt;(result.Message.Value);
+                await ProcessEventAsync(orderEvent); // idempotentna logika, jak omawialiśmy przy Sadze/Outboksie
+
+                _consumer.Commit(result); // potwierdzenie przetworzenia - &quot;offset&quot; przesunięty
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, &quot;Błąd przetwarzania wiadomości&quot;);
+                // BRAK Commit() - ta sama wiadomość zostanie dostarczona PONOWNIE
+            }
+        }
+    }
+}
+</code></pre>
+<h2>Offset - "zakładka" mówiąca, gdzie konsument skończył czytać</h2>
+<pre><code class="language-csharp">Partition 0: [msg1, msg2, msg3, msg4, msg5]
+                              ↑
+                    Consumer offset = 3 (przetworzył msg1, msg2, msg3)
+</code></pre>
+<p>Kafka <strong>zapamiętuje</strong>, jaki offset (pozycję) osiągnął dany consumer group w każdej partycji - jeśli konsument padnie i wróci, <strong>kontynuuje</strong> od zapamiętanego offsetu, nie od początku. To jest mechanizm dający <strong>"at-least-once delivery"</strong> (dokładnie ta sama gwarancja, o której mówiliśmy przy Outbox Pattern) - jeśli konsument przetworzył wiadomość, ale padł <strong>przed</strong> zatwierdzeniem (<code>Commit</code>) nowego offsetu, ta sama wiadomość zostanie dostarczona ponownie po restarcie.</p>
+<h2>Retencja - dlaczego Kafka to nie tylko "kolejka"</h2>
+<pre><code class="language-csharp">Konfiguracja topicu: retention.ms = 604800000 (7 dni)
+</code></pre>
+<p>W przeciwieństwie do RabbitMQ (gdzie wiadomość jest usuwana po odebraniu przez konsumenta), Kafka <strong>przechowuje</strong> wiadomości przez skonfigurowany okres <strong>niezależnie</strong> od tego, czy zostały odebrane. To umożliwia:
+- <strong>Replay</strong> - nowy konsument (albo nowa consumer group) może "odtworzyć" historię zdarzeń od początku
+- <strong>Wielu niezależnych konsumentów</strong> czytających te same dane w różnym tempie</p>
+<h2>Kafka vs tradycyjny broker wiadomości (RabbitMQ) - kiedy który</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Kafka</th>
+<th>RabbitMQ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Model</td>
+<td>Rozproszony log (retencja czasowa)</td>
+<td>Kolejka (usuwanie po odebraniu)</td>
+</tr>
+<tr>
+<td>Przepustowość</td>
+<td>Bardzo wysoka (miliony wiadomości/s)</td>
+<td>Wysoka, ale niższa niż Kafka</td>
+</tr>
+<tr>
+<td>Replay historii</td>
+<td>✅ Tak (dane trzymane przez okres retencji)</td>
+<td>❌ Nie (wiadomość usunięta po odebraniu)</td>
+</tr>
+<tr>
+<td>Złożoność routingu</td>
+<td>Prostsza (topic + partycje)</td>
+<td>Bogatsza (exchanges, routing keys, bindings)</td>
+</tr>
+<tr>
+<td>Typowe zastosowanie</td>
+<td>Event streaming, event sourcing, duże wolumeny logów/zdarzeń</td>
+<td>Klasyczne kolejkowanie zadań, RPC między serwisami</td>
+</tr>
+</tbody>
+</table>
+<h2>Podsumowanie - relacja do Sagi/Outboxa</h2>
+<blockquote>
+<p>Kafka jest naturalną technologią implementującą <code>IEventBus</code> w architekturze Choreography Sagi - <strong>partycjonowanie po kluczu</strong> (np. <code>orderId</code>) gwarantuje kolejność zdarzeń dotyczących tego samego zamówienia, <strong>consumer groups</strong> dają równoważenie obciążenia między wieloma instancjami tego samego serwisu, a mechanizm <strong>offsetów + brak automatycznego usuwania wiadomości</strong> wspiera dokładnie ten typ gwarancji dostarczenia ("at-least-once"), którego wymagaliśmy od Outbox Pattern - z koniecznością, żeby każdy konsument był <strong>idempotentny</strong>, bo ta sama wiadomość może zostać dostarczona więcej niż raz.</p>
+</blockquote>
+  
+  
+  <div class="topic-nav"><a class="prev" href="reference-data.html"><span class="lbl">← wstecz</span>Dane słownikowe między mikroserwisami</a><a class="next" href="docker-k8s.html"><span class="lbl">dalej →</span>Docker, kontenery, Kubernetes</a></div>
+</div>
+    </div>
+  </main>
+</div>
+
+<button type="button" class="fab theme-toggle" id="themeToggle" aria-label="Zmień tryb ciemny/jasny" title="Tryb jasny">
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4" y1="12" x2="2" y2="12"/><line x1="22" y1="12" x2="20" y2="12"/><line x1="19.07" y1="4.93" x2="17.66" y2="6.34"/><line x1="6.34" y1="17.66" x2="4.93" y2="19.07"/><line x1="19.07" y1="19.07" x2="17.66" y2="17.66"/><line x1="6.34" y1="6.34" x2="4.93" y2="4.93"/>
+  </svg>
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </svg>
+</button>
+
+<button type="button" class="fab width-toggle" id="widthToggle" aria-label="Pełna szerokość" title="Wąska treść">
+  <svg id="widthToggleIcon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="10" y1="14" x2="3" y2="21"/>
+  </svg>
+</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
+<script src="../app.js"></script>
+</body>
+</html>

@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Web API jako implementacja MVC — .NET / C# Kompendium wiedzy</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/nord.min.css">
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<div class="topbar">
+  <button class="burger" id="burgerBtn" aria-label="Menu">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <a class="brand" id="topbarBrand" href="../index.html"><b>C#</b> / .NET Kompendium</a>
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <a class="sidebar-head" id="sidebarHead" href="../index.html">
+      <h1>.NET &amp; C# Kompendium</h1>
+      <div class="sub">Notatki z rozmowy, zorganizowane w dział → temat</div>
+    </a>
+    <div class="search-wrap">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="searchInput" placeholder="Szukaj tematu…" autocomplete="off" />
+      </div>
+      <div class="search-count" id="searchCount"></div>
+    </div>
+    <nav class="nav" id="navList">
+<details class="nav-group" data-cat-id="solid">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      SOLID, Clean Code, DI
+    </span>
+    <span class="n">9</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="oop-enterprise" data-tags="oop encapsulation inheritance polymorphism abstraction enterprise overengineering yagni" href="../topics/oop-enterprise.html">OOP i &quot;Enterprise OOP&quot;</a>
+    <a class="nav-item" data-topic-id="solid-basics" data-tags="solid srp ocp lsp isp dip" href="../topics/solid-basics.html">Zasady SOLID</a>
+    <a class="nav-item" data-topic-id="clean-code" data-tags="clean code czytelność nazewnictwo dry" href="../topics/clean-code.html">Clean Code</a>
+    <a class="nav-item" data-topic-id="di-mvvm-concept" data-tags="di dependency injection mvvm viewmodel" href="../topics/di-mvvm-concept.html">DI w MVVM — koncepcja</a>
+    <a class="nav-item" data-topic-id="di-mvvm-wpf" data-tags="wpf mvvm di viewmodelbase servicecollection" href="../topics/di-mvvm-wpf.html">MVVM + DI w WPF (pełny przykład)</a>
+    <a class="nav-item" data-topic-id="lifetimes" data-tags="di lifetime singleton transient scoped captive dependency" href="../topics/lifetimes.html">Singleton vs Transient vs Scoped</a>
+    <a class="nav-item" data-topic-id="scope-factory-threadsafe" data-tags="scope factory singleton thread safe lock interlocked" href="../topics/scope-factory-threadsafe.html">IServiceScopeFactory i thread-safety</a>
+    <a class="nav-item" data-topic-id="di-methods" data-tags="constructor property method injection service locator anti-pattern" href="../topics/di-methods.html">Sposoby wdrożenia DI</a>
+    <a class="nav-item" data-topic-id="ioc" data-tags="ioc di hollywood principle template method middleware" href="../topics/ioc.html">Inversion of Control (IoC)</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="wpf">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      WPF
+    </span>
+    <span class="n">4</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="wpf-recap" data-tags="wpf dependency property routed event data binding visual tree" href="../topics/wpf-recap.html">WPF — co przypomnieć</a>
+    <a class="nav-item" data-topic-id="synccontext" data-tags="async await synchronizationcontext configureawait deadlock ui thread" href="../topics/synccontext.html">SynchronizationContext i ConfigureAwait</a>
+    <a class="nav-item" data-topic-id="icommand" data-tags="icommand relaycommand canexecute commandmanager async void" href="../topics/icommand.html">ICommand i RelayCommand</a>
+    <a class="nav-item" data-topic-id="callermembername" data-tags="callermembername inotifypropertychanged magic string nameof" href="../topics/callermembername.html">[CallerMemberName]</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="csharp">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      C# — fundamenty języka
+    </span>
+    <span class="n">14</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="delegates" data-tags="delegate action func predicate multicast event" href="../topics/delegates.html">Delegaty</a>
+    <a class="nav-item" data-topic-id="callback-vs-function" data-tags="callback funkcja kontrola przepływu inversion" href="../topics/callback-vs-function.html">Callback vs funkcja</a>
+    <a class="nav-item" data-topic-id="underscore" data-tags="discard underscore lambda separator cyfr" href="../topics/underscore.html">Znak &quot;_&quot; w C#</a>
+    <a class="nav-item" data-topic-id="class-vs-record" data-tags="record class equality value reference with init" href="../topics/class-vs-record.html">Class vs record</a>
+    <a class="nav-item" data-topic-id="record-declaration" data-tags="record positional syntax deconstruct equals hashcode generowany kod" href="../topics/record-declaration.html">Deklaracja record vs class</a>
+    <a class="nav-item" data-topic-id="record-vs-class-compare" data-tags="equals gethashcode referenceequals iequatable iequalitycomparer" href="../topics/record-vs-class-compare.html">Jak porównywać record i class</a>
+    <a class="nav-item" data-topic-id="abstract-vs-interface" data-tags="abstract interface dziedziczenie wielokrotne template method" href="../topics/abstract-vs-interface.html">Klasa abstrakcyjna vs interfejs</a>
+    <a class="nav-item" data-topic-id="access-modifiers" data-tags="public private protected internal protected internal private protected" href="../topics/access-modifiers.html">Modyfikatory dostępu</a>
+    <a class="nav-item" data-topic-id="inheritance-modifiers" data-tags="virtual abstract override sealed new method hiding polimorfizm" href="../topics/inheritance-modifiers.html">Modyfikatory dziedziczenia</a>
+    <a class="nav-item" data-topic-id="lock-mutex-semaphore" data-tags="lock mutex semaphore semaphoreslim thread synchronization async" href="../topics/lock-mutex-semaphore.html">lock, Mutex, Semaphore</a>
+    <a class="nav-item" data-topic-id="struct" data-tags="struct value type stack boxing readonly struct" href="../topics/struct.html">struct</a>
+    <a class="nav-item" data-topic-id="struct-vs-record" data-tags="record struct readonly record struct wartość referencja" href="../topics/struct-vs-record.html">struct vs record</a>
+    <a class="nav-item" data-topic-id="icomparable" data-tags="icomparable compareto sortowanie comparer sort orderby" href="../topics/icomparable.html">IComparable</a>
+    <a class="nav-item" data-topic-id="ienumerable-iqueryable" data-tags="ienumerable iqueryable expression func deferred execution ef core" href="../topics/ienumerable-iqueryable.html">IEnumerable vs IQueryable</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="web" open>
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Web API, Blazor
+    </span>
+    <span class="n">9</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item active" data-topic-id="webapi-mvc" data-tags="webapi mvc controller dto apicontroller minimal api" href="../topics/webapi-mvc.html">Web API jako implementacja MVC</a>
+    <a class="nav-item" data-topic-id="model-binding" data-tags="fromroute fromquery frombody fromheader fromservices apicontroller" href="../topics/model-binding.html">Model Binding i [FromBody]</a>
+    <a class="nav-item" data-topic-id="actionresult" data-tags="actionresult ok notfound badrequest problemdetails result pattern" href="../topics/actionresult.html">ActionResult&lt;T&gt; — zwracanie wyniku i błędów</a>
+    <a class="nav-item" data-topic-id="actionresult-client" data-tags="httpclient apiresult wpf blazor consuming api statuscode" href="../topics/actionresult-client.html">ActionResult po stronie klienta</a>
+    <a class="nav-item" data-topic-id="db-webapi" data-tags="dbcontext connection string appsettings migrations di" href="../topics/db-webapi.html">Podłączenie bazy danych do Web API</a>
+    <a class="nav-item" data-topic-id="blazor-mvc" data-tags="blazor komponent mvvm razor lifecycle" href="../topics/blazor-mvc.html">Blazor — NIE jest MVC</a>
+    <a class="nav-item" data-topic-id="signalr-blazor" data-tags="signalr circuit websocket blazor server sticky sessions" href="../topics/signalr-blazor.html">SignalR w Blazor Server</a>
+    <a class="nav-item" data-topic-id="pwa-rendermodes" data-tags="pwa progressive web app service worker render modes blazor united" href="../topics/pwa-rendermodes.html">PWA i Render Modes</a>
+    <a class="nav-item" data-topic-id="blazor-structure" data-tags="blazor wasm server struktura projektu shared client program.cs" href="../topics/blazor-structure.html">Struktura projektu Blazor</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="ef">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Entity Framework Core
+    </span>
+    <span class="n">6</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="ef-basics" data-tags="dbcontext dbset asnotracking include n+1 migrations" href="../topics/ef-basics.html">Podstawy EF Core</a>
+    <a class="nav-item" data-topic-id="repo-uow" data-tags="repository unit of work dbset savechanges extension methods" href="../topics/repo-uow.html">Repository + Unit of Work nad EF Core</a>
+    <a class="nav-item" data-topic-id="ef-async" data-tags="async await io cpu bound task run warstwy" href="../topics/ef-async.html">Async w EF Core — kiedy tak, kiedy nie</a>
+    <a class="nav-item" data-topic-id="change-tracking" data-tags="snapshot statemanager detectchanges identity map entitystate" href="../topics/change-tracking.html">Change Tracking pod spodem</a>
+    <a class="nav-item" data-topic-id="migrations-team" data-tags="migracje modelsnapshot konflikty git idempotent skrypt sql" href="../topics/migrations-team.html">Migracje w zespole</a>
+    <a class="nav-item" data-topic-id="ef-transactions" data-tags="savechangesasync begintransaction executionstrategy isolation level savepoints" href="../topics/ef-transactions.html">EF Core i transakcje</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="cqrs">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      CQRS, MediatR
+    </span>
+    <span class="n">2</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="cqrs-what" data-tags="cqrs cqs command query segregation event sourcing eventual consistency" href="../topics/cqrs-what.html">Czym jest CQRS</a>
+    <a class="nav-item" data-topic-id="cqrs-mediatr" data-tags="mediatr irequest irequesthandler pipeline behavior send" href="../topics/cqrs-mediatr.html">MediatR — jak działa i jak używać</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="testing">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Testy
+    </span>
+    <span class="n">3</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="xunit" data-tags="xunit fact theory inlinedata memberdata classfixture aaa" href="../topics/xunit.html">xUnit — podstawy</a>
+    <a class="nav-item" data-topic-id="moq" data-tags="moq mock setup verify times itisany callback" href="../topics/moq.html">Moq — mockowanie</a>
+    <a class="nav-item" data-topic-id="integration-tests" data-tags="webapplicationfactory testcontainers piramida testow inmemory" href="../topics/integration-tests.html">Testy integracyjne</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="algo">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Algorytmy, struktury danych
+    </span>
+    <span class="n">3</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="bigo" data-tags="big o złożoność hashset dictionary list queue stack" href="../topics/bigo.html">Big O i struktury danych .NET</a>
+    <a class="nav-item" data-topic-id="hashset" data-tags="hashset unikalne elementy equalitycomparer intersect union except" href="../topics/hashset.html">HashSet&lt;T&gt;</a>
+    <a class="nav-item" data-topic-id="extension-methods" data-tags="extension methods this static linq where select" href="../topics/extension-methods.html">Extension Methods</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="automapper">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      AutoMapper
+    </span>
+    <span class="n">1</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="automapper-basics" data-tags="automapper profile projectto reversemap assertconfigurationisvalid" href="../topics/automapper-basics.html">AutoMapper</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="distributed">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Architektura rozproszona
+    </span>
+    <span class="n">7</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="saga" data-tags="saga orchestration choreography compensating transaction idempotencja" href="../topics/saga.html">Saga Pattern</a>
+    <a class="nav-item" data-topic-id="outbox" data-tags="outbox pattern dual write at least once idempotent cdc debezium" href="../topics/outbox.html">Outbox Pattern</a>
+    <a class="nav-item" data-topic-id="reference-data" data-tags="reference data słowniki denormalizacja synchroniczne odpytywanie cache ttl" href="../topics/reference-data.html">Dane słownikowe między mikroserwisami</a>
+    <a class="nav-item" data-topic-id="kafka" data-tags="kafka topic partition consumer group retention at least once producer consumer" href="../topics/kafka.html">Apache Kafka</a>
+    <a class="nav-item" data-topic-id="docker-k8s" data-tags="docker container image kubernetes pod deployment service self healing" href="../topics/docker-k8s.html">Docker, kontenery, Kubernetes</a>
+    <a class="nav-item" data-topic-id="rebus-servicebus" data-tags="rebus servicebus messagebus rabbitmq masstransit saga" href="../topics/rebus-servicebus.html">Rebus (.NET Service Bus)</a>
+    <a class="nav-item" data-topic-id="rabbitmq-fundamentals" data-tags="rabbitmq amqp broker exchange queue push pull" href="../topics/rabbitmq-fundamentals.html">Jak działa RabbitMQ (AMQP vs HTTP)</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="memory">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Pamięć i wątki
+    </span>
+    <span class="n">2</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="memory-management" data-tags="garbage collector gc generacje loh workstation server gc cgroups datas" href="../topics/memory-management.html">Zarządzanie pamięcią: Framework, Core, .NET</a>
+    <a class="nav-item" data-topic-id="async-thread" data-tags="async await thread pool i/o completion ports task run state machine" href="../topics/async-thread.html">Czy async tworzy nowy wątek?</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="recap">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Przypomnienie / wzorce web
+    </span>
+    <span class="n">3</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="mvc-mvvm-mvp" data-tags="mvc mvvm mvp controller presenter viewmodel przykłady" href="../topics/mvc-mvvm-mvp.html">MVC, MVVM, MVP — porównanie</a>
+    <a class="nav-item" data-topic-id="dto-mvvm-placement" data-tags="dto models folder struktura projektu wpf" href="../topics/dto-mvvm-placement.html">Gdzie umieszczać DTO w projekcie MVVM</a>
+    <a class="nav-item" data-topic-id="code-review-example" data-tags="singleton anti-pattern socket exhaustion httpclientfactory code review" href="../topics/code-review-example.html">Przykład code review — HttpClientFactory</a>
+  </div>
+</details>
+    </nav>
+  </aside>
+
+  <main class="main wide" id="mainArea">
+    <div class="content" id="content">
+<div class="topic">
+  <div class="crumb">.NET / C# <span class="sep">/</span> <span class="cat">Web API, Blazor</span></div>
+  
+  <h1>ASP.NET Core Web API oraz Blazor - MVC i pokrewne wzorce</h1>
+<p>Web API to rzeczywiście implementacja wzorca MVC (a właściwie okrojonego "MC" - bez V, bo zwraca dane, nie widoki), natomiast Blazor nie jest MVC - to komponentowy model UI, bliższy React/Angular niż tradycyjnemu MVC.</p>
+<h2>Przypomnienie: MVC (Model-View-Controller)</h2>
+<ul>
+<li><strong>Model</strong> - dane i logika biznesowa</li>
+<li><strong>View</strong> - warstwa prezentacji (co widzi użytkownik)</li>
+<li><strong>Controller</strong> - odbiera request, koordynuje Model i View, zwraca odpowiedź</li>
+</ul>
+<h2>ASP.NET Core Web API jako implementacja MVC</h2>
+<p>Web API to w praktyce <strong>MVC bez V</strong> - zamiast zwracać HTML (View), zwraca dane (JSON/XML). Struktura jest bardzo podobna do WPF-owego MVVM - Controller pełni trochę rolę pośrednika, podobnie jak ViewModel.</p>
+<h3>Controller - punkt wejścia requestu</h3>
+<pre><code class="language-csharp">[ApiController]
+[Route(&quot;api/[controller]&quot;)]
+public class OrdersController : ControllerBase
+{
+    private readonly IOrderService _orderService; // DI
+
+    public OrdersController(IOrderService orderService)
+    {
+        _orderService = orderService;
+    }
+
+    [HttpGet(&quot;{id}&quot;)]
+    public async Task&lt;ActionResult&lt;OrderDto&gt;&gt; GetOrder(int id)
+    {
+        var order = await _orderService.GetOrderAsync(id);
+        if (order == null) return NotFound();
+        return Ok(order);
+    }
+
+    [HttpPost]
+    public async Task&lt;ActionResult&lt;OrderDto&gt;&gt; CreateOrder(CreateOrderRequest request)
+    {
+        var order = await _orderService.CreateOrderAsync(request);
+        return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, order);
+    }
+}
+</code></pre>
+<p><strong><code>[ApiController]</code></strong> - atrybut włączający konwencje specyficzne dla API: automatyczna walidacja modelu (400 Bad Request bez ręcznego <code>if (!ModelState.IsValid)</code>), automatyczne binowanie parametrów z route/body, lepsze komunikaty błędów.</p>
+<h3>Model - DTO zamiast encji domenowej</h3>
+<p>Ważna praktyka: <strong>nie zwracaj bezpośrednio encji EF Core z API</strong> - zwracasz DTO (Data Transfer Object).</p>
+<pre><code class="language-csharp">// Encja domenowa - używana wewnętrznie, ma nawigacje, może mieć pola techniczne
+public class Order
+{
+    public int Id { get; set; }
+    public Customer Customer { get; set; } // nawigacja EF - ryzyko cyklicznej serializacji
+    public ICollection&lt;OrderItem&gt; Items { get; set; }
+}
+
+// DTO - dokładnie to, co ma zobaczyć klient, nic więcej
+public record OrderDto(int Id, string CustomerName, decimal Total, List&lt;OrderItemDto&gt; Items);
+</code></pre>
+<p><strong>Dlaczego to ważne:</strong>
+- Unikasz przypadkowego wycieku danych wrażliwych (np. pole <code>PasswordHash</code> w encji <code>User</code>)
+- Unikasz cyklicznych referencji przy serializacji JSON (<code>Order.Customer.Orders.First().Customer...</code>)
+- Kontrakt API jest niezależny od struktury bazy danych - możesz zmienić model EF bez łamania API</p>
+<h3>Routing - Attribute-based (dominujący w Web API)</h3>
+<pre><code class="language-csharp">[HttpGet(&quot;{id}&quot;)]                    // GET api/orders/5
+[HttpGet(&quot;search&quot;)]                  // GET api/orders/search
+[HttpGet(&quot;{id}/items&quot;)]              // GET api/orders/5/items
+[HttpPost]                           // POST api/orders
+[HttpPut(&quot;{id}&quot;)]                    // PUT api/orders/5
+[HttpDelete(&quot;{id}&quot;)]                 // DELETE api/orders/5
+</code></pre>
+<h3>Middleware pipeline - IoC w praktyce</h3>
+<pre><code class="language-csharp">var app = builder.Build();
+
+app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
+
+app.Run();
+</code></pre>
+<p>To dokładnie ten mechanizm IoC z middleware - framework sam decyduje, kiedy wywołać który middleware, w jakiej kolejności, Ty tylko rejestrujesz "co ma się stać".</p>
+<h3>Minimal APIs - alternatywa dla kontrolerów (nowsze podejście, .NET 6+)</h3>
+<pre><code class="language-csharp">app.MapGet(&quot;/api/orders/{id}&quot;, async (int id, IOrderService orderService) =&gt;
+{
+    var order = await orderService.GetOrderAsync(id);
+    return order != null ? Results.Ok(order) : Results.NotFound();
+});
+</code></pre>
+<p>To wciąż jest <strong>MVC-podobne konceptualnie</strong> (endpoint = mini-kontroler), tylko bez klasy <code>Controller</code> - lżejsze, mniej boilerplate'u, popularne w mikroserwisach.</p>
+<h2>Warstwowa architektura Web API</h2>
+<pre><code class="language-csharp">Controller (MVC)
+    ↓
+Service (logika biznesowa)
+    ↓
+Repository (EF Core)
+    ↓
+Baza danych
+</code></pre>
+<pre><code class="language-csharp">[ApiController]
+public class OrdersController : ControllerBase
+{
+    private readonly IOrderService _orderService; // Controller NIE zna EF Core bezpośrednio
+    // ...
+}
+</code></pre>
+<p>Controller <strong>nie powinien</strong> zawierać logiki biznesowej ani bezpośrednio wołać <code>DbContext</code> - to jest analogiczne do tego, co mówiliśmy o ViewModelu w WPF: cienka warstwa koordynująca, cała logika w serwisie.</p>
+<hr />
+<h2>Blazor - dlaczego to NIE jest MVC</h2>
+<p>To jest kluczowy punkt do zaznaczenia na rozmowie, bo błędne przypisanie Blazor do MVC to sygnał powierzchownej wiedzy. Blazor to framework <strong>komponentowy</strong> (podobny filozoficznie do React czy Angular), a nie MVC.</p>
+<h3>Dwa modele hostingu Blazor</h3>
+<p><strong>Blazor Server</strong> - logika wykonuje się na serwerze, UI aktualizowane przez SignalR (WebSocket) w czasie rzeczywistym.</p>
+<p><strong>Blazor WebAssembly (WASM)</strong> - cały kod C# kompilowany do WebAssembly i wykonywany <strong>w przeglądarce</strong>, bez round-tripów do serwera przy każdej interakcji.</p>
+<h3>Komponent Blazor - odpowiednik "View + trochę logiki"</h3>
+<pre><code class="language-razor">@page &quot;/orders/{id:int}&quot;
+@inject IOrderService OrderService
+
+&lt;h3&gt;Zamówienie #@Order?.Id&lt;/h3&gt;
+
+@if (Order == null)
+{
+    &lt;p&gt;Ładowanie...&lt;/p&gt;
+}
+else
+{
+    &lt;p&gt;Klient: @Order.CustomerName&lt;/p&gt;
+    &lt;p&gt;Suma: @Order.Total zł&lt;/p&gt;
+    &lt;button @onclick=&quot;ShipOrder&quot;&gt;Wyślij zamówienie&lt;/button&gt;
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private OrderDto Order;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Order = await OrderService.GetOrderAsync(Id);
+    }
+
+    private async Task ShipOrder()
+    {
+        await OrderService.ShipOrderAsync(Id);
+        Order = await OrderService.GetOrderAsync(Id);
+    }
+}
+</code></pre>
+<h2>Dlaczego to bliżej MVVM niż MVC</h2>
+<p>To jest ciekawe spostrzeżenie do pokazania na rozmowie - komponent Blazor <strong>łączy</strong> to, co w MVC było rozdzielone na Controller + View, w <strong>jedną jednostkę</strong>:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>MVC</th>
+<th>Blazor</th>
+<th>MVVM (WPF)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>UI (znaczniki)</td>
+<td>View (<code>.cshtml</code>)</td>
+<td>Sekcja HTML w <code>.razor</code></td>
+<td>XAML</td>
+</tr>
+<tr>
+<td>Logika prezentacji</td>
+<td>Controller</td>
+<td>Sekcja <code>@code</code> w tym samym pliku</td>
+<td>ViewModel (osobny plik)</td>
+</tr>
+<tr>
+<td>Odświeżanie UI</td>
+<td>Pełne przeładowanie strony (albo ręczny JS)</td>
+<td><strong>Automatyczne re-renderowanie</strong> przy zmianie stanu</td>
+<td>Automatyczne przez <code>INotifyPropertyChanged</code>/binding</td>
+</tr>
+<tr>
+<td>DI</td>
+<td>Przez konstruktor kontrolera</td>
+<td><code>@inject</code></td>
+<td>Przez konstruktor ViewModelu</td>
+</tr>
+</tbody>
+</table>
+<p><strong><code>@inject</code></strong> w Blazor to DI - dokładnie ten sam kontener <code>Microsoft.Extensions.DependencyInjection</code>, który już znasz z Web API i WPF:</p>
+<pre><code class="language-csharp">// Program.cs
+builder.Services.AddScoped&lt;IOrderService, OrderService&gt;();
+</code></pre>
+<pre><code class="language-razor">@inject IOrderService OrderService
+</code></pre>
+<p>To pokazuje spójność ekosystemu .NET - <strong>ten sam mechanizm DI działa identycznie</strong> w Web API, Blazor i (jak pokazywaliśmy) w WPF.</p>
+<h2>Component lifecycle - odpowiednik cyklu życia, o którym mówiliśmy przy WPF</h2>
+<pre><code class="language-csharp">protected override void OnInitialized() { }           // odpowiednik konstruktora ViewModelu
+protected override async Task OnInitializedAsync() { } // dla async inicjalizacji (np. pierwsze pobranie danych)
+protected override void OnParametersSet() { }           // gdy zmienią się [Parameter]
+protected override bool ShouldRender() =&gt; true;          // kontrola czy re-renderować (optymalizacja)
+</code></pre>
+<h2>StateHasChanged - ręczne odświeżenie UI</h2>
+<pre><code class="language-csharp">private async Task LoadDataInBackground()
+{
+    var data = await _service.GetDataAsync();
+    Orders = data;
+    StateHasChanged(); // każ Blazorowi przerenderować komponent
+}
+</code></pre>
+<p>To jest koncepcyjnie <strong>bardzo bliskie</strong> temu, co robi <code>PropertyChanged</code> w WPF - tam framework nasłuchuje eventu i sam odświeża UI, tutaj czasem trzeba to wywołać jawnie (np. gdy zmiana stanu dzieje się poza normalnym cyklem eventów Blazora, np. w callbacku z zewnętrznego serwisu).</p>
+<h2>Blazor Server vs WASM - różnice praktyczne (częste pytanie)</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Blazor Server</th>
+<th>Blazor WebAssembly</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Gdzie wykonuje się kod</td>
+<td>Serwer</td>
+<td>Przeglądarka (WASM)</td>
+</tr>
+<tr>
+<td>Komunikacja</td>
+<td>SignalR (stałe połączenie WebSocket)</td>
+<td>Bezpośrednio w przeglądarce, HTTP do API gdy trzeba</td>
+</tr>
+<tr>
+<td>Opóźnienie interakcji</td>
+<td>Zależne od sieci (każdy klik = round-trip do serwera)</td>
+<td>Natychmiastowe (kod lokalnie)</td>
+</tr>
+<tr>
+<td>Rozmiar pobrania</td>
+<td>Mały (brak runtime .NET w przeglądarce)</td>
+<td>Duży (pobiera cały runtime .NET)</td>
+</tr>
+<tr>
+<td>Offline</td>
+<td>❌ Nie działa bez połączenia</td>
+<td>✅ Może działać offline (PWA)</td>
+</tr>
+<tr>
+<td>Skalowanie serwera</td>
+<td>Każdy user = stały stan na serwerze (pamięć, SignalR connection)</td>
+<td>Serwer tylko serwuje pliki statyczne + API</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Blazor United / Blazor Web App (.NET 8+)</strong> - warto wspomnieć, że nowsze .NET pozwala <strong>mieszać</strong> oba modele w jednej aplikacji, z tzw. render modes (Static SSR, Server, WebAssembly, Auto) wybieranymi per-komponent.</p>
+<h2>Gdzie Web API i Blazor się spotykają w architekturze</h2>
+<p>Typowy układ, analogiczny do tego, co omawialiśmy z WPF:</p>
+<pre><code class="language-csharp">Blazor WASM (frontend, działa w przeglądarce)
+    ↓ HttpClient → wywołania HTTP
+ASP.NET Core Web API (backend)
+    ↓
+Service (logika biznesowa)
+    ↓
+EF Core → baza danych
+</code></pre>
+<pre><code class="language-csharp">// W komponencie Blazor WASM
+@inject HttpClient Http
+
+@code {
+    private List&lt;OrderDto&gt; orders;
+
+    protected override async Task OnInitializedAsync()
+    {
+        orders = await Http.GetFromJsonAsync&lt;List&lt;OrderDto&gt;&gt;(&quot;api/orders&quot;);
+    }
+}
+</code></pre>
+<p>To jest <strong>strukturalnie identyczne</strong> do architektury WPF → API, którą omawialiśmy przy okazji async/EF Core - różni się tylko technologia frontendu (Blazor WASM w przeglądarce zamiast WPF na desktopie), ale warstwy backendowe (Controller → Service → Repository → EF) są <strong>dokładnie te same</strong>.</p>
+<p><strong>Blazor Server</strong> natomiast <strong>nie potrzebuje</strong> oddzielnego Web API pośrodku - komponent może bezpośrednio wstrzyknąć <code>IOrderService</code> przez DI i wywołać go lokalnie (bo kod i tak wykonuje się na serwerze) - to jest różnica architektoniczna, o którą czasem pytają: <em>"Czy w Blazor Server potrzebujesz osobnego Web API?"</em> - odpowiedź: niekoniecznie, możesz wstrzyknąć serwisy bezpośrednio, chyba że ten sam backend ma też obsługiwać inne klienty (mobile, WPF, Blazor WASM) - wtedy Web API jako wspólna warstwa ma sens.</p>
+<h2>Podsumowanie różnicy koncepcyjnej</h2>
+<blockquote>
+<p><em>"ASP.NET Core Web API to rzeczywiście implementacja MVC, tylko bez View - Controller zwraca dane (JSON) zamiast HTML. Blazor natomiast to framework komponentowy, konceptualnie bliższy MVVM albo React niż klasycznemu MVC - komponent łączy w jednym pliku to, co w MVC byłoby rozdzielone na View i Controller, a stan komponentu automatycznie synchronizuje się z UI, podobnie jak binding w WPF. Oba używają tego samego mechanizmu DI z Microsoft.Extensions.DependencyInjection, co pokazuje spójność całego ekosystemu ASP.NET Core."</em></p>
+</blockquote>
+  
+  
+  <div class="topic-nav"><a class="prev" href="ienumerable-iqueryable.html"><span class="lbl">← wstecz</span>IEnumerable vs IQueryable</a><a class="next" href="model-binding.html"><span class="lbl">dalej →</span>Model Binding i [FromBody]</a></div>
+</div>
+    </div>
+  </main>
+</div>
+
+<button type="button" class="fab theme-toggle" id="themeToggle" aria-label="Zmień tryb ciemny/jasny" title="Tryb jasny">
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4" y1="12" x2="2" y2="12"/><line x1="22" y1="12" x2="20" y2="12"/><line x1="19.07" y1="4.93" x2="17.66" y2="6.34"/><line x1="6.34" y1="17.66" x2="4.93" y2="19.07"/><line x1="19.07" y1="19.07" x2="17.66" y2="17.66"/><line x1="6.34" y1="6.34" x2="4.93" y2="4.93"/>
+  </svg>
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </svg>
+</button>
+
+<button type="button" class="fab width-toggle" id="widthToggle" aria-label="Pełna szerokość" title="Wąska treść">
+  <svg id="widthToggleIcon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="10" y1="14" x2="3" y2="21"/>
+  </svg>
+</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
+<script src="../app.js"></script>
+</body>
+</html>

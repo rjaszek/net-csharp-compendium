@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>struct — .NET / C# Kompendium wiedzy</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/nord.min.css">
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<div class="topbar">
+  <button class="burger" id="burgerBtn" aria-label="Menu">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <a class="brand" id="topbarBrand" href="../index.html"><b>C#</b> / .NET Kompendium</a>
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <a class="sidebar-head" id="sidebarHead" href="../index.html">
+      <h1>.NET &amp; C# Kompendium</h1>
+      <div class="sub">Notatki z rozmowy, zorganizowane w dział → temat</div>
+    </a>
+    <div class="search-wrap">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="searchInput" placeholder="Szukaj tematu…" autocomplete="off" />
+      </div>
+      <div class="search-count" id="searchCount"></div>
+    </div>
+    <nav class="nav" id="navList">
+<details class="nav-group" data-cat-id="solid">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      SOLID, Clean Code, DI
+    </span>
+    <span class="n">9</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="oop-enterprise" data-tags="oop encapsulation inheritance polymorphism abstraction enterprise overengineering yagni" href="../topics/oop-enterprise.html">OOP i &quot;Enterprise OOP&quot;</a>
+    <a class="nav-item" data-topic-id="solid-basics" data-tags="solid srp ocp lsp isp dip" href="../topics/solid-basics.html">Zasady SOLID</a>
+    <a class="nav-item" data-topic-id="clean-code" data-tags="clean code czytelność nazewnictwo dry" href="../topics/clean-code.html">Clean Code</a>
+    <a class="nav-item" data-topic-id="di-mvvm-concept" data-tags="di dependency injection mvvm viewmodel" href="../topics/di-mvvm-concept.html">DI w MVVM — koncepcja</a>
+    <a class="nav-item" data-topic-id="di-mvvm-wpf" data-tags="wpf mvvm di viewmodelbase servicecollection" href="../topics/di-mvvm-wpf.html">MVVM + DI w WPF (pełny przykład)</a>
+    <a class="nav-item" data-topic-id="lifetimes" data-tags="di lifetime singleton transient scoped captive dependency" href="../topics/lifetimes.html">Singleton vs Transient vs Scoped</a>
+    <a class="nav-item" data-topic-id="scope-factory-threadsafe" data-tags="scope factory singleton thread safe lock interlocked" href="../topics/scope-factory-threadsafe.html">IServiceScopeFactory i thread-safety</a>
+    <a class="nav-item" data-topic-id="di-methods" data-tags="constructor property method injection service locator anti-pattern" href="../topics/di-methods.html">Sposoby wdrożenia DI</a>
+    <a class="nav-item" data-topic-id="ioc" data-tags="ioc di hollywood principle template method middleware" href="../topics/ioc.html">Inversion of Control (IoC)</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="wpf">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      WPF
+    </span>
+    <span class="n">4</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="wpf-recap" data-tags="wpf dependency property routed event data binding visual tree" href="../topics/wpf-recap.html">WPF — co przypomnieć</a>
+    <a class="nav-item" data-topic-id="synccontext" data-tags="async await synchronizationcontext configureawait deadlock ui thread" href="../topics/synccontext.html">SynchronizationContext i ConfigureAwait</a>
+    <a class="nav-item" data-topic-id="icommand" data-tags="icommand relaycommand canexecute commandmanager async void" href="../topics/icommand.html">ICommand i RelayCommand</a>
+    <a class="nav-item" data-topic-id="callermembername" data-tags="callermembername inotifypropertychanged magic string nameof" href="../topics/callermembername.html">[CallerMemberName]</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="csharp" open>
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      C# — fundamenty języka
+    </span>
+    <span class="n">14</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="delegates" data-tags="delegate action func predicate multicast event" href="../topics/delegates.html">Delegaty</a>
+    <a class="nav-item" data-topic-id="callback-vs-function" data-tags="callback funkcja kontrola przepływu inversion" href="../topics/callback-vs-function.html">Callback vs funkcja</a>
+    <a class="nav-item" data-topic-id="underscore" data-tags="discard underscore lambda separator cyfr" href="../topics/underscore.html">Znak &quot;_&quot; w C#</a>
+    <a class="nav-item" data-topic-id="class-vs-record" data-tags="record class equality value reference with init" href="../topics/class-vs-record.html">Class vs record</a>
+    <a class="nav-item" data-topic-id="record-declaration" data-tags="record positional syntax deconstruct equals hashcode generowany kod" href="../topics/record-declaration.html">Deklaracja record vs class</a>
+    <a class="nav-item" data-topic-id="record-vs-class-compare" data-tags="equals gethashcode referenceequals iequatable iequalitycomparer" href="../topics/record-vs-class-compare.html">Jak porównywać record i class</a>
+    <a class="nav-item" data-topic-id="abstract-vs-interface" data-tags="abstract interface dziedziczenie wielokrotne template method" href="../topics/abstract-vs-interface.html">Klasa abstrakcyjna vs interfejs</a>
+    <a class="nav-item" data-topic-id="access-modifiers" data-tags="public private protected internal protected internal private protected" href="../topics/access-modifiers.html">Modyfikatory dostępu</a>
+    <a class="nav-item" data-topic-id="inheritance-modifiers" data-tags="virtual abstract override sealed new method hiding polimorfizm" href="../topics/inheritance-modifiers.html">Modyfikatory dziedziczenia</a>
+    <a class="nav-item" data-topic-id="lock-mutex-semaphore" data-tags="lock mutex semaphore semaphoreslim thread synchronization async" href="../topics/lock-mutex-semaphore.html">lock, Mutex, Semaphore</a>
+    <a class="nav-item active" data-topic-id="struct" data-tags="struct value type stack boxing readonly struct" href="../topics/struct.html">struct</a>
+    <a class="nav-item" data-topic-id="struct-vs-record" data-tags="record struct readonly record struct wartość referencja" href="../topics/struct-vs-record.html">struct vs record</a>
+    <a class="nav-item" data-topic-id="icomparable" data-tags="icomparable compareto sortowanie comparer sort orderby" href="../topics/icomparable.html">IComparable</a>
+    <a class="nav-item" data-topic-id="ienumerable-iqueryable" data-tags="ienumerable iqueryable expression func deferred execution ef core" href="../topics/ienumerable-iqueryable.html">IEnumerable vs IQueryable</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="web">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Web API, Blazor
+    </span>
+    <span class="n">9</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="webapi-mvc" data-tags="webapi mvc controller dto apicontroller minimal api" href="../topics/webapi-mvc.html">Web API jako implementacja MVC</a>
+    <a class="nav-item" data-topic-id="model-binding" data-tags="fromroute fromquery frombody fromheader fromservices apicontroller" href="../topics/model-binding.html">Model Binding i [FromBody]</a>
+    <a class="nav-item" data-topic-id="actionresult" data-tags="actionresult ok notfound badrequest problemdetails result pattern" href="../topics/actionresult.html">ActionResult&lt;T&gt; — zwracanie wyniku i błędów</a>
+    <a class="nav-item" data-topic-id="actionresult-client" data-tags="httpclient apiresult wpf blazor consuming api statuscode" href="../topics/actionresult-client.html">ActionResult po stronie klienta</a>
+    <a class="nav-item" data-topic-id="db-webapi" data-tags="dbcontext connection string appsettings migrations di" href="../topics/db-webapi.html">Podłączenie bazy danych do Web API</a>
+    <a class="nav-item" data-topic-id="blazor-mvc" data-tags="blazor komponent mvvm razor lifecycle" href="../topics/blazor-mvc.html">Blazor — NIE jest MVC</a>
+    <a class="nav-item" data-topic-id="signalr-blazor" data-tags="signalr circuit websocket blazor server sticky sessions" href="../topics/signalr-blazor.html">SignalR w Blazor Server</a>
+    <a class="nav-item" data-topic-id="pwa-rendermodes" data-tags="pwa progressive web app service worker render modes blazor united" href="../topics/pwa-rendermodes.html">PWA i Render Modes</a>
+    <a class="nav-item" data-topic-id="blazor-structure" data-tags="blazor wasm server struktura projektu shared client program.cs" href="../topics/blazor-structure.html">Struktura projektu Blazor</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="ef">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Entity Framework Core
+    </span>
+    <span class="n">6</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="ef-basics" data-tags="dbcontext dbset asnotracking include n+1 migrations" href="../topics/ef-basics.html">Podstawy EF Core</a>
+    <a class="nav-item" data-topic-id="repo-uow" data-tags="repository unit of work dbset savechanges extension methods" href="../topics/repo-uow.html">Repository + Unit of Work nad EF Core</a>
+    <a class="nav-item" data-topic-id="ef-async" data-tags="async await io cpu bound task run warstwy" href="../topics/ef-async.html">Async w EF Core — kiedy tak, kiedy nie</a>
+    <a class="nav-item" data-topic-id="change-tracking" data-tags="snapshot statemanager detectchanges identity map entitystate" href="../topics/change-tracking.html">Change Tracking pod spodem</a>
+    <a class="nav-item" data-topic-id="migrations-team" data-tags="migracje modelsnapshot konflikty git idempotent skrypt sql" href="../topics/migrations-team.html">Migracje w zespole</a>
+    <a class="nav-item" data-topic-id="ef-transactions" data-tags="savechangesasync begintransaction executionstrategy isolation level savepoints" href="../topics/ef-transactions.html">EF Core i transakcje</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="cqrs">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      CQRS, MediatR
+    </span>
+    <span class="n">2</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="cqrs-what" data-tags="cqrs cqs command query segregation event sourcing eventual consistency" href="../topics/cqrs-what.html">Czym jest CQRS</a>
+    <a class="nav-item" data-topic-id="cqrs-mediatr" data-tags="mediatr irequest irequesthandler pipeline behavior send" href="../topics/cqrs-mediatr.html">MediatR — jak działa i jak używać</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="testing">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Testy
+    </span>
+    <span class="n">3</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="xunit" data-tags="xunit fact theory inlinedata memberdata classfixture aaa" href="../topics/xunit.html">xUnit — podstawy</a>
+    <a class="nav-item" data-topic-id="moq" data-tags="moq mock setup verify times itisany callback" href="../topics/moq.html">Moq — mockowanie</a>
+    <a class="nav-item" data-topic-id="integration-tests" data-tags="webapplicationfactory testcontainers piramida testow inmemory" href="../topics/integration-tests.html">Testy integracyjne</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="algo">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Algorytmy, struktury danych
+    </span>
+    <span class="n">3</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="bigo" data-tags="big o złożoność hashset dictionary list queue stack" href="../topics/bigo.html">Big O i struktury danych .NET</a>
+    <a class="nav-item" data-topic-id="hashset" data-tags="hashset unikalne elementy equalitycomparer intersect union except" href="../topics/hashset.html">HashSet&lt;T&gt;</a>
+    <a class="nav-item" data-topic-id="extension-methods" data-tags="extension methods this static linq where select" href="../topics/extension-methods.html">Extension Methods</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="automapper">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      AutoMapper
+    </span>
+    <span class="n">1</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="automapper-basics" data-tags="automapper profile projectto reversemap assertconfigurationisvalid" href="../topics/automapper-basics.html">AutoMapper</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="distributed">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Architektura rozproszona
+    </span>
+    <span class="n">7</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="saga" data-tags="saga orchestration choreography compensating transaction idempotencja" href="../topics/saga.html">Saga Pattern</a>
+    <a class="nav-item" data-topic-id="outbox" data-tags="outbox pattern dual write at least once idempotent cdc debezium" href="../topics/outbox.html">Outbox Pattern</a>
+    <a class="nav-item" data-topic-id="reference-data" data-tags="reference data słowniki denormalizacja synchroniczne odpytywanie cache ttl" href="../topics/reference-data.html">Dane słownikowe między mikroserwisami</a>
+    <a class="nav-item" data-topic-id="kafka" data-tags="kafka topic partition consumer group retention at least once producer consumer" href="../topics/kafka.html">Apache Kafka</a>
+    <a class="nav-item" data-topic-id="docker-k8s" data-tags="docker container image kubernetes pod deployment service self healing" href="../topics/docker-k8s.html">Docker, kontenery, Kubernetes</a>
+    <a class="nav-item" data-topic-id="rebus-servicebus" data-tags="rebus servicebus messagebus rabbitmq masstransit saga" href="../topics/rebus-servicebus.html">Rebus (.NET Service Bus)</a>
+    <a class="nav-item" data-topic-id="rabbitmq-fundamentals" data-tags="rabbitmq amqp broker exchange queue push pull" href="../topics/rabbitmq-fundamentals.html">Jak działa RabbitMQ (AMQP vs HTTP)</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="memory">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Pamięć i wątki
+    </span>
+    <span class="n">2</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="memory-management" data-tags="garbage collector gc generacje loh workstation server gc cgroups datas" href="../topics/memory-management.html">Zarządzanie pamięcią: Framework, Core, .NET</a>
+    <a class="nav-item" data-topic-id="async-thread" data-tags="async await thread pool i/o completion ports task run state machine" href="../topics/async-thread.html">Czy async tworzy nowy wątek?</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="recap">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Przypomnienie / wzorce web
+    </span>
+    <span class="n">3</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="mvc-mvvm-mvp" data-tags="mvc mvvm mvp controller presenter viewmodel przykłady" href="../topics/mvc-mvvm-mvp.html">MVC, MVVM, MVP — porównanie</a>
+    <a class="nav-item" data-topic-id="dto-mvvm-placement" data-tags="dto models folder struktura projektu wpf" href="../topics/dto-mvvm-placement.html">Gdzie umieszczać DTO w projekcie MVVM</a>
+    <a class="nav-item" data-topic-id="code-review-example" data-tags="singleton anti-pattern socket exhaustion httpclientfactory code review" href="../topics/code-review-example.html">Przykład code review — HttpClientFactory</a>
+  </div>
+</details>
+    </nav>
+  </aside>
+
+  <main class="main wide" id="mainArea">
+    <div class="content" id="content">
+<div class="topic">
+  <div class="crumb">.NET / C# <span class="sep">/</span> <span class="cat">C# — fundamenty języka</span></div>
+  
+  <h1><code>struct</code> w C</h1>
+<h2>Fundamentalna różnica - typ wartościowy vs referencyjny</h2>
+<p>To jest <strong>najważniejsza</strong> rzecz do zrozumienia - <code>struct</code> to <strong>typ wartościowy</strong> (value type), w przeciwieństwie do <code>class</code>, która jest <strong>typem referencyjnym</strong> (reference type).</p>
+<pre><code class="language-csharp">public struct Point
+{
+    public int X { get; set; }
+    public int Y { get; set; }
+}
+
+public class PointClass
+{
+    public int X { get; set; }
+    public int Y { get; set; }
+}
+</code></pre>
+<h2>Gdzie żyją w pamięci - stos vs sterta</h2>
+<pre><code class="language-csharp">Point p1 = new Point { X = 1, Y = 2 }; // żyje na STOSIE (zazwyczaj, patrz niżej o wyjątkach)
+PointClass c1 = new PointClass { X = 1, Y = 2 }; // c1 to referencja NA STOSIE, obiekt NA STERCIE
+</code></pre>
+<p><strong>Struct</strong> - dane przechowywane <strong>bezpośrednio w miejscu, gdzie zmienna jest zadeklarowana</strong> (na stosie, jeśli to zmienna lokalna; wewnątrz obiektu, jeśli to pole klasy).</p>
+<p><strong>Class</strong> - zmienna to <strong>referencja</strong> (wskaźnik) do obiektu żyjącego na stercie; sama referencja jest mała (jak wskaźnik), ale prawdziwe dane są gdzie indziej.</p>
+<h2>Kluczowa konsekwencja - kopiowanie przez wartość</h2>
+<pre><code class="language-csharp">public struct Point { public int X { get; set; } public int Y { get; set; } }
+
+Point p1 = new Point { X = 1, Y = 2 };
+Point p2 = p1; // KOPIUJE całą strukturę - p2 to NIEZALEŻNA kopia
+
+p2.X = 100;
+
+Console.WriteLine(p1.X); // 1 - p1 się NIE zmieniło!
+Console.WriteLine(p2.X); // 100
+</code></pre>
+<pre><code class="language-csharp">public class PointClass { public int X { get; set; } public int Y { get; set; } }
+
+PointClass c1 = new PointClass { X = 1, Y = 2 };
+PointClass c2 = c1; // KOPIUJE tylko REFERENCJĘ - c1 i c2 wskazują na TEN SAM obiekt
+
+c2.X = 100;
+
+Console.WriteLine(c1.X); // 100 - c1 TEŻ się zmieniło! To ten sam obiekt
+Console.WriteLine(c2.X); // 100
+</code></pre>
+<p>To jest <strong>fundamentalna</strong> różnica, o której trzeba pamiętać - przypisanie struct <strong>kopiuje cały obiekt</strong>, przypisanie class <strong>kopiuje tylko referencję</strong>.</p>
+<h2>To samo dotyczy przekazywania do metod</h2>
+<pre><code class="language-csharp">void ModifyStruct(Point p) { p.X = 999; } // otrzymuje KOPIĘ
+
+var point = new Point { X = 1 };
+ModifyStruct(point);
+Console.WriteLine(point.X); // 1 - oryginał niezmieniony, metoda dostała kopię
+
+void ModifyClass(PointClass c) { c.X = 999; } // otrzymuje REFERENCJĘ do tego samego obiektu
+
+var pointClass = new PointClass { X = 1 };
+ModifyClass(pointClass);
+Console.WriteLine(pointClass.X); // 999 - oryginał ZMIENIONY, bo to ta sama referencja
+</code></pre>
+<p><strong>Wyjątek - przekazanie przez <code>ref</code>:</strong></p>
+<pre><code class="language-csharp">void ModifyStructByRef(ref Point p) { p.X = 999; }
+
+var point = new Point { X = 1 };
+ModifyStructByRef(ref point);
+Console.WriteLine(point.X); // 999 - TERAZ się zmieniło, bo przekazaliśmy referencję do struktury
+</code></pre>
+<h2>Wbudowane typy .NET, które są <code>struct</code> - częściej używasz ich niż myślisz</h2>
+<p>Większość <strong>prymitywnych typów</strong> w C# to w rzeczywistości <code>struct</code>:</p>
+<pre><code class="language-csharp">int, double, decimal, bool, char, DateTime, TimeSpan, Guid // WSZYSTKIE to struct!
+</code></pre>
+<pre><code class="language-csharp">int a = 5;
+int b = a; // kopiowanie przez wartość - dokładnie ta sama semantyka co Point wyżej
+b = 10;
+Console.WriteLine(a); // 5 - niezmienione
+</code></pre>
+<p>To wyjaśnia, dlaczego <code>int</code>/<code>double</code>/<code>bool</code> <strong>zawsze</strong> zachowują się "intuicyjnie" (kopiowanie wartości) - bo to structy, tak jak Twój własny <code>Point</code>.</p>
+<h2>Domyślna wartość - <code>struct</code> nie może być <code>null</code> (bez <code>Nullable&lt;T&gt;</code>)</h2>
+<pre><code class="language-csharp">Point p; // ✅ OK, ma DOMYŚLNĄ wartość (X=0, Y=0) - struct NIE MOŻE być &quot;niezainicjalizowany&quot; jako null
+p = null; // ❌ Błąd kompilacji - struct nie jest referencyjny, nie może być null
+
+PointClass c; // deklaracja bez wartości - ale UŻYCIE bez przypisania to błąd kompilacji
+c = null; // ✅ OK - class może być null, bo to referencja
+</code></pre>
+<p>Żeby struct mógł reprezentować "brak wartości", potrzebujesz <code>Nullable&lt;T&gt;</code> (składnia <code>Point?</code>):</p>
+<pre><code class="language-csharp">Point? maybePoint = null; // ✅ teraz OK - Nullable&lt;Point&gt;
+if (maybePoint.HasValue) { var p = maybePoint.Value; }
+</code></pre>
+<h2>Dziedziczenie - struct NIE wspiera (poza interfejsami)</h2>
+<pre><code class="language-csharp">public struct Point : IComparable&lt;Point&gt; // ✅ MOŻE implementować interfejsy
+{
+    public int CompareTo(Point other) =&gt; 0;
+}
+
+public struct ColoredPoint : Point { } // ❌ Błąd kompilacji - struct NIE MOŻE dziedziczyć po innym struct
+</code></pre>
+<p>Każdy <code>struct</code> <strong>niejawnie dziedziczy</strong> po <code>System.ValueType</code> (który z kolei dziedziczy po <code>object</code>), i to jest <strong>koniec</strong> hierarchii - nie da się z niego dalej dziedziczyć, ani samemu dziedziczyć po innym struct. To jest zresztą powód, dla którego <code>record struct</code> (o którym mówiliśmy) <strong>nie może</strong> mieć hierarchii dziedziczenia, w przeciwieństwie do <code>record class</code>.</p>
+<h2>Kiedy używać <code>struct</code> - praktyczna reguła (Microsoft Guidelines)</h2>
+<p>Microsoft rekomenduje <code>struct</code> gdy <strong>wszystkie</strong> poniższe warunki są spełnione:
+- Reprezentuje <strong>pojedynczą wartość</strong>, koncepcyjnie podobną do prymitywów (<code>int</code>, <code>DateTime</code>) - np. <code>Point</code>, <code>Money</code>, <code>Coordinates</code>
+- Ma <strong>mały rozmiar</strong> (rekomendowane <strong>do 16 bajtów</strong> - większe struktury tracą zaletę wydajnościową przy kopiowaniu)
+- Jest <strong>niemutowalna</strong> (albo przynajmniej projektowana z myślą o tym)
+- Nie musisz często "boxować" jej do <code>object</code>/interfejsu (patrz niżej o boxing)</p>
+<pre><code class="language-csharp">// Dobry kandydat na struct - mały, wartość, niemutowalny
+public readonly struct Money
+{
+    public decimal Amount { get; }
+    public string Currency { get; }
+    public Money(decimal amount, string currency) { Amount = amount; Currency = currency; }
+}
+</code></pre>
+<p><code>readonly struct</code> (C# 7.2+) - kompilator <strong>wymusza</strong> niemutowalność wszystkich pól, co pozwala na dodatkowe optymalizacje (kompilator wie, że nie musi robić defensywnych kopii przy każdym dostępie).</p>
+<h2>Dlaczego NIE nadużywać <code>struct</code> - koszt kopiowania</h2>
+<pre><code class="language-csharp">public struct BigStruct // ŹLE - za duży struct
+{
+    public int Field1, Field2, Field3, Field4, Field5, Field6, Field7, Field8, Field9, Field10;
+    // 40 bajtów - każde przekazanie do metody KOPIUJE wszystkie 40 bajtów
+}
+
+void ProcessMany(List&lt;BigStruct&gt; items)
+{
+    foreach (var item in items) // KAŻDA iteracja kopiuje 40 bajtów struktury
+    {
+        DoSomething(item); // KOLEJNA kopia przy przekazaniu do metody
+    }
+}
+</code></pre>
+<p>Dla dużych struktur, <strong>częste kopiowanie</strong> (przy przekazywaniu do metod, przy iteracji) staje się <strong>droższe</strong> niż użycie <code>class</code> (gdzie kopiuje się tylko małą referencję, niezależnie od rozmiaru obiektu). To jest powód limitu "do 16 bajtów" w wytycznych Microsoftu.</p>
+<h2>Boxing - koszt przy używaniu struct jako <code>object</code>/interfejsu</h2>
+<pre><code class="language-csharp">Point p = new Point { X = 1, Y = 2 };
+object boxed = p; // BOXING - struct zostaje &quot;opakowany&quot; i skopiowany NA STERTĘ
+
+IComparable&lt;Point&gt; comparable = p; // TEŻ boxing, jeśli Point implementuje interfejs
+</code></pre>
+<p><strong>Boxing</strong> to kosztowna operacja - struct, który normalnie żyje na stosie, zostaje skopiowany na stertę i opakowany jako obiekt referencyjny, żeby mógł być traktowany jako <code>object</code>/interfejs. To jest coś, czego <code>class</code> <strong>nigdy nie robi</strong> (bo już jest na stercie).</p>
+<pre><code class="language-csharp">List&lt;object&gt; list = new List&lt;object&gt;();
+for (int i = 0; i &lt; 1000; i++)
+{
+    list.Add(i); // KAŻDE dodanie int (struct) do List&lt;object&gt; to BOXING - 1000 alokacji na stercie!
+}
+</code></pre>
+<p>To jest zresztą powód, dla którego generyczne kolekcje (<code>List&lt;int&gt;</code> zamiast <code>List&lt;object&gt;</code>, albo <code>List&lt;T&gt;</code> w ogóle) są tak ważne w .NET - <strong>unikają boxing</strong> dla typów wartościowych.</p>
+<h2><code>record struct</code> - łączenie obu światów</h2>
+<pre><code class="language-csharp">public record struct PointDto(int X, int Y);
+</code></pre>
+<p>To jest dokładnie <code>struct</code> (semantyka pamięciowa: kopiowanie przez wartość, stos) <strong>plus</strong> automatycznie generowany <code>Equals</code>/<code>GetHashCode</code>/<code>ToString</code> (semantyka <code>record</code>) - najlepsze z obu, dla małych, niemutowalnych danych.</p>
+<h2>Tabela porównawcza <code>struct</code> vs <code>class</code></h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><code>struct</code></th>
+<th><code>class</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Typ</td>
+<td>Wartościowy</td>
+<td>Referencyjny</td>
+</tr>
+<tr>
+<td>Gdzie żyje</td>
+<td>Stos (zwykle) / inline w obiekcie</td>
+<td>Sterta</td>
+</tr>
+<tr>
+<td>Przypisanie/przekazanie</td>
+<td>Kopiuje CAŁY obiekt</td>
+<td>Kopiuje tylko referencję</td>
+</tr>
+<tr>
+<td>Może być <code>null</code></td>
+<td>Nie (bez <code>Nullable&lt;T&gt;</code>/<code>?</code>)</td>
+<td>Tak</td>
+</tr>
+<tr>
+<td>Dziedziczenie</td>
+<td>Nie (tylko interfejsy)</td>
+<td>Tak (jedna klasa bazowa)</td>
+</tr>
+<tr>
+<td>Domyślna wartość</td>
+<td>Zainicjalizowana zerami (nie null)</td>
+<td><code>null</code></td>
+</tr>
+<tr>
+<td>Koszt przy dużym rozmiarze</td>
+<td>Rośnie (kopiowanie)</td>
+<td>Stały (kopiuje tylko referencję)</td>
+</tr>
+<tr>
+<td>Boxing przy użyciu jako object/interfejs</td>
+<td>Tak (kosztowne)</td>
+<td>Nie (już na stercie)</td>
+</tr>
+<tr>
+<td>Typowe zastosowanie</td>
+<td>Małe, niemutowalne wartości (<code>Point</code>, <code>Money</code>, <code>DateTime</code>)</td>
+<td>Encje, serwisy, obiekty z tożsamością/zachowaniem</td>
+</tr>
+</tbody>
+</table>
+<h2>Pytanie-pułapka na rozmowie</h2>
+<p><em>"Czy <code>struct</code> może mieć metody?"</em> - <strong>Tak</strong>, i to jest częste zaskoczenie dla osób kojarzących <code>struct</code> wyłącznie z C/C++ (gdzie to "goła" struktura danych bez zachowania). W C# <code>struct</code> może mieć metody, właściwości, konstruktory (ale <strong>nie</strong> bezparametrowy jawny do C# 10 - jest <strong>zawsze</strong> niejawny, zerujący pola), implementować interfejsy - różni się od <code>class</code> <strong>głównie</strong> semantyką pamięciową (wartość vs referencja) i brakiem dziedziczenia, nie brakiem możliwości posiadania logiki.</p>
+<hr />
+  
+  
+  <div class="topic-nav"><a class="prev" href="lock-mutex-semaphore.html"><span class="lbl">← wstecz</span>lock, Mutex, Semaphore</a><a class="next" href="struct-vs-record.html"><span class="lbl">dalej →</span>struct vs record</a></div>
+</div>
+    </div>
+  </main>
+</div>
+
+<button type="button" class="fab theme-toggle" id="themeToggle" aria-label="Zmień tryb ciemny/jasny" title="Tryb jasny">
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4" y1="12" x2="2" y2="12"/><line x1="22" y1="12" x2="20" y2="12"/><line x1="19.07" y1="4.93" x2="17.66" y2="6.34"/><line x1="6.34" y1="17.66" x2="4.93" y2="19.07"/><line x1="19.07" y1="19.07" x2="17.66" y2="17.66"/><line x1="6.34" y1="6.34" x2="4.93" y2="4.93"/>
+  </svg>
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </svg>
+</button>
+
+<button type="button" class="fab width-toggle" id="widthToggle" aria-label="Pełna szerokość" title="Wąska treść">
+  <svg id="widthToggleIcon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="10" y1="14" x2="3" y2="21"/>
+  </svg>
+</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
+<script src="../app.js"></script>
+</body>
+</html>

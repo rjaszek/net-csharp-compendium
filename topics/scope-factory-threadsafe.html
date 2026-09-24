@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>IServiceScopeFactory i thread-safety — .NET / C# Kompendium wiedzy</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/nord.min.css">
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<div class="topbar">
+  <button class="burger" id="burgerBtn" aria-label="Menu">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <a class="brand" id="topbarBrand" href="../index.html"><b>C#</b> / .NET Kompendium</a>
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <a class="sidebar-head" id="sidebarHead" href="../index.html">
+      <h1>.NET &amp; C# Kompendium</h1>
+      <div class="sub">Notatki z rozmowy, zorganizowane w dział → temat</div>
+    </a>
+    <div class="search-wrap">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="searchInput" placeholder="Szukaj tematu…" autocomplete="off" />
+      </div>
+      <div class="search-count" id="searchCount"></div>
+    </div>
+    <nav class="nav" id="navList">
+<details class="nav-group" data-cat-id="solid" open>
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      SOLID, Clean Code, DI
+    </span>
+    <span class="n">9</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="oop-enterprise" data-tags="oop encapsulation inheritance polymorphism abstraction enterprise overengineering yagni" href="../topics/oop-enterprise.html">OOP i &quot;Enterprise OOP&quot;</a>
+    <a class="nav-item" data-topic-id="solid-basics" data-tags="solid srp ocp lsp isp dip" href="../topics/solid-basics.html">Zasady SOLID</a>
+    <a class="nav-item" data-topic-id="clean-code" data-tags="clean code czytelność nazewnictwo dry" href="../topics/clean-code.html">Clean Code</a>
+    <a class="nav-item" data-topic-id="di-mvvm-concept" data-tags="di dependency injection mvvm viewmodel" href="../topics/di-mvvm-concept.html">DI w MVVM — koncepcja</a>
+    <a class="nav-item" data-topic-id="di-mvvm-wpf" data-tags="wpf mvvm di viewmodelbase servicecollection" href="../topics/di-mvvm-wpf.html">MVVM + DI w WPF (pełny przykład)</a>
+    <a class="nav-item" data-topic-id="lifetimes" data-tags="di lifetime singleton transient scoped captive dependency" href="../topics/lifetimes.html">Singleton vs Transient vs Scoped</a>
+    <a class="nav-item active" data-topic-id="scope-factory-threadsafe" data-tags="scope factory singleton thread safe lock interlocked" href="../topics/scope-factory-threadsafe.html">IServiceScopeFactory i thread-safety</a>
+    <a class="nav-item" data-topic-id="di-methods" data-tags="constructor property method injection service locator anti-pattern" href="../topics/di-methods.html">Sposoby wdrożenia DI</a>
+    <a class="nav-item" data-topic-id="ioc" data-tags="ioc di hollywood principle template method middleware" href="../topics/ioc.html">Inversion of Control (IoC)</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="wpf">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      WPF
+    </span>
+    <span class="n">4</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="wpf-recap" data-tags="wpf dependency property routed event data binding visual tree" href="../topics/wpf-recap.html">WPF — co przypomnieć</a>
+    <a class="nav-item" data-topic-id="synccontext" data-tags="async await synchronizationcontext configureawait deadlock ui thread" href="../topics/synccontext.html">SynchronizationContext i ConfigureAwait</a>
+    <a class="nav-item" data-topic-id="icommand" data-tags="icommand relaycommand canexecute commandmanager async void" href="../topics/icommand.html">ICommand i RelayCommand</a>
+    <a class="nav-item" data-topic-id="callermembername" data-tags="callermembername inotifypropertychanged magic string nameof" href="../topics/callermembername.html">[CallerMemberName]</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="csharp">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      C# — fundamenty języka
+    </span>
+    <span class="n">14</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="delegates" data-tags="delegate action func predicate multicast event" href="../topics/delegates.html">Delegaty</a>
+    <a class="nav-item" data-topic-id="callback-vs-function" data-tags="callback funkcja kontrola przepływu inversion" href="../topics/callback-vs-function.html">Callback vs funkcja</a>
+    <a class="nav-item" data-topic-id="underscore" data-tags="discard underscore lambda separator cyfr" href="../topics/underscore.html">Znak &quot;_&quot; w C#</a>
+    <a class="nav-item" data-topic-id="class-vs-record" data-tags="record class equality value reference with init" href="../topics/class-vs-record.html">Class vs record</a>
+    <a class="nav-item" data-topic-id="record-declaration" data-tags="record positional syntax deconstruct equals hashcode generowany kod" href="../topics/record-declaration.html">Deklaracja record vs class</a>
+    <a class="nav-item" data-topic-id="record-vs-class-compare" data-tags="equals gethashcode referenceequals iequatable iequalitycomparer" href="../topics/record-vs-class-compare.html">Jak porównywać record i class</a>
+    <a class="nav-item" data-topic-id="abstract-vs-interface" data-tags="abstract interface dziedziczenie wielokrotne template method" href="../topics/abstract-vs-interface.html">Klasa abstrakcyjna vs interfejs</a>
+    <a class="nav-item" data-topic-id="access-modifiers" data-tags="public private protected internal protected internal private protected" href="../topics/access-modifiers.html">Modyfikatory dostępu</a>
+    <a class="nav-item" data-topic-id="inheritance-modifiers" data-tags="virtual abstract override sealed new method hiding polimorfizm" href="../topics/inheritance-modifiers.html">Modyfikatory dziedziczenia</a>
+    <a class="nav-item" data-topic-id="lock-mutex-semaphore" data-tags="lock mutex semaphore semaphoreslim thread synchronization async" href="../topics/lock-mutex-semaphore.html">lock, Mutex, Semaphore</a>
+    <a class="nav-item" data-topic-id="struct" data-tags="struct value type stack boxing readonly struct" href="../topics/struct.html">struct</a>
+    <a class="nav-item" data-topic-id="struct-vs-record" data-tags="record struct readonly record struct wartość referencja" href="../topics/struct-vs-record.html">struct vs record</a>
+    <a class="nav-item" data-topic-id="icomparable" data-tags="icomparable compareto sortowanie comparer sort orderby" href="../topics/icomparable.html">IComparable</a>
+    <a class="nav-item" data-topic-id="ienumerable-iqueryable" data-tags="ienumerable iqueryable expression func deferred execution ef core" href="../topics/ienumerable-iqueryable.html">IEnumerable vs IQueryable</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="web">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Web API, Blazor
+    </span>
+    <span class="n">9</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="webapi-mvc" data-tags="webapi mvc controller dto apicontroller minimal api" href="../topics/webapi-mvc.html">Web API jako implementacja MVC</a>
+    <a class="nav-item" data-topic-id="model-binding" data-tags="fromroute fromquery frombody fromheader fromservices apicontroller" href="../topics/model-binding.html">Model Binding i [FromBody]</a>
+    <a class="nav-item" data-topic-id="actionresult" data-tags="actionresult ok notfound badrequest problemdetails result pattern" href="../topics/actionresult.html">ActionResult&lt;T&gt; — zwracanie wyniku i błędów</a>
+    <a class="nav-item" data-topic-id="actionresult-client" data-tags="httpclient apiresult wpf blazor consuming api statuscode" href="../topics/actionresult-client.html">ActionResult po stronie klienta</a>
+    <a class="nav-item" data-topic-id="db-webapi" data-tags="dbcontext connection string appsettings migrations di" href="../topics/db-webapi.html">Podłączenie bazy danych do Web API</a>
+    <a class="nav-item" data-topic-id="blazor-mvc" data-tags="blazor komponent mvvm razor lifecycle" href="../topics/blazor-mvc.html">Blazor — NIE jest MVC</a>
+    <a class="nav-item" data-topic-id="signalr-blazor" data-tags="signalr circuit websocket blazor server sticky sessions" href="../topics/signalr-blazor.html">SignalR w Blazor Server</a>
+    <a class="nav-item" data-topic-id="pwa-rendermodes" data-tags="pwa progressive web app service worker render modes blazor united" href="../topics/pwa-rendermodes.html">PWA i Render Modes</a>
+    <a class="nav-item" data-topic-id="blazor-structure" data-tags="blazor wasm server struktura projektu shared client program.cs" href="../topics/blazor-structure.html">Struktura projektu Blazor</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="ef">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Entity Framework Core
+    </span>
+    <span class="n">6</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="ef-basics" data-tags="dbcontext dbset asnotracking include n+1 migrations" href="../topics/ef-basics.html">Podstawy EF Core</a>
+    <a class="nav-item" data-topic-id="repo-uow" data-tags="repository unit of work dbset savechanges extension methods" href="../topics/repo-uow.html">Repository + Unit of Work nad EF Core</a>
+    <a class="nav-item" data-topic-id="ef-async" data-tags="async await io cpu bound task run warstwy" href="../topics/ef-async.html">Async w EF Core — kiedy tak, kiedy nie</a>
+    <a class="nav-item" data-topic-id="change-tracking" data-tags="snapshot statemanager detectchanges identity map entitystate" href="../topics/change-tracking.html">Change Tracking pod spodem</a>
+    <a class="nav-item" data-topic-id="migrations-team" data-tags="migracje modelsnapshot konflikty git idempotent skrypt sql" href="../topics/migrations-team.html">Migracje w zespole</a>
+    <a class="nav-item" data-topic-id="ef-transactions" data-tags="savechangesasync begintransaction executionstrategy isolation level savepoints" href="../topics/ef-transactions.html">EF Core i transakcje</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="cqrs">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      CQRS, MediatR
+    </span>
+    <span class="n">2</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="cqrs-what" data-tags="cqrs cqs command query segregation event sourcing eventual consistency" href="../topics/cqrs-what.html">Czym jest CQRS</a>
+    <a class="nav-item" data-topic-id="cqrs-mediatr" data-tags="mediatr irequest irequesthandler pipeline behavior send" href="../topics/cqrs-mediatr.html">MediatR — jak działa i jak używać</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="testing">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Testy
+    </span>
+    <span class="n">3</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="xunit" data-tags="xunit fact theory inlinedata memberdata classfixture aaa" href="../topics/xunit.html">xUnit — podstawy</a>
+    <a class="nav-item" data-topic-id="moq" data-tags="moq mock setup verify times itisany callback" href="../topics/moq.html">Moq — mockowanie</a>
+    <a class="nav-item" data-topic-id="integration-tests" data-tags="webapplicationfactory testcontainers piramida testow inmemory" href="../topics/integration-tests.html">Testy integracyjne</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="algo">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Algorytmy, struktury danych
+    </span>
+    <span class="n">3</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="bigo" data-tags="big o złożoność hashset dictionary list queue stack" href="../topics/bigo.html">Big O i struktury danych .NET</a>
+    <a class="nav-item" data-topic-id="hashset" data-tags="hashset unikalne elementy equalitycomparer intersect union except" href="../topics/hashset.html">HashSet&lt;T&gt;</a>
+    <a class="nav-item" data-topic-id="extension-methods" data-tags="extension methods this static linq where select" href="../topics/extension-methods.html">Extension Methods</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="automapper">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      AutoMapper
+    </span>
+    <span class="n">1</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="automapper-basics" data-tags="automapper profile projectto reversemap assertconfigurationisvalid" href="../topics/automapper-basics.html">AutoMapper</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="distributed">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Architektura rozproszona
+    </span>
+    <span class="n">7</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="saga" data-tags="saga orchestration choreography compensating transaction idempotencja" href="../topics/saga.html">Saga Pattern</a>
+    <a class="nav-item" data-topic-id="outbox" data-tags="outbox pattern dual write at least once idempotent cdc debezium" href="../topics/outbox.html">Outbox Pattern</a>
+    <a class="nav-item" data-topic-id="reference-data" data-tags="reference data słowniki denormalizacja synchroniczne odpytywanie cache ttl" href="../topics/reference-data.html">Dane słownikowe między mikroserwisami</a>
+    <a class="nav-item" data-topic-id="kafka" data-tags="kafka topic partition consumer group retention at least once producer consumer" href="../topics/kafka.html">Apache Kafka</a>
+    <a class="nav-item" data-topic-id="docker-k8s" data-tags="docker container image kubernetes pod deployment service self healing" href="../topics/docker-k8s.html">Docker, kontenery, Kubernetes</a>
+    <a class="nav-item" data-topic-id="rebus-servicebus" data-tags="rebus servicebus messagebus rabbitmq masstransit saga" href="../topics/rebus-servicebus.html">Rebus (.NET Service Bus)</a>
+    <a class="nav-item" data-topic-id="rabbitmq-fundamentals" data-tags="rabbitmq amqp broker exchange queue push pull" href="../topics/rabbitmq-fundamentals.html">Jak działa RabbitMQ (AMQP vs HTTP)</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="memory">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Pamięć i wątki
+    </span>
+    <span class="n">2</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="memory-management" data-tags="garbage collector gc generacje loh workstation server gc cgroups datas" href="../topics/memory-management.html">Zarządzanie pamięcią: Framework, Core, .NET</a>
+    <a class="nav-item" data-topic-id="async-thread" data-tags="async await thread pool i/o completion ports task run state machine" href="../topics/async-thread.html">Czy async tworzy nowy wątek?</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="recap">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Przypomnienie / wzorce web
+    </span>
+    <span class="n">3</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="mvc-mvvm-mvp" data-tags="mvc mvvm mvp controller presenter viewmodel przykłady" href="../topics/mvc-mvvm-mvp.html">MVC, MVVM, MVP — porównanie</a>
+    <a class="nav-item" data-topic-id="dto-mvvm-placement" data-tags="dto models folder struktura projektu wpf" href="../topics/dto-mvvm-placement.html">Gdzie umieszczać DTO w projekcie MVVM</a>
+    <a class="nav-item" data-topic-id="code-review-example" data-tags="singleton anti-pattern socket exhaustion httpclientfactory code review" href="../topics/code-review-example.html">Przykład code review — HttpClientFactory</a>
+  </div>
+</details>
+    </nav>
+  </aside>
+
+  <main class="main wide" id="mainArea">
+    <div class="content" id="content">
+<div class="topic">
+  <div class="crumb">.NET / C# <span class="sep">/</span> <span class="cat">SOLID, Clean Code, DI</span></div>
+  
+  <h1>IServiceScopeFactory - pełny przykład</h1>
+<h2>Problem, który rozwiązujemy</h2>
+<pre><code class="language-csharp">services.AddSingleton&lt;INotificationManager, NotificationManager&gt;();
+services.AddScoped&lt;IUserContext, UserContext&gt;();
+
+// BŁĄD - Captive Dependency
+public class NotificationManager : INotificationManager
+{
+    public NotificationManager(IUserContext userContext) { ... } // ❌
+}
+</code></pre>
+<h2>Rozwiązanie: wstrzyknij factory, nie sam serwis</h2>
+<pre><code class="language-csharp">public class NotificationManager : INotificationManager
+{
+    private readonly IServiceScopeFactory _scopeFactory;
+
+    // Wstrzykujemy fabrykę scope'ów - to jest bezpieczne dla Singletona,
+    // bo IServiceScopeFactory sam jest zarejestrowany jako Singleton
+    public NotificationManager(IServiceScopeFactory scopeFactory)
+    {
+        _scopeFactory = scopeFactory;
+    }
+
+    public async Task SendNotificationAsync(string message)
+    {
+        // Tworzymy NOWY scope w momencie, gdy faktycznie potrzebujemy
+        // Scoped zależności - nie wcześniej, nie &quot;na zapas&quot;
+        using (IServiceScope scope = _scopeFactory.CreateScope())
+        {
+            // Rozwiązujemy IUserContext DOPIERO wewnątrz tego scope'a
+            var userContext = scope.ServiceProvider.GetRequiredService&lt;IUserContext&gt;();
+
+            Console.WriteLine($&quot;Wysyłam powiadomienie do: {userContext.CurrentUserName}&quot;);
+            await SomeExternalService.SendAsync(userContext.CurrentUserName, message);
+        }
+        // Po wyjściu z using() - scope i wszystkie jego Scoped/Transient
+        // zależności są zwalniane (Dispose)
+    }
+}
+</code></pre>
+<p><strong>Kluczowa różnica:</strong> zamiast dostać <code>IUserContext</code> raz w konstruktorze (i trzymać go "na zawsze"), <code>NotificationManager</code> dostaje <strong>fabrykę</strong>, która przy każdym wywołaniu metody tworzy <strong>świeży, tymczasowy kontener</strong> ze swoim własnym <code>IUserContext</code>. Scope żyje tylko na czas bloku <code>using</code>, więc nic się nie "zamraża".</p>
+<h2>Jak to wygląda w praktyce z wieloma zależnościami</h2>
+<pre><code class="language-csharp">public class ReportGeneratorBackgroundService : BackgroundService
+{
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly ILogger&lt;ReportGeneratorBackgroundService&gt; _logger;
+
+    public ReportGeneratorBackgroundService(
+        IServiceScopeFactory scopeFactory,
+        ILogger&lt;ReportGeneratorBackgroundService&gt; logger)
+    {
+        _scopeFactory = scopeFactory;
+        _logger = logger;
+    }
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            using (var scope = _scopeFactory.CreateScope())
+            {
+                // DbContext jest Scoped - w tle działającym Singletonie
+                // (BackgroundService) nie mógłbyś go normalnie wstrzyknąć
+                var dbContext = scope.ServiceProvider.GetRequiredService&lt;AppDbContext&gt;();
+                var reportService = scope.ServiceProvider.GetRequiredService&lt;IReportService&gt;();
+
+                var pendingOrders = await dbContext.Orders
+                    .Where(o =&gt; !o.ReportGenerated)
+                    .ToListAsync(stoppingToken);
+
+                foreach (var order in pendingOrders)
+                {
+                    await reportService.GenerateAsync(order);
+                }
+            }
+
+            await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
+        }
+    }
+}
+</code></pre>
+<p>To jest bardzo częsty wzorzec - <strong><code>BackgroundService</code> w .NET jest zawsze Singletonem</strong>, więc jeśli potrzebuje <code>DbContext</code> (Scoped), zawsze musi przejść przez <code>IServiceScopeFactory</code>.</p>
+<h2>Rejestracja - nic dodatkowego nie trzeba robić</h2>
+<p><code>IServiceScopeFactory</code> jest <strong>automatycznie dostępny</strong> w każdym <code>IServiceCollection</code> z <code>Microsoft.Extensions.DependencyInjection</code> - nie trzeba go rejestrować ręcznie.</p>
+<hr />
+<h1>Co znaczy "thread-safe"?</h1>
+<p><strong>Thread-safe</strong> oznacza, że kod działa poprawnie, gdy <strong>wiele wątków wykonuje go jednocześnie</strong> i sięga do tych samych danych - bez uszkodzenia stanu, race conditions czy nieprzewidywalnych wyników.</p>
+<h2>Przykład kodu, który NIE jest thread-safe</h2>
+<pre><code class="language-csharp">public class CounterService
+{
+    private int _count = 0;
+
+    public void Increment()
+    {
+        _count++; // ⚠️ To wygląda na jedną operację, ale nią nie jest!
+    }
+
+    public int GetCount() =&gt; _count;
+}
+</code></pre>
+<p><code>_count++</code> to w rzeczywistości <strong>trzy oddzielne kroki</strong>:
+1. Odczytaj wartość <code>_count</code>
+2. Dodaj 1
+3. Zapisz wynik z powrotem do <code>_count</code></p>
+<p>Jeśli dwa wątki wykonują to <strong>jednocześnie</strong>:</p>
+<pre><code class="language-csharp">Wątek A: odczytuje _count = 5
+Wątek B: odczytuje _count = 5      (jeszcze zanim A zapisał!)
+Wątek A: liczy 5 + 1 = 6
+Wątek B: liczy 5 + 1 = 6
+Wątek A: zapisuje _count = 6
+Wątek B: zapisuje _count = 6       ← nadpisuje wynik wątku A!
+</code></pre>
+<p>Efekt: wywołałeś <code>Increment()</code> dwa razy, a <code>_count</code> zwiększył się tylko o 1 zamiast o 2. To jest <strong>race condition</strong> - wynik zależy od tego, "który wątek zdąży pierwszy", czyli od przypadku/timingu.</p>
+<h2>Dlaczego to jest istotne akurat dla Singletona</h2>
+<p>Jeśli <code>CounterService</code> jest zarejestrowany jako Singleton:</p>
+<pre><code class="language-csharp">services.AddSingleton&lt;CounterService&gt;();
+</code></pre>
+<p>...to <strong>wszystkie requesty/wątki w całej aplikacji dzielą tę samą instancję</strong> i to samo pole <code>_count</code>. Przy dużym ruchu, gdy wiele requestów przychodzi równolegle, ten race condition <strong>będzie się realnie zdarzał</strong> - i to sporadycznie, trudno do odtworzenia (klasyczny "heisenbug" - działa w debugerze, bo debugger spowalnia wykonanie i maskuje problem).</p>
+<p>Gdyby <code>CounterService</code> był Transient albo Scoped, każdy wątek/request miałby <strong>swoją własną instancję</strong> ze swoim własnym <code>_count</code> - problem by nie istniał, bo nie ma współdzielonego stanu.</p>
+<h2>Jak naprawić - kilka podejść</h2>
+<h3>1. <code>lock</code> - najprostsze, ale blokujące</h3>
+<pre><code class="language-csharp">public class CounterService
+{
+    private readonly object _lock = new object();
+    private int _count = 0;
+
+    public void Increment()
+    {
+        lock (_lock)
+        {
+            _count++; // tylko jeden wątek na raz może wejść do tego bloku
+        }
+    }
+}
+</code></pre>
+<h3>2. <code>Interlocked</code> - dla prostych operacji atomowych, bez blokady</h3>
+<pre><code class="language-csharp">public class CounterService
+{
+    private int _count = 0;
+
+    public void Increment()
+    {
+        Interlocked.Increment(ref _count); // atomowa operacja na poziomie CPU
+    }
+
+    public int GetCount() =&gt; Interlocked.CompareExchange(ref _count, 0, 0);
+}
+</code></pre>
+<h3>3. <code>ConcurrentDictionary</code>, <code>ConcurrentQueue</code> itd. - gotowe kolekcje thread-safe</h3>
+<pre><code class="language-csharp">public class CacheService
+{
+    // zamiast zwykłego Dictionary&lt;K,V&gt;, które NIE jest thread-safe
+    private readonly ConcurrentDictionary&lt;string, User&gt; _cache = new();
+
+    public void Add(string key, User user) =&gt; _cache[key] = user;
+    public User Get(string key) =&gt; _cache.TryGetValue(key, out var user) ? user : null;
+}
+</code></pre>
+<h2>Praktyczna zasada dla Singletonów</h2>
+<blockquote>
+<p><strong>Jeśli Singleton ma mutowalny stan (pola, które się zmieniają po utworzeniu) - musi być thread-safe. Jeśli jest bezstanowy (immutable) albo tylko odczytuje dane raz ustawione przy starcie - problemu nie ma.</strong></p>
+</blockquote>
+<pre><code class="language-csharp">// OK bez synchronizacji - stan ustawiony raz, tylko odczyt
+public class AppConfig
+{
+    public string ApiUrl { get; }
+    public AppConfig(IConfiguration config) =&gt; ApiUrl = config[&quot;ApiUrl&quot;];
+}
+
+// WYMAGA synchronizacji - stan się zmienia w trakcie działania
+public class RequestCounter
+{
+    private int _totalRequests; // ⚠️ mutowalne, wielu wątków pisze jednocześnie
+}
+</code></pre>
+<p>To zresztą częste pytanie na rozmowach: <em>"Dlaczego <code>DbContext</code> w EF Core jest Scoped, a nie Singleton?"</em> - odpowiedź brzmi właśnie: <strong><code>DbContext</code> nie jest thread-safe</strong> (ma wewnętrzny change tracker, stan transakcji), więc gdyby był Singletonem, dwa równoległe requesty operujące na tym samym <code>DbContext</code> uszkodziłyby sobie nawzajem stan.</p>
+  
+  
+  <div class="topic-nav"><a class="prev" href="lifetimes.html"><span class="lbl">← wstecz</span>Singleton vs Transient vs Scoped</a><a class="next" href="di-methods.html"><span class="lbl">dalej →</span>Sposoby wdrożenia DI</a></div>
+</div>
+    </div>
+  </main>
+</div>
+
+<button type="button" class="fab theme-toggle" id="themeToggle" aria-label="Zmień tryb ciemny/jasny" title="Tryb jasny">
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4" y1="12" x2="2" y2="12"/><line x1="22" y1="12" x2="20" y2="12"/><line x1="19.07" y1="4.93" x2="17.66" y2="6.34"/><line x1="6.34" y1="17.66" x2="4.93" y2="19.07"/><line x1="19.07" y1="19.07" x2="17.66" y2="17.66"/><line x1="6.34" y1="6.34" x2="4.93" y2="4.93"/>
+  </svg>
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </svg>
+</button>
+
+<button type="button" class="fab width-toggle" id="widthToggle" aria-label="Pełna szerokość" title="Wąska treść">
+  <svg id="widthToggleIcon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="10" y1="14" x2="3" y2="21"/>
+  </svg>
+</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
+<script src="../app.js"></script>
+</body>
+</html>
