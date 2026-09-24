@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>.NET / C# — Kompendium przed rozmową</title>
+<title>.NET / C# — Kompendium wiedzy przed rozmową rekrutacyjną</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/nord.min.css">
 <style>
@@ -460,8 +460,10 @@ public sealed class OrderDiscountOrchestrator : IOrderDiscountOrchestrator
 }
 
 // --- Rejestracja w DI - i tak trzeba to WSZYSTKO podłączyć ---
+var services = new ServiceCollection(); // z Microsoft.Extensions.DependencyInjection
 services.AddSingleton&lt;IDiscountPolicyFactoryProvider, DiscountPolicyFactoryProvider&gt;();
 services.AddSingleton&lt;IOrderDiscountOrchestrator, OrderDiscountOrchestrator&gt;();
+var serviceProvider = services.BuildServiceProvider(); // zamienia rejestr w działający kontener
 
 // --- Użycie ---
 var orchestrator = serviceProvider.GetRequiredService&lt;IOrderDiscountOrchestrator&gt;();
@@ -525,6 +527,7 @@ var total = orchestrator.Calculate(new OrderDiscountRequest
 <h2>Dlaczego to jest ważne na rozmowie SE III</h2>
 <p>To jest właściwie <strong>domknięcie</strong> tematu SOLID, o którym rozmawialiśmy na samym początku - dobra odpowiedź na "co sądzisz o SOLID" nie kończy się na entuzjastycznym wyliczeniu zasad, tylko pokazuje <strong>umiar</strong>: znajomość <strong>YAGNI</strong> ("You Aren't Gonna Need It") i <strong>KISS</strong> ("Keep It Simple") jako przeciwwagi. Rozmówca na poziomie SE III często właśnie tego szuka - czy kandydat wie, <strong>kiedy przestać</strong> stosować wzorce, a nie tylko że je zna.</p>
 <div class="callout"><strong>Dobra, zwięzła odpowiedź na rozmowie:</strong> "OOP to encapsulation, inheritance, polymorphism i abstraction - fundament, na którym stoi SOLID. 'Enterprise OOP' to nieformalny, krytyczny termin na nadużywanie tych zasad - tworzenie abstrakcji, fabryk i interfejsów bez realnej, potwierdzonej potrzeby, tylko 'bo to dobra praktyka'. Klasyczny przykład to satyryczny projekt FizzBuzzEnterpriseEdition. Dobre wykorzystanie OOP to nie maksymalizacja liczby wzorców w kodzie, tylko rozwiązanie konkretnego problemu z odpowiednim, minimalnym poziomem abstrakcji - a każdą dodatkową warstwę powinieneś umieć uzasadnić konkretną, istniejącą potrzebą, nie hipotetyczną przyszłością."</div>
+  
   `},
 
   { id:"solid-basics", title:"Zasady SOLID", tags:"solid srp ocp lsp isp dip",
@@ -791,13 +794,30 @@ mockApiService.Verify(s =&gt; s.GetUser(&quot;1&quot;), Times.Once);
 </ol>
 <h2>Kontener DI (Dependency Injection Container)</h2>
 <p>W większych aplikacjach ręczne tworzenie i przekazywanie zależności (jak wyżej) robi się uciążliwe, więc używa się <strong>kontenera DI</strong>, który automatycznie tworzy i wstrzykuje zależności na podstawie rejestracji:</p>
-<pre><code class="language-csharp">// Rejestracja (raz, przy starcie aplikacji)
+<pre><code class="language-csharp">using Microsoft.Extensions.DependencyInjection; // pakiet NuGet z tym samym API co w ASP.NET Core
+
+// 1. Stwórz kolekcję serwisów - to jest &quot;rejestr&quot;, w którym zapisujesz,
+//    co ma być czym (interfejs -&gt; konkretna implementacja)
+var services = new ServiceCollection();
+
+// 2. Rejestracja (raz, przy starcie aplikacji)
 services.AddSingleton&lt;ILogger, ConsoleLogger&gt;();
 services.AddSingleton&lt;IUserApiService, UserApiService&gt;();
 
-// Rozwiązywanie zależności (automatyczne)
+// WAŻNE: ViewModel też musi być zarejestrowany, inaczej GetRequiredService
+// poniżej rzuci wyjątkiem &quot;Unable to resolve service&quot; - resolwowanie
+// dotyczy WSZYSTKIEGO, co ma powstać przez kontener, nie tylko &quot;usług&quot;
+services.AddTransient&lt;UserProfileViewModel&gt;();
+
+// 3. Zbuduj kontener (IServiceProvider) na podstawie rejestracji z kroku 2 -
+//    to jest moment, w którym &quot;rejestr&quot; zamienia się w działający kontener
+var serviceProvider = services.BuildServiceProvider();
+
+// 4. Rozwiązywanie zależności (automatyczne) - kontener SAM wywoła konstruktor
+//    UserProfileViewModel, wstrzykując mu ILogger i IUserApiService
 var viewModel = serviceProvider.GetRequiredService&lt;UserProfileViewModel&gt;();
 </code></pre>
+<p><strong>Co robi każdy krok:</strong> <code>ServiceCollection</code> to pusta lista rejestracji - sama nie umie jeszcze niczego tworzyć. Metody <code>Add*</code> (<code>AddSingleton</code>, <code>AddTransient</code>, <code>AddScoped</code>) tylko dopisują wpis "gdy ktoś poprosi o <code>X</code>, dawaj <code>Y</code>". <code>BuildServiceProvider()</code> kompiluje te wpisy w faktyczny, działający kontener - to jest moment, w którym kontener sprawdza, czy da się wszystko poskładać. <code>GetRequiredService&lt;T&gt;()</code> dopiero wtedy faktycznie tworzy instancję, wywołując konstruktor i wstrzykując zarejestrowane zależności.</p>
 <p>Popularne przykłady w różnych ekosystemach:
 - <strong>Android (Kotlin/Java)</strong>: Hilt, Koin, Dagger
 - <strong>iOS (Swift)</strong>: Swinject, Resolver
