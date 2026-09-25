@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>OOP i &quot;Enterprise OOP&quot; — .NET / C# Kompendium wiedzy</title>
+<title>Kafka vs RabbitMQ - porównanie i implementacja — .NET / C# Kompendium wiedzy</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/nord.min.css">
 <link rel="stylesheet" href="../styles.css">
 </head>
@@ -32,7 +32,7 @@
       <div class="search-count" id="searchCount"></div>
     </div>
     <nav class="nav" id="navList">
-<details class="nav-group" data-cat-id="solid" open>
+<details class="nav-group" data-cat-id="solid">
   <summary class="nav-group-btn">
     <span style="display:flex;align-items:center;gap:.5rem;">
       <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
@@ -41,7 +41,7 @@
     <span class="n">9</span>
   </summary>
   <div class="nav-items">
-    <a class="nav-item active" data-topic-id="oop-enterprise" data-tags="oop encapsulation inheritance polymorphism abstraction enterprise overengineering yagni" href="../topics/oop-enterprise.html">OOP i &quot;Enterprise OOP&quot;</a>
+    <a class="nav-item" data-topic-id="oop-enterprise" data-tags="oop encapsulation inheritance polymorphism abstraction enterprise overengineering yagni" href="../topics/oop-enterprise.html">OOP i &quot;Enterprise OOP&quot;</a>
     <a class="nav-item" data-topic-id="solid-basics" data-tags="solid srp ocp lsp isp dip" href="../topics/solid-basics.html">Zasady SOLID</a>
     <a class="nav-item" data-topic-id="clean-code" data-tags="clean code czytelność nazewnictwo dry" href="../topics/clean-code.html">Clean Code</a>
     <a class="nav-item" data-topic-id="di-mvvm-concept" data-tags="di dependency injection mvvm viewmodel" href="../topics/di-mvvm-concept.html">DI w MVVM — koncepcja</a>
@@ -185,7 +185,7 @@
     <a class="nav-item" data-topic-id="automapper-basics" data-tags="automapper profile projectto reversemap assertconfigurationisvalid" href="../topics/automapper-basics.html">AutoMapper</a>
   </div>
 </details>
-<details class="nav-group" data-cat-id="distributed">
+<details class="nav-group" data-cat-id="distributed" open>
   <summary class="nav-group-btn">
     <span style="display:flex;align-items:center;gap:.5rem;">
       <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
@@ -201,7 +201,7 @@
     <a class="nav-item" data-topic-id="docker-k8s" data-tags="docker container image kubernetes pod deployment service self healing" href="../topics/docker-k8s.html">Docker, kontenery, Kubernetes</a>
     <a class="nav-item" data-topic-id="rebus-servicebus" data-tags="rebus servicebus messagebus rabbitmq masstransit saga" href="../topics/rebus-servicebus.html">Rebus (.NET Service Bus)</a>
     <a class="nav-item" data-topic-id="rabbitmq-fundamentals" data-tags="rabbitmq amqp broker exchange queue push pull" href="../topics/rabbitmq-fundamentals.html">Jak działa RabbitMQ (AMQP vs HTTP)</a>
-    <a class="nav-item" data-topic-id="kafka-vs-rabbitmq" data-tags="kafka rabbitmq porównanie confluent rabbitmq.client producer consumer" href="../topics/kafka-vs-rabbitmq.html">Kafka vs RabbitMQ - porównanie i implementacja</a>
+    <a class="nav-item active" data-topic-id="kafka-vs-rabbitmq" data-tags="kafka rabbitmq porównanie confluent rabbitmq.client producer consumer" href="../topics/kafka-vs-rabbitmq.html">Kafka vs RabbitMQ - porównanie i implementacja</a>
   </div>
 </details>
 <details class="nav-group" data-cat-id="memory">
@@ -237,192 +237,225 @@
   <main class="main wide" id="mainArea">
     <div class="content" id="content">
 <div class="topic">
-  <div class="crumb">.NET / C# <span class="sep">/</span> <span class="cat">SOLID, Clean Code, DI</span></div>
+  <div class="crumb">.NET / C# <span class="sep">/</span> <span class="cat">Architektura rozproszona</span></div>
   
-  <h1>OOP i "Enterprise OOP"</h1>
-<h2>OOP - cztery filary</h2>
-<p>Programowanie obiektowe opiera się na czterech zasadach, które w praktyce już wielokrotnie przewijały się w naszej rozmowie (SOLID, modyfikatory dziedziczenia, <code>abstract</code>/<code>interface</code>) - tu zbieram je w jedną, zwięzłą odpowiedź na klasyczne pytanie "co to jest OOP".</p>
-<h3>1. Encapsulation (hermetyzacja)</h3>
-<p>Ukrycie wewnętrznego stanu obiektu i kontrola dostępu do niego przez publiczne API.</p>
-<pre><code class="language-csharp">public class BankAccount
-{
-    private decimal _balance; // stan UKRYTY, niedostępny z zewnątrz
-
-    public decimal Balance =&gt; _balance; // tylko odczyt z zewnątrz
-
-    public void Deposit(decimal amount)
-    {
-        if (amount &lt;= 0) throw new ArgumentException(&quot;Kwota musi być pozytywna&quot;);
-        _balance += amount; // jedyny sposób modyfikacji - przez kontrolowaną metodę
-    }
-}
-</code></pre>
-<p>To wraca do modyfikatorów dostępu, o których mówiliśmy - <code>private</code>/<code>protected</code> to mechanizm, który to fizycznie wymusza.</p>
-<h3>2. Inheritance (dziedziczenie)</h3>
-<p>Klasa pochodna dziedziczy zachowanie i stan klasy bazowej - to dokładnie <code>virtual</code>/<code>override</code>/<code>abstract</code>, które już omawialiśmy przy modyfikatorach dziedziczenia.</p>
-<h3>3. Polymorphism (polimorfizm)</h3>
-<p>Ten sam interfejs/metoda zachowuje się różnie zależnie od faktycznego typu obiektu w runtime.</p>
-<pre><code class="language-csharp">Animal[] animals = { new Dog(), new Cat() };
-foreach (var a in animals) a.MakeSound(); // WOŁA różną implementację, ta SAMA linijka kodu
-</code></pre>
-<h3>4. Abstraction (abstrakcja)</h3>
-<p>Ukrycie złożoności implementacji za prostym interfejsem - <code>IOrderRepository</code> nie mówi Ci <em>jak</em> dane są zapisywane, tylko <em>co</em> można z nim zrobić.</p>
-<hr />
-<h2>"Enterprise OOP" - termin krytyczny, nie techniczny</h2>
-<p>To jest ważne rozróżnienie: <strong>"Enterprise OOP" nie jest formalną nazwą kolejnego wzorca projektowego</strong> - to <strong>potoczny, lekko ironiczny termin</strong> opisujący patologiczne nadużycie zasad OOP/SOLID w dużych, korporacyjnych kodowbazach (klasycznie kojarzone z Java EE/Spring z lat 2000., ale to samo zdarza się w .NET) - gdzie proste zadanie zostaje owinięte w kilkanaście warstw abstrakcji "na wszelki wypadek", bez realnej potrzeby biznesowej.</p>
-<h3>Skąd się to bierze - historyczny punkt odniesienia</h3>
-<p>Istnieje słynny, satyryczny projekt open-source <strong>FizzBuzzEnterpriseEdition</strong> - implementacja trywialnego zadania rekrutacyjnego FizzBuzz (wypisz liczby 1-100, "Fizz" dla podzielnych przez 3, "Buzz" dla podzielnych przez 5) rozdmuchana do dziesiątek klas, fabryk, strategii i interfejsów - żeby w praktyce pokazać, jak wygląda ten antywzorzec, kiedy zastosuje się "wszystkie dobre praktyki" bez zastanowienia, czy problem tego wymaga.</p>
-<h2>Rozbudowany przykład - kalkulacja rabatu zamówienia</h2>
-<p>To jest częste zadanie rekrutacyjne w wersji biznesowej (nie abstrakcyjnej jak FizzBuzz): <em>"oblicz cenę zamówienia po rabacie - 10% zniżki, jeśli suma przekracza 1000 zł"</em>. Zobaczmy, jak wygląda to samo zadanie w stylu "Enterprise OOP" i jak wygląda pragmatyczne rozwiązanie - to jest dobry materiał do pokazania na rozmowie, że rozumiesz <strong>różnicę</strong>, nie tylko potrafisz wymienić wzorce.</p>
-<h3>Wersja "Enterprise OOP" - 9 typów, żeby policzyć jeden rabat</h3>
-<pre><code class="language-csharp">// --- Kontrakty ---
-public enum DiscountPolicyType { Standard, None }
-
-public interface IDiscountPolicy
-{
-    decimal Apply(decimal amount);
-}
-
-public interface IDiscountPolicyFactory
-{
-    IDiscountPolicy Create(DiscountPolicyType type);
-}
-
-public interface IDiscountPolicyFactoryProvider
-{
-    IDiscountPolicyFactory GetFactory();
-}
-
-public interface IOrderDiscountOrchestrator
-{
-    decimal Calculate(OrderDiscountRequest request);
-}
-
-// --- DTO żądania (bo przekazanie samego &quot;decimal&quot; byłoby &quot;nieelastyczne&quot;) ---
-public sealed class OrderDiscountRequest
-{
-    public decimal Amount { get; init; }
-    public DiscountPolicyType PolicyType { get; init; }
-}
-
-// --- Implementacje polityk rabatowych ---
-public sealed class StandardDiscountPolicy : IDiscountPolicy
-{
-    private const decimal Threshold = 1000m;
-    private const decimal Rate = 0.10m;
-
-    public decimal Apply(decimal amount)
-        =&gt; amount &gt;= Threshold ? amount - amount * Rate : amount;
-}
-
-public sealed class NoDiscountPolicy : IDiscountPolicy
-{
-    public decimal Apply(decimal amount) =&gt; amount;
-}
-
-// --- Fabryka polityk ---
-public sealed class DiscountPolicyFactory : IDiscountPolicyFactory
-{
-    public IDiscountPolicy Create(DiscountPolicyType type) =&gt; type switch
-    {
-        DiscountPolicyType.Standard =&gt; new StandardDiscountPolicy(),
-        _ =&gt; new NoDiscountPolicy()
-    };
-}
-
-// --- Dostawca fabryki - bo &quot;a co jeśli w przyszłości będzie WIELE fabryk?&quot; ---
-public sealed class DiscountPolicyFactoryProvider : IDiscountPolicyFactoryProvider
-{
-    public IDiscountPolicyFactory GetFactory() =&gt; new DiscountPolicyFactory();
-}
-
-// --- &quot;Orchestrator&quot; - bo samo wywołanie polityki byłoby zbyt bezpośrednie ---
-public sealed class OrderDiscountOrchestrator : IOrderDiscountOrchestrator
-{
-    private readonly IDiscountPolicyFactoryProvider _provider;
-
-    public OrderDiscountOrchestrator(IDiscountPolicyFactoryProvider provider)
-        =&gt; _provider = provider;
-
-    public decimal Calculate(OrderDiscountRequest request)
-    {
-        var factory = _provider.GetFactory();
-        var policy = factory.Create(request.PolicyType);
-        return policy.Apply(request.Amount);
-    }
-}
-
-// --- Rejestracja w DI - i tak trzeba to WSZYSTKO podłączyć ---
-var services = new ServiceCollection(); // z Microsoft.Extensions.DependencyInjection
-services.AddSingleton&lt;IDiscountPolicyFactoryProvider, DiscountPolicyFactoryProvider&gt;();
-services.AddSingleton&lt;IOrderDiscountOrchestrator, OrderDiscountOrchestrator&gt;();
-var serviceProvider = services.BuildServiceProvider(); // zamienia rejestr w działający kontener
-
-// --- Użycie ---
-var orchestrator = serviceProvider.GetRequiredService&lt;IOrderDiscountOrchestrator&gt;();
-var total = orchestrator.Calculate(new OrderDiscountRequest
-{
-    Amount = 1200m,
-    PolicyType = DiscountPolicyType.Standard
-});
-</code></pre>
-<p><strong>Policzmy:</strong> 4 interfejsy, 5 klas, 1 enum, 1 DTO, 2 rejestracje DI - <strong>9 typów</strong>, żeby wykonać jedno porównanie i jedno mnożenie. Każdy z tych elementów "broni się" pojedynczo (Factory Pattern! Dependency Inversion! Single Responsibility!), ale <strong>razem</strong> rozwiązują problem, który w ogóle nie istnieje: nikt nie zgłosił potrzeby wielu fabryk polityk, ani wielu dostawców fabryk.</p>
-<h3>Wersja pragmatyczna - to samo zadanie</h3>
-<pre><code class="language-csharp">public static class OrderPricing
-{
-    private const decimal DiscountThreshold = 1000m;
-    private const decimal DiscountRate = 0.10m;
-
-    public static decimal CalculateTotal(decimal amount)
-        =&gt; amount &gt;= DiscountThreshold ? amount * (1 - DiscountRate) : amount;
-}
-</code></pre>
-<pre><code class="language-csharp">var total = OrderPricing.CalculateTotal(1200m); // 1080
-</code></pre>
-<p><strong>1 metoda, 2 stałe.</strong> Identyczny wynik, w pełni testowalna (<code>[Theory]</code>/<code>[InlineData]</code>, jak omawialiśmy przy xUnit), czytelna dla każdego, kto otworzy ten plik po raz pierwszy.</p>
-<h3>Kiedy wersja "enterprise" faktycznie miałaby sens</h3>
-<p>Żeby być fair - rozbudowana wersja <strong>przestaje być patologią</strong>, gdy realnie potrzebujesz: różnych polityk rabatowych <strong>wybieranych w runtime</strong> na podstawie konfiguracji/segmentu klienta, <strong>wielu niezależnych</strong> dostawców fabryk (np. per-region, per-tenant w multi-tenant SaaS), albo gdy <code>IDiscountPolicy</code> ma <strong>rzeczywiście wiele</strong> implementacji używanych zamiennie w produkcji. Różnica między dobrym designem a "Enterprise OOP" to nie <strong>obecność</strong> abstrakcji, tylko czy abstrakcja odpowiada na <strong>istniejącą, potwierdzoną</strong> potrzebę, czy tylko na hipotetyczną "a może kiedyś".</p>
-<h2>Jak rozpoznać "Enterprise OOP" w praktyce - checklist</h2>
+  <h1>Apache Kafka vs RabbitMQ - porównanie i implementacja w C</h1>
+<h2>Czym są - fundamentalna różnica modelu</h2>
+<p><strong>RabbitMQ</strong> to klasyczny <strong>broker wiadomości</strong> (message broker) - implementuje model <strong>kolejki</strong>: wiadomość trafia do kolejki, czeka, zostaje <strong>dostarczona i usunięta</strong>. Mówi protokołem <strong>AMQP</strong> (o czym mówiliśmy szczegółowo przy okazji Rebusa i RabbitMQ) - binarny protokół z modelem <strong>push</strong>, broker sam wypycha wiadomość do gotowego konsumenta.</p>
+<p><strong>Kafka</strong> to <strong>rozproszony log zdarzeń</strong> (distributed event streaming platform) - wiadomości są <strong>trwale przechowywane</strong> w partycjach przez skonfigurowany czas (retencję), niezależnie od tego, czy ktoś je odebrał. To nie jest "kolejka" w klasycznym sensie, tylko append-only log z możliwością wielokrotnego, niezależnego odczytu.</p>
+<h2>Tabela porównawcza</h2>
 <table>
 <thead>
 <tr>
-<th>Sygnał</th>
-<th>Przykład</th>
+<th></th>
+<th>RabbitMQ</th>
+<th>Kafka</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Interfejs z <strong>jedną</strong> implementacją, na zawsze</td>
-<td><code>IOrderValidator</code> z jedyną klasą <code>OrderValidator</code>, nigdy podmienioną</td>
+<td>Model</td>
+<td>Kolejka (broker wiadomości)</td>
+<td>Rozproszony log (event streaming)</td>
 </tr>
 <tr>
-<td>Głęboka hierarchia dziedziczenia "na przyszłość"</td>
-<td><code>AbstractBaseServiceProviderFactoryManager</code></td>
+<td>Protokół</td>
+<td>AMQP (binarny, push do konsumenta)</td>
+<td>Własny protokół binarny TCP</td>
 </tr>
 <tr>
-<td>Wzorzec projektowy zastosowany bez problemu, który rozwiązuje</td>
-<td>Strategy dla logiki, która nigdy się nie zmienia</td>
+<td>Trwałość po odebraniu</td>
+<td>Wiadomość <strong>usuwana</strong> po ACK</td>
+<td>Wiadomość <strong>zostaje</strong> (retencja czasowa, np. 7 dni)</td>
 </tr>
 <tr>
-<td>Warstwy pośredniczące niedodające wartości</td>
-<td>Generyczne Repository nad EF Core, o którym mówiliśmy - <code>GetAllAsync()</code> zwracające to, co <code>DbSet</code> już daje</td>
+<td>Replay historii</td>
+<td>❌ Nie (raz odebrana, zniknęła)</td>
+<td>✅ Tak (nowy konsument może odtworzyć od początku)</td>
 </tr>
 <tr>
-<td>"Provider" dostawcy fabryki dostawcy</td>
-<td>Jak w przykładzie wyżej - <code>IDiscountPolicyFactoryProvider</code></td>
+<td>Przepustowość</td>
+<td>Wysoka</td>
+<td>Bardzo wysoka (miliony wiadomości/s)</td>
 </tr>
 <tr>
-<td>Nazwy klas dłuższe niż ich zawartość</td>
-<td><code>AbstractSingletonProxyFactoryBean</code> (prawdziwa klasa ze Springa, klasyczny żart w tym środowisku)</td>
+<td>Routing</td>
+<td>Bogaty (exchange: direct/topic/fanout/headers)</td>
+<td>Prostszy (topic + partycje + klucz)</td>
+</tr>
+<tr>
+<td>Kolejność</td>
+<td>Per-kolejka</td>
+<td>Per-partycja (nie globalnie w topicu)</td>
+</tr>
+<tr>
+<td>Typowe zastosowanie</td>
+<td>Kolejkowanie zadań, RPC, komendy między serwisami</td>
+<td>Event sourcing, streaming logów, duże wolumeny zdarzeń, analytics</td>
+</tr>
+<tr>
+<td>Krzywa wejścia</td>
+<td>Niższa</td>
+<td>Wyższa (partycje, consumer groups, offsety)</td>
 </tr>
 </tbody>
 </table>
-<h2>Dlaczego to jest ważne na rozmowie SE III</h2>
-<p>To jest właściwie <strong>domknięcie</strong> tematu SOLID, o którym rozmawialiśmy na samym początku - dobra odpowiedź na "co sądzisz o SOLID" nie kończy się na entuzjastycznym wyliczeniu zasad, tylko pokazuje <strong>umiar</strong>: znajomość <strong>YAGNI</strong> ("You Aren't Gonna Need It") i <strong>KISS</strong> ("Keep It Simple") jako przeciwwagi. Rozmówca na poziomie SE III często właśnie tego szuka - czy kandydat wie, <strong>kiedy przestać</strong> stosować wzorce, a nie tylko że je zna.</p>
-<div class="callout"><strong>Dobra, zwięzła odpowiedź na rozmowie:</strong> "OOP to encapsulation, inheritance, polymorphism i abstraction - fundament, na którym stoi SOLID. 'Enterprise OOP' to nieformalny, krytyczny termin na nadużywanie tych zasad - tworzenie abstrakcji, fabryk i interfejsów bez realnej, potwierdzonej potrzeby, tylko 'bo to dobra praktyka'. Klasyczny przykład to satyryczny projekt FizzBuzzEnterpriseEdition. Dobre wykorzystanie OOP to nie maksymalizacja liczby wzorców w kodzie, tylko rozwiązanie konkretnego problemu z odpowiednim, minimalnym poziomem abstrakcji - a każdą dodatkową warstwę powinieneś umieć uzasadnić konkretną, istniejącą potrzebą, nie hipotetyczną przyszłością."</div>
+<p><strong>Najkrócej:</strong> RabbitMQ pytasz "zrób to zadanie" (komenda, ma się wykonać raz), Kafka mówisz "to się wydarzyło" (zdarzenie, może je odczytać wielu, wielokrotnie, później).</p>
+<h2>Implementacja w C# - RabbitMQ (biblioteka <code>RabbitMQ.Client</code>)</h2>
+<h3>Producer</h3>
+<pre><code class="language-csharp">using RabbitMQ.Client;
+using System.Text;
+using System.Text.Json;
+
+public class RabbitMqProducer : IDisposable
+{
+    private readonly IConnection _connection;
+    private readonly IModel _channel;
+
+    public RabbitMqProducer(string hostName = &quot;localhost&quot;)
+    {
+        var factory = new ConnectionFactory { HostName = hostName };
+        _connection = factory.CreateConnection();
+        _channel = _connection.CreateModel();
+
+        // Deklaracja kolejki - idempotentne, bezpieczne wywołać wielokrotnie
+        _channel.QueueDeclare(queue: &quot;orders-queue&quot;, durable: true, exclusive: false, autoDelete: false);
+    }
+
+    public void Publish(OrderPlacedEvent orderEvent)
+    {
+        var json = JsonSerializer.Serialize(orderEvent);
+        var body = Encoding.UTF8.GetBytes(json);
+
+        var properties = _channel.CreateBasicProperties();
+        properties.Persistent = true; // wiadomość przetrwa restart brokera
+
+        _channel.BasicPublish(exchange: &quot;&quot;, routingKey: &quot;orders-queue&quot;, basicProperties: properties, body: body);
+    }
+
+    public void Dispose()
+    {
+        _channel?.Dispose();
+        _connection?.Dispose();
+    }
+}
+</code></pre>
+<h3>Consumer</h3>
+<pre><code class="language-csharp">using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
+using System.Text;
+using System.Text.Json;
+
+public class RabbitMqConsumer : IDisposable
+{
+    private readonly IConnection _connection;
+    private readonly IModel _channel;
+
+    public RabbitMqConsumer(string hostName = &quot;localhost&quot;)
+    {
+        var factory = new ConnectionFactory { HostName = hostName };
+        _connection = factory.CreateConnection();
+        _channel = _connection.CreateModel();
+        _channel.QueueDeclare(queue: &quot;orders-queue&quot;, durable: true, exclusive: false, autoDelete: false);
+    }
+
+    public void StartConsuming()
+    {
+        var consumer = new EventingBasicConsumer(_channel);
+
+        // PUSH - broker SAM wywołuje ten handler, gdy przyjdzie wiadomość
+        consumer.Received += (model, ea) =&gt;
+        {
+            var json = Encoding.UTF8.GetString(ea.Body.ToArray());
+            var orderEvent = JsonSerializer.Deserialize&lt;OrderPlacedEvent&gt;(json);
+
+            Console.WriteLine($&quot;Otrzymano: zamówienie {orderEvent.OrderId}&quot;);
+
+            _channel.BasicAck(ea.DeliveryTag, multiple: false); // potwierdzenie odbioru
+        };
+
+        _channel.BasicConsume(queue: &quot;orders-queue&quot;, autoAck: false, consumer: consumer);
+    }
+
+    public void Dispose()
+    {
+        _channel?.Dispose();
+        _connection?.Dispose();
+    }
+}
+</code></pre>
+<p><strong>Kluczowe elementy:</strong> <code>autoAck: false</code> + ręczny <code>BasicAck</code> - dopóki nie potwierdzisz, RabbitMQ uważa wiadomość za "niedostarczoną" i odda ją ponownie (np. jeśli konsument padnie w trakcie przetwarzania) - to jest ten sam mechanizm "at-least-once delivery", o którym mówiliśmy przy Outbox Pattern.</p>
+<h2>Implementacja w C# - Kafka (biblioteka <code>Confluent.Kafka</code>)</h2>
+<h3>Producer</h3>
+<pre><code class="language-csharp">using Confluent.Kafka;
+
+public class KafkaProducer : IDisposable
+{
+    private readonly IProducer&lt;string, string&gt; _producer;
+
+    public KafkaProducer(string bootstrapServers = &quot;localhost:9092&quot;)
+    {
+        var config = new ProducerConfig { BootstrapServers = bootstrapServers };
+        _producer = new ProducerBuilder&lt;string, string&gt;(config).Build();
+    }
+
+    public async Task PublishAsync(OrderPlacedEvent orderEvent)
+    {
+        var json = System.Text.Json.JsonSerializer.Serialize(orderEvent);
+
+        await _producer.ProduceAsync(&quot;order-events&quot;, new Message&lt;string, string&gt;
+        {
+            Key = orderEvent.OrderId.ToString(), // decyduje, do KTÓREJ partycji trafi (kolejność per klucz)
+            Value = json
+        });
+    }
+
+    public void Dispose() =&gt; _producer?.Dispose();
+}
+</code></pre>
+<h3>Consumer</h3>
+<pre><code class="language-csharp">using Confluent.Kafka;
+
+public class KafkaConsumer
+{
+    private readonly IConsumer&lt;string, string&gt; _consumer;
+
+    public KafkaConsumer(string bootstrapServers = &quot;localhost:9092&quot;, string groupId = &quot;order-service-group&quot;)
+    {
+        var config = new ConsumerConfig
+        {
+            BootstrapServers = bootstrapServers,
+            GroupId = groupId, // consumer group - dzieli partycje między instancjami tej samej grupy
+            AutoOffsetReset = AutoOffsetReset.Earliest
+        };
+        _consumer = new ConsumerBuilder&lt;string, string&gt;(config).Build();
+    }
+
+    public void Consume(CancellationToken cancellationToken)
+    {
+        _consumer.Subscribe(&quot;order-events&quot;);
+
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            var result = _consumer.Consume(cancellationToken); // blokuje do przyjścia wiadomości
+
+            var orderEvent = System.Text.Json.JsonSerializer.Deserialize&lt;OrderPlacedEvent&gt;(result.Message.Value);
+            Console.WriteLine($&quot;Otrzymano z partycji {result.Partition}: zamówienie {orderEvent.OrderId}&quot;);
+
+            _consumer.Commit(result); // zapisuje offset - &quot;dotąd doczytałem&quot;
+        }
+    }
+}
+</code></pre>
+<p><strong>Kluczowa różnica widoczna w kodzie:</strong> Kafka <strong>nie ma</strong> <code>BasicAck</code> na pojedynczej wiadomości - zamiast tego <code>Commit()</code> zapisuje <strong>offset</strong> (pozycję w partycji). To odzwierciedla fundamentalną różnicę modelu: RabbitMQ potwierdza <strong>konkretną wiadomość</strong>, Kafka potwierdza <strong>punkt w logu</strong>, do którego doczytałeś.</p>
+<h2>Kiedy które</h2>
+<blockquote>
+<p><strong>RabbitMQ</strong> - gdy masz komendy/zadania, które mają się wykonać <strong>raz</strong>, z bogatym routingiem (fanout do wielu kolejek, routing po wzorcach) i niższą krzywą wejścia. <strong>Kafka</strong> - gdy masz zdarzenia biznesowe, które <strong>wiele</strong> niezależnych systemów chce czytać (czasem z różnym tempem), potrzebujesz replay'u historii, albo skalujesz do bardzo dużych wolumenów (logi, telemetria, event sourcing).</p>
+</blockquote>
+<h2>Relacja do pozostałych tematów na tej stronie</h2>
+<p>To porównanie zbiera w jedno miejsce wątki rozsiane po innych tematach kategorii "Distributed": <strong>Rebus</strong> (i MassTransit/NServiceBus) to biblioteki <strong>abstrahujące</strong> ponad konkretnym transportem - mogą używać RabbitMQ albo (rzadziej) Kafki "pod maską", bez zmiany kodu handlerów. <strong>Saga Pattern</strong> i <strong>Outbox Pattern</strong> dotyczą <strong>obu</strong> technologii jednakowo - niezależnie czy publikujesz przez <code>RabbitMQ.Client</code> czy <code>Confluent.Kafka</code>, potrzebujesz tej samej gwarancji atomowości zapisu i publikacji zdarzenia.</p>
   
-  
-  <div class="topic-nav"><span></span><a class="next" href="solid-basics.html"><span class="lbl">dalej →</span>Zasady SOLID</a></div>
+  <div class="topic-nav"><a class="prev" href="rabbitmq-fundamentals.html"><span class="lbl">← wstecz</span>Jak działa RabbitMQ (AMQP vs HTTP)</a><a class="next" href="memory-management.html"><span class="lbl">dalej →</span>Zarządzanie pamięcią: Framework, Core, .NET</a></div>
 </div>
     </div>
   </main>

@@ -191,7 +191,7 @@
       <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
       Architektura rozproszona
     </span>
-    <span class="n">7</span>
+    <span class="n">8</span>
   </summary>
   <div class="nav-items">
     <a class="nav-item" data-topic-id="saga" data-tags="saga orchestration choreography compensating transaction idempotencja" href="../topics/saga.html">Saga Pattern</a>
@@ -201,6 +201,7 @@
     <a class="nav-item" data-topic-id="docker-k8s" data-tags="docker container image kubernetes pod deployment service self healing" href="../topics/docker-k8s.html">Docker, kontenery, Kubernetes</a>
     <a class="nav-item" data-topic-id="rebus-servicebus" data-tags="rebus servicebus messagebus rabbitmq masstransit saga" href="../topics/rebus-servicebus.html">Rebus (.NET Service Bus)</a>
     <a class="nav-item active" data-topic-id="rabbitmq-fundamentals" data-tags="rabbitmq amqp broker exchange queue push pull" href="../topics/rabbitmq-fundamentals.html">Jak działa RabbitMQ (AMQP vs HTTP)</a>
+    <a class="nav-item" data-topic-id="kafka-vs-rabbitmq" data-tags="kafka rabbitmq porównanie confluent rabbitmq.client producer consumer" href="../topics/kafka-vs-rabbitmq.html">Kafka vs RabbitMQ - porównanie i implementacja</a>
   </div>
 </details>
 <details class="nav-group" data-cat-id="memory">
@@ -319,7 +320,7 @@
 <p>RabbitMQ komunikuje się przez protokół <strong>AMQP</strong>, binarny protokół zaprojektowany do przesyłania wiadomości, nie przez HTTP. Klient otwiera <strong>jedno długotrwałe połączenie TCP</strong> do brokera (port 5672 domyślnie), wewnątrz którego multipleksowane są lekkie kanały do poszczególnych operacji. Wiadomości płyną przez <strong>Exchange → Queue → Consumer</strong>, a model dostarczenia jest <strong>push, nie pull</strong> - broker sam wypycha wiadomość do gotowego konsumenta, gdy tylko jest dostępna, bez potrzeby odpytywania. Port 15672, jeśli jest widoczny, to osobny panel administracyjny HTTP - nie ma nic wspólnego z faktycznym przesyłaniem wiadomości biznesowych.</p>
 </blockquote>
   
-  <div class="topic-nav"><a class="prev" href="rebus-servicebus.html"><span class="lbl">← wstecz</span>Rebus (.NET Service Bus)</a><a class="next" href="memory-management.html"><span class="lbl">dalej →</span>Zarządzanie pamięcią: Framework, Core, .NET</a></div>
+  <div class="topic-nav"><a class="prev" href="rebus-servicebus.html"><span class="lbl">← wstecz</span>Rebus (.NET Service Bus)</a><a class="next" href="kafka-vs-rabbitmq.html"><span class="lbl">dalej →</span>Kafka vs RabbitMQ - porównanie i implementacja</a></div>
 </div>
     </div>
   </main>
