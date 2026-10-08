@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Migracje w zespole — .NET / C# Kompendium wiedzy</title>
+<title>IEquatable&lt;T&gt; — .NET / C# Kompendium wiedzy</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/nord.min.css">
 <link rel="stylesheet" href="../styles.css">
 </head>
@@ -115,7 +115,7 @@
     <a class="nav-item" data-topic-id="rate-limiting" data-tags="rate limiting throttling fixed window sliding token bucket concurrency 429" href="../topics/rate-limiting.html">Rate Limiting w ASP.NET Core</a>
   </div>
 </details>
-<details class="nav-group" data-cat-id="ef" open>
+<details class="nav-group" data-cat-id="ef">
   <summary class="nav-group-btn">
     <span style="display:flex;align-items:center;gap:.5rem;">
       <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
@@ -159,7 +159,7 @@
     <a class="nav-item" data-topic-id="integration-tests" data-tags="webapplicationfactory testcontainers piramida testow inmemory" href="../topics/integration-tests.html">Testy integracyjne</a>
   </div>
 </details>
-<details class="nav-group" data-cat-id="algo">
+<details class="nav-group" data-cat-id="algo" open>
   <summary class="nav-group-btn">
     <span style="display:flex;align-items:center;gap:.5rem;">
       <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
@@ -251,79 +251,124 @@
   <main class="main wide" id="mainArea">
     <div class="content" id="content">
 <div class="topic">
-  <div class="crumb">.NET / C# <span class="sep">/</span> <span class="cat">Entity Framework Core</span></div>
+  <div class="crumb">.NET / C# <span class="sep">/</span> <span class="cat">Algorytmy, struktury danych</span></div>
   
-  <h1>Migracje EF Core w pracy zespołowej</h1>
-<h2>Problem - konflikty migracji przy pracy wielu osób</h2>
-<p>Gdy kilka osób w zespole równolegle zmienia model danych, każda generuje <strong>własną</strong> migrację - klasyczny scenariusz konfliktu:</p>
-<pre><code class="language-csharp">Deweloper A: dodaje kolumnę &quot;Status&quot; do Order      → migracja 20240115_AddOrderStatus
-Deweloper B: dodaje kolumnę &quot;DiscountCode&quot; do Order → migracja 20240115_AddDiscountCode
-</code></pre>
-<p>Obie migracje bazują na <strong>tym samym</strong> modelu "przed zmianą" - gdy obie trafią do głównej gałęzi (np. przez merge), EF Core może się "pogubić" w kolejności, a snapshot modelu (<code>ModelSnapshot.cs</code>) będzie w konflikcie.</p>
-<h2><code>ModelSnapshot.cs</code> - źródło konfliktów w Git</h2>
-<p>EF Core przechowuje <strong>pełny snapshot</strong> aktualnego modelu w wygenerowanym pliku <code>AppDbContextModelSnapshot.cs</code> - to jest plik, który <strong>będzie miał konflikt merge</strong> przy równoległych migracjach, bo obie osoby modyfikują <strong>ten sam wygenerowany plik</strong>.</p>
-<pre><code class="language-csharp">// AppDbContextModelSnapshot.cs (fragment, WYGENEROWANY, nie edytuj ręcznie)
-[DbContext(typeof(AppDbContext))]
-partial class AppDbContextModelSnapshot : ModelSnapshot
+  <h1>IEquatable&lt;T&gt;</h1>
+<h2>Co to jest</h2>
+<p><code>IEquatable&lt;T&gt;</code> to generyczny interfejs z <code>System</code>, który definiuje jedną metodę:</p>
+<pre><code class="language-csharp">public interface IEquatable&lt;T&gt;
 {
-    protected override void BuildModel(ModelBuilder modelBuilder)
+    bool Equals(T other);
+}
+</code></pre>
+<p>Implementując go, mówimy: "mój typ umie porównać się z <strong>konkretnym, znanym typem</strong> <code>T</code> — bez castowania i bez boxingu".</p>
+<h2>Dlaczego samo <code>Equals(object)</code> nie wystarcza</h2>
+<p>Każdy typ w .NET dziedziczy <code>Equals(object obj)</code> po <code>System.Object</code>. Problem w tym, że:</p>
+<ul>
+<li>parametr jest typu <code>object</code>, więc trzeba go zrzutować (<code>(Order)obj</code>) i sprawdzić <code>is</code>/<code>as</code> — dodatkowy narzut,</li>
+<li>dla <strong>struktur (<code>struct</code>)</strong> wywołanie <code>Equals(object)</code> wymaga <strong>boxingu</strong> wartości (bo <code>object</code> to referencja), co jest kosztowne i generuje śmieci na GC,</li>
+<li>domyślna implementacja <code>ValueType.Equals</code> dla structów korzysta z refleksji, co jest wolne.</li>
+</ul>
+<p><code>IEquatable&lt;T&gt;</code> rozwiązuje to, dając <strong>silnie typowaną, bezpośrednią</strong> metodę porównania — bez castowania, bez boxingu, bez refleksji.</p>
+<h2>Pełny przykład</h2>
+<pre><code class="language-csharp">public class Order : IEquatable&lt;Order&gt;
+{
+    public Guid Id { get; }
+    public decimal Amount { get; }
+
+    public Order(Guid id, decimal amount)
     {
-        modelBuilder.Entity(&quot;MyApp.Order&quot;, b =&gt;
-        {
-            b.Property&lt;int&gt;(&quot;Id&quot;);
-            b.Property&lt;string&gt;(&quot;Status&quot;); // dodane przez Dewelopera A
-            b.Property&lt;string&gt;(&quot;DiscountCode&quot;); // dodane przez Dewelopera B - KONFLIKT MERGE
-        });
+        Id = id;
+        Amount = amount;
     }
+
+    // Silnie typowane porównanie - to jest serce IEquatable&lt;T&gt;
+    public bool Equals(Order? other)
+    {
+        if (other is null) return false;
+        if (ReferenceEquals(this, other)) return true;
+
+        return Id == other.Id &amp;&amp; Amount == other.Amount;
+    }
+
+    // Equals(object) delegujemy do Equals(Order)
+    public override bool Equals(object? obj) =&gt; Equals(obj as Order);
+
+    public override int GetHashCode() =&gt; HashCode.Combine(Id, Amount);
+
+    public static bool operator ==(Order? left, Order? right)
+    {
+        if (left is null) return right is null;
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(Order? left, Order? right) =&gt; !(left == right);
 }
 </code></pre>
-<h2>Praktyczne rozwiązanie konfliktu</h2>
-<p><strong>Krok 1:</strong> Po merge/rebase, jeśli jest konflikt w <code>ModelSnapshot.cs</code> - <strong>NIE</strong> próbuj ręcznie scalać tego pliku (jest generowany, ręczna edycja jest bardzo podatna na błędy).</p>
-<p><strong>Krok 2:</strong> Usuń lokalnie migracje, które jeszcze nie trafiły do bazy produkcyjnej/współdzielonej:</p>
-<pre><code class="language-bash">dotnet ef migrations remove  # usuwa OSTATNIĄ migrację (jeśli jeszcze nie zaaplikowana)
-</code></pre>
-<p><strong>Krok 3:</strong> Wygeneruj migrację <strong>na nowo</strong>, na podstawie już scalonego modelu (zawierającego zmiany OBU deweloperów):</p>
-<pre><code class="language-bash">dotnet ef migrations add AddOrderStatusAndDiscountCode
-</code></pre>
-<p>Teraz EF Core generuje <strong>jedną, spójną</strong> migrację, bazującą na modelu zawierającym zmiany obu osób naraz - <code>ModelSnapshot.cs</code> jest odtwarzany bez konfliktu, bo to nowy, czysty plik po merge.</p>
-<h2>Zasada zespołowa - komunikacja przed migracją</h2>
-<p>Praktyczna rekomendacja, którą wiele zespołów stosuje: <strong>zanim wygenerujesz migrację, pociągnij (<code>git pull</code>) najnowsze zmiany z głównej gałęzi</strong>, żeby Twoja migracja bazowała na najświeższym modelu, a nie na przestarzałej wersji z rana.</p>
-<h2>Kolejność stosowania migracji - <code>__EFMigrationsHistory</code></h2>
-<p>EF Core śledzi, które migracje zostały już zastosowane do konkretnej bazy, w specjalnej tabeli:</p>
-<pre><code class="language-sql">SELECT * FROM __EFMigrationsHistory ORDER BY MigrationId;
-</code></pre>
-<p>Jeśli dwie migracje z różnych brancherów mają <strong>kolidujące</strong> nazwy plików/timestampy, <code>dotnet ef database update</code> <strong>może próbować</strong> zastosować je w nieoczekiwanej kolejności - stąd zasada "usuń niezaaplikowaną migrację i wygeneruj ją na nowo po scaleniu kodu" jest bezpieczniejsza niż próba ręcznego scalania.</p>
-<h2>Migracje "puste" (data seeding, operacje niereprezentowane w modelu)</h2>
-<p>Czasem potrzebujesz migracji, która <strong>nie zmienia</strong> struktury tabel, tylko np. wypełnia dane:</p>
-<pre><code class="language-bash">dotnet ef migrations add SeedDefaultStatuses --  # pusta migracja
-</code></pre>
-<pre><code class="language-csharp">protected override void Up(MigrationBuilder migrationBuilder)
+<p>Reguła, której trzeba się trzymać: <strong>jeśli przeciążasz <code>Equals</code>, musisz też przeciążyć <code>GetHashCode()</code></strong> — dwa obiekty "równe" muszą mieć ten samy hash code, inaczej <code>Dictionary</code>/<code>HashSet</code> się rozsypie.</p>
+<h2>Gdzie to ma znaczenie w praktyce</h2>
+<ul>
+<li><strong><code>List&lt;T&gt;.Contains</code>, <code>IndexOf</code>, <code>Remove</code></strong> — jeśli <code>T</code> implementuje <code>IEquatable&lt;T&gt;</code>, kolekcja użyje go bezpośrednio. Jeśli nie — spada na <code>Equals(object)</code> (wolniej, z castowaniem).</li>
+<li><strong><code>Dictionary&lt;TKey, TValue&gt;</code> i <code>HashSet&lt;T&gt;</code></strong> — domyślny <code>EqualityComparer&lt;T&gt;.Default</code> sprawdza w runtime, czy <code>T</code> implementuje <code>IEquatable&lt;T&gt;</code>, i jeśli tak, używa go. Dla structów to jest ogromna różnica wydajnościowa (brak boxingu przy każdym sprawdzeniu).</li>
+<li><strong>Struktury (<code>struct</code>)</strong> — tutaj zysk jest największy. Struct bez <code>IEquatable&lt;T&gt;</code> boksuje się przy każdym porównaniu w kolekcji. Z <code>IEquatable&lt;T&gt;</code> — zero alokacji.</li>
+</ul>
+<pre><code class="language-csharp">public readonly struct Point : IEquatable&lt;Point&gt;
 {
-    migrationBuilder.InsertData(
-        table: &quot;OrderStatuses&quot;,
-        columns: new[] { &quot;Id&quot;, &quot;Name&quot; },
-        values: new object[] { 1, &quot;Pending&quot; });
+    public int X { get; }
+    public int Y { get; }
+
+    public Point(int x, int y) { X = x; Y = y; }
+
+    public bool Equals(Point other) =&gt; X == other.X &amp;&amp; Y == other.Y;
+    public override bool Equals(object? obj) =&gt; obj is Point p &amp;&amp; Equals(p);
+    public override int GetHashCode() =&gt; HashCode.Combine(X, Y);
 }
 </code></pre>
-<h2>Rozdzielenie środowisk - <code>dotnet ef database update</code> w CI/CD</h2>
-<p>W praktyce zespołowej migracje <strong>nie są stosowane ręcznie na produkcji</strong> przez developera - typowy pipeline CI/CD:</p>
-<pre><code class="language-yaml"># Fragment pipeline (pseudo-YAML)
-steps:
-  - run: dotnet ef database update --connection &quot;$PROD_CONNECTION_STRING&quot;
-    # stosowane AUTOMATYCZNIE przy deploy, po code review i testach
+<p>Bez <code>IEquatable&lt;Point&gt;</code>, każde <code>list.Contains(point)</code> boksowałoby <code>Point</code> do <code>object</code> pod maską — z interfejsem tego unikamy całkowicie.</p>
+<h2>A co z <code>record</code>?</h2>
+<p>Typy <code>record</code> <strong>automatycznie generują</strong> implementację porównania wartościowego (member-wise), łącznie z <code>Equals(T)</code>, <code>Equals(object)</code>, <code>GetHashCode()</code> i operatorami <code>==</code>/<code>!=</code> — czyli dokładnie to, co napisaliśmy ręcznie wyżej. To jeden z głównych powodów, dla których <code>record</code> jest wygodny dla DTO/value objects — nie trzeba pisać tego boilerplate'u samemu.</p>
+<pre><code class="language-csharp">public record OrderDto(Guid Id, decimal Amount);
+// IEquatable&lt;OrderDto&gt; + Equals + GetHashCode + == + != - wszystko za darmo
 </code></pre>
-<p>To minimalizuje ryzyko "zapomniałem zaktualizować bazę produkcyjną" albo zastosowania migracji w złym środowisku przez przypadek.</p>
-<h2>Podsumowanie - checklist dla pracy zespołowej</h2>
-<ol>
-<li>Zawsze <code>git pull</code> najnowszy model przed wygenerowaniem nowej migracji</li>
-<li>Konflikt w <code>ModelSnapshot.cs</code>? Usuń niezaaplikowaną lokalną migrację, wygeneruj ponownie po merge</li>
-<li>Nigdy nie edytuj ręcznie wygenerowanych plików migracji/snapshotu</li>
-<li>Migracje stosowane automatycznie przez CI/CD, nie ręcznie na produkcji</li>
-<li>Dla danych seedowanych używaj dedykowanych, "pustych" migracji z <code>InsertData</code></li>
-</ol>
+<h2>Podsumowanie</h2>
+<table>
+<thead>
+<tr>
+<th>Aspekt</th>
+<th><code>Equals(object)</code></th>
+<th><code>IEquatable&lt;T&gt;.Equals(T)</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Typowanie</td>
+<td>słabe (<code>object</code>)</td>
+<td>silne (<code>T</code>)</td>
+</tr>
+<tr>
+<td>Boxing dla struct</td>
+<td>tak</td>
+<td>nie</td>
+</tr>
+<tr>
+<td>Wydajność w kolekcjach</td>
+<td>wolniej (cast + ew. boxing)</td>
+<td>szybciej (bezpośrednie wywołanie)</td>
+</tr>
+<tr>
+<td>Wymagany też <code>GetHashCode</code></td>
+<td>tak</td>
+<td>tak</td>
+</tr>
+<tr>
+<td>Generowany automatycznie przez <code>record</code></td>
+<td>tak</td>
+<td>tak</td>
+</tr>
+</tbody>
+</table>
   
-  
-  <div class="topic-nav"><a class="prev" href="change-tracking.html"><span class="lbl">← wstecz</span>Change Tracking pod spodem</a><a class="next" href="ef-transactions.html"><span class="lbl">dalej →</span>EF Core i transakcje</a></div>
+  <div class="topic-nav"><a class="prev" href="extension-methods.html"><span class="lbl">← wstecz</span>Extension Methods</a><a class="next" href="concurrentqueue.html"><span class="lbl">dalej →</span>ConcurrentQueue&lt;T&gt;</a></div>
 </div>
     </div>
   </main>

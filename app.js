@@ -241,3 +241,15 @@
   }
 
 })();
+
+/* ---------------- przycisk "Postaw mi kawę" - zwija się do małej ikony po kliknięciu ---------------- */
+(function () {
+  const btn = document.querySelector("a.coffee-btn");
+  if (!btn) return;
+  const KEY = "kompendium-coffee-clicked-v2";
+  try { if (localStorage.getItem(KEY) === "1") { btn.classList.add("coffee-collapsed"); return; } } catch (e) { /* ignore */ }
+  btn.addEventListener("click", () => {
+    try { localStorage.setItem(KEY, "1"); } catch (e) { /* ignore */ }
+    setTimeout(() => btn.classList.add("coffee-collapsed"), 150); // link otwiera się w nowej karcie, przycisk zwija się do ikony
+  });
+})();

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Migracje w zespole — .NET / C# Kompendium wiedzy</title>
+<title>ConcurrentQueue&lt;T&gt; — .NET / C# Kompendium wiedzy</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/nord.min.css">
 <link rel="stylesheet" href="../styles.css">
 </head>
@@ -115,7 +115,7 @@
     <a class="nav-item" data-topic-id="rate-limiting" data-tags="rate limiting throttling fixed window sliding token bucket concurrency 429" href="../topics/rate-limiting.html">Rate Limiting w ASP.NET Core</a>
   </div>
 </details>
-<details class="nav-group" data-cat-id="ef" open>
+<details class="nav-group" data-cat-id="ef">
   <summary class="nav-group-btn">
     <span style="display:flex;align-items:center;gap:.5rem;">
       <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
@@ -159,7 +159,7 @@
     <a class="nav-item" data-topic-id="integration-tests" data-tags="webapplicationfactory testcontainers piramida testow inmemory" href="../topics/integration-tests.html">Testy integracyjne</a>
   </div>
 </details>
-<details class="nav-group" data-cat-id="algo">
+<details class="nav-group" data-cat-id="algo" open>
   <summary class="nav-group-btn">
     <span style="display:flex;align-items:center;gap:.5rem;">
       <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
@@ -251,79 +251,132 @@
   <main class="main wide" id="mainArea">
     <div class="content" id="content">
 <div class="topic">
-  <div class="crumb">.NET / C# <span class="sep">/</span> <span class="cat">Entity Framework Core</span></div>
+  <div class="crumb">.NET / C# <span class="sep">/</span> <span class="cat">Algorytmy, struktury danych</span></div>
   
-  <h1>Migracje EF Core w pracy zespołowej</h1>
-<h2>Problem - konflikty migracji przy pracy wielu osób</h2>
-<p>Gdy kilka osób w zespole równolegle zmienia model danych, każda generuje <strong>własną</strong> migrację - klasyczny scenariusz konfliktu:</p>
-<pre><code class="language-csharp">Deweloper A: dodaje kolumnę &quot;Status&quot; do Order      → migracja 20240115_AddOrderStatus
-Deweloper B: dodaje kolumnę &quot;DiscountCode&quot; do Order → migracja 20240115_AddDiscountCode
-</code></pre>
-<p>Obie migracje bazują na <strong>tym samym</strong> modelu "przed zmianą" - gdy obie trafią do głównej gałęzi (np. przez merge), EF Core może się "pogubić" w kolejności, a snapshot modelu (<code>ModelSnapshot.cs</code>) będzie w konflikcie.</p>
-<h2><code>ModelSnapshot.cs</code> - źródło konfliktów w Git</h2>
-<p>EF Core przechowuje <strong>pełny snapshot</strong> aktualnego modelu w wygenerowanym pliku <code>AppDbContextModelSnapshot.cs</code> - to jest plik, który <strong>będzie miał konflikt merge</strong> przy równoległych migracjach, bo obie osoby modyfikują <strong>ten sam wygenerowany plik</strong>.</p>
-<pre><code class="language-csharp">// AppDbContextModelSnapshot.cs (fragment, WYGENEROWANY, nie edytuj ręcznie)
-[DbContext(typeof(AppDbContext))]
-partial class AppDbContextModelSnapshot : ModelSnapshot
+  <h1>ConcurrentQueue&lt;T&gt;</h1>
+<h2>Co to jest</h2>
+<p><code>ConcurrentQueue&lt;T&gt;</code> to kolejka FIFO (first-in-first-out) z przestrzeni nazw <code>System.Collections.Concurrent</code>, zaprojektowana do bezpiecznego użycia z wielu wątków <strong>bez jawnego blokowania (<code>lock</code>)</strong>.</p>
+<pre><code class="language-csharp">var queue = new ConcurrentQueue&lt;string&gt;();
+
+queue.Enqueue(&quot;pierwszy&quot;);
+queue.Enqueue(&quot;drugi&quot;);
+
+if (queue.TryDequeue(out var item))
 {
-    protected override void BuildModel(ModelBuilder modelBuilder)
+    Console.WriteLine(item); // &quot;pierwszy&quot;
+}
+</code></pre>
+<h2>Czym różni się od <code>Queue&lt;T&gt;</code> + <code>lock</code></h2>
+<p>Zwykłe <code>Queue&lt;T&gt;</code> <strong>nie jest thread-safe</strong> — jeśli dwa wątki wywołają <code>Enqueue</code>/<code>Dequeue</code> równocześnie, struktura wewnętrzna może się uszkodzić. Klasyczne rozwiązanie to własny <code>lock</code>:</p>
+<pre><code class="language-csharp">private readonly Queue&lt;string&gt; _queue = new();
+private readonly object _lock = new();
+
+public void Enqueue(string item)
+{
+    lock (_lock) { _queue.Enqueue(item); }
+}
+
+public bool TryDequeue(out string? item)
+{
+    lock (_lock) { return _queue.TryDequeue(out item); }
+}
+</code></pre>
+<p>To działa, ale <code>lock</code> oznacza, że <strong>tylko jeden wątek na raz</strong> może wykonywać operację — pozostałe czekają (blokują się), co pod dużym obciążeniem generuje narzut kontekstowy (wątek usypiany i wznawiany przez system operacyjny).</p>
+<p><code>ConcurrentQueue&lt;T&gt;</code> jest <strong>lock-free</strong> — wewnętrznie wykorzystuje operacje atomowe procesora (<code>Interlocked.CompareExchange</code> i podobne), żeby bezpiecznie modyfikować strukturę bez blokowania całego dostępu. W praktyce wiele wątków może próbować równocześnie, a te, którym się "nie uda" w danej chwili, po prostu ponawiają operację (spin + retry), zamiast czekać w kolejce do monitora jak przy <code>lock</code>. Dla scenariuszy z dużą konkurencją to zazwyczaj zauważalnie szybsze.</p>
+<h2>Dlaczego <code>TryDequeue</code>/<code>TryPeek</code>, a nie <code>Dequeue</code>/<code>Peek</code></h2>
+<p><code>ConcurrentQueue&lt;T&gt;</code> <strong>nie ma</strong> zwykłych metod <code>Dequeue()</code>/<code>Peek()</code>, które rzucają wyjątek, gdy kolekcja jest pusta — ma tylko wariant <code>Try*</code>:</p>
+<pre><code class="language-csharp">bool TryDequeue(out T result);
+bool TryPeek(out T result);
+</code></pre>
+<p>Powód: w środowisku wielowątkowym sprawdzenie "czy kolekcja jest pusta" (<code>IsEmpty</code>) i następujące po nim pobranie elementu to <strong>dwie odrębne operacje</strong>. Między nimi inny wątek może dodać albo zabrać element — klasyczny wyścig (race condition, TOCTOU — "time-of-check to time-of-use"). Wzorzec <code>Try*</code> łączy "sprawdź i pobierz" w jedną atomową operację, eliminując to okno na błąd.</p>
+<pre><code class="language-csharp">// ŹLE - wyścig między IsEmpty i Dequeue
+if (!queue.IsEmpty)
+{
+    var item = queue.Dequeue(); // tej metody nawet nie ma, i dobrze
+}
+
+// DOBRZE - atomowo
+if (queue.TryDequeue(out var item))
+{
+    Use(item);
+}
+</code></pre>
+<h2>Przykład: producent-konsument (background log processor)</h2>
+<p>Typowy use case: wiele wątków dorzuca zadania/logi do kolejki (producenci), a jeden wątek w tle odczytuje je i przetwarza (konsument) — bez blokowania producentów.</p>
+<pre><code class="language-csharp">public class BackgroundLogProcessor
+{
+    private readonly ConcurrentQueue&lt;string&gt; _logQueue = new();
+    private readonly CancellationTokenSource _cts = new();
+
+    public void Enqueue(string message) =&gt; _logQueue.Enqueue(message);
+
+    public Task StartProcessingAsync()
     {
-        modelBuilder.Entity(&quot;MyApp.Order&quot;, b =&gt;
+        return Task.Run(async () =&gt;
         {
-            b.Property&lt;int&gt;(&quot;Id&quot;);
-            b.Property&lt;string&gt;(&quot;Status&quot;); // dodane przez Dewelopera A
-            b.Property&lt;string&gt;(&quot;DiscountCode&quot;); // dodane przez Dewelopera B - KONFLIKT MERGE
+            while (!_cts.Token.IsCancellationRequested)
+            {
+                if (_logQueue.TryDequeue(out var message))
+                {
+                    await WriteToFileAsync(message);
+                }
+                else
+                {
+                    await Task.Delay(50); // nic do roboty - odczekaj chwilę
+                }
+            }
         });
     }
+
+    private Task WriteToFileAsync(string message) =&gt;
+        File.AppendAllTextAsync(&quot;log.txt&quot;, message + &quot;\n&quot;);
+
+    public void Stop() =&gt; _cts.Cancel();
 }
 </code></pre>
-<h2>Praktyczne rozwiązanie konfliktu</h2>
-<p><strong>Krok 1:</strong> Po merge/rebase, jeśli jest konflikt w <code>ModelSnapshot.cs</code> - <strong>NIE</strong> próbuj ręcznie scalać tego pliku (jest generowany, ręczna edycja jest bardzo podatna na błędy).</p>
-<p><strong>Krok 2:</strong> Usuń lokalnie migracje, które jeszcze nie trafiły do bazy produkcyjnej/współdzielonej:</p>
-<pre><code class="language-bash">dotnet ef migrations remove  # usuwa OSTATNIĄ migrację (jeśli jeszcze nie zaaplikowana)
-</code></pre>
-<p><strong>Krok 3:</strong> Wygeneruj migrację <strong>na nowo</strong>, na podstawie już scalonego modelu (zawierającego zmiany OBU deweloperów):</p>
-<pre><code class="language-bash">dotnet ef migrations add AddOrderStatusAndDiscountCode
-</code></pre>
-<p>Teraz EF Core generuje <strong>jedną, spójną</strong> migrację, bazującą na modelu zawierającym zmiany obu osób naraz - <code>ModelSnapshot.cs</code> jest odtwarzany bez konfliktu, bo to nowy, czysty plik po merge.</p>
-<h2>Zasada zespołowa - komunikacja przed migracją</h2>
-<p>Praktyczna rekomendacja, którą wiele zespołów stosuje: <strong>zanim wygenerujesz migrację, pociągnij (<code>git pull</code>) najnowsze zmiany z głównej gałęzi</strong>, żeby Twoja migracja bazowała na najświeższym modelu, a nie na przestarzałej wersji z rana.</p>
-<h2>Kolejność stosowania migracji - <code>__EFMigrationsHistory</code></h2>
-<p>EF Core śledzi, które migracje zostały już zastosowane do konkretnej bazy, w specjalnej tabeli:</p>
-<pre><code class="language-sql">SELECT * FROM __EFMigrationsHistory ORDER BY MigrationId;
-</code></pre>
-<p>Jeśli dwie migracje z różnych brancherów mają <strong>kolidujące</strong> nazwy plików/timestampy, <code>dotnet ef database update</code> <strong>może próbować</strong> zastosować je w nieoczekiwanej kolejności - stąd zasada "usuń niezaaplikowaną migrację i wygeneruj ją na nowo po scaleniu kodu" jest bezpieczniejsza niż próba ręcznego scalania.</p>
-<h2>Migracje "puste" (data seeding, operacje niereprezentowane w modelu)</h2>
-<p>Czasem potrzebujesz migracji, która <strong>nie zmienia</strong> struktury tabel, tylko np. wypełnia dane:</p>
-<pre><code class="language-bash">dotnet ef migrations add SeedDefaultStatuses --  # pusta migracja
-</code></pre>
-<pre><code class="language-csharp">protected override void Up(MigrationBuilder migrationBuilder)
-{
-    migrationBuilder.InsertData(
-        table: &quot;OrderStatuses&quot;,
-        columns: new[] { &quot;Id&quot;, &quot;Name&quot; },
-        values: new object[] { 1, &quot;Pending&quot; });
-}
-</code></pre>
-<h2>Rozdzielenie środowisk - <code>dotnet ef database update</code> w CI/CD</h2>
-<p>W praktyce zespołowej migracje <strong>nie są stosowane ręcznie na produkcji</strong> przez developera - typowy pipeline CI/CD:</p>
-<pre><code class="language-yaml"># Fragment pipeline (pseudo-YAML)
-steps:
-  - run: dotnet ef database update --connection &quot;$PROD_CONNECTION_STRING&quot;
-    # stosowane AUTOMATYCZNIE przy deploy, po code review i testach
-</code></pre>
-<p>To minimalizuje ryzyko "zapomniałem zaktualizować bazę produkcyjną" albo zastosowania migracji w złym środowisku przez przypadek.</p>
-<h2>Podsumowanie - checklist dla pracy zespołowej</h2>
-<ol>
-<li>Zawsze <code>git pull</code> najnowszy model przed wygenerowaniem nowej migracji</li>
-<li>Konflikt w <code>ModelSnapshot.cs</code>? Usuń niezaaplikowaną lokalną migrację, wygeneruj ponownie po merge</li>
-<li>Nigdy nie edytuj ręcznie wygenerowanych plików migracji/snapshotu</li>
-<li>Migracje stosowane automatycznie przez CI/CD, nie ręcznie na produkcji</li>
-<li>Dla danych seedowanych używaj dedykowanych, "pustych" migracji z <code>InsertData</code></li>
-</ol>
+<p>Dowolna liczba wątków może wołać <code>Enqueue</code> równocześnie (np. z różnych requestów HTTP), a jeden wątek w tle spokojnie je konsumuje — bez <code>lock</code>, bez ryzyka zablokowania wątków producentów.</p>
+<h2>A co z <code>Channel&lt;T&gt;</code>?</h2>
+<p>Nowszym, często lepszym narzędziem do wzorca producent-konsument jest <code>System.Threading.Channels.Channel&lt;T&gt;</code> (od .NET Core 3.0):</p>
+<ul>
+<li><code>ConcurrentQueue&lt;T&gt;</code> — synchroniczna struktura danych; jeśli konsument chce "czekać" na nowy element bez pollingu (<code>Task.Delay</code> w pętli), musi to sam zaimplementować.</li>
+<li><code>Channel&lt;T&gt;</code> — ma natywne wsparcie <strong>async</strong> (<code>await reader.ReadAsync()</code>, który realnie zawiesza się do pojawienia się elementu, bez pollingu) oraz <strong>backpressure</strong> (ograniczenie rozmiaru bufora z blokowaniem/odrzucaniem producenta, gdy jest pełny).</li>
+</ul>
+<p>W nowym kodzie do komunikacji producent-konsument często wybiera się <code>Channel&lt;T&gt;</code>; <code>ConcurrentQueue&lt;T&gt;</code> nadal świetnie się sprawdza jako prosty, współdzielony bufor bez potrzeby natywnego <code>await</code>-owania na nowe elementy.</p>
+<h2>Rodzina <code>System.Collections.Concurrent</code></h2>
+<table>
+<thead>
+<tr>
+<th>Typ</th>
+<th>Struktura</th>
+<th>Odpowiednik niethread-safe</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ConcurrentQueue&lt;T&gt;</code></td>
+<td>FIFO</td>
+<td><code>Queue&lt;T&gt;</code></td>
+</tr>
+<tr>
+<td><code>ConcurrentStack&lt;T&gt;</code></td>
+<td>LIFO</td>
+<td><code>Stack&lt;T&gt;</code></td>
+</tr>
+<tr>
+<td><code>ConcurrentDictionary&lt;TKey, TValue&gt;</code></td>
+<td>mapa klucz-wartość</td>
+<td><code>Dictionary&lt;TKey, TValue&gt;</code></td>
+</tr>
+<tr>
+<td><code>ConcurrentBag&lt;T&gt;</code></td>
+<td>nieuporządkowany zbiór, zoptymalizowany pod ten sam wątek dodaje i zabiera</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>Wszystkie są lock-free (lub prawie — <code>ConcurrentDictionary</code> w niektórych operacjach stosuje drobnoziarniste blokady wewnętrzne), i wszystkie udostępniają wzorzec <code>Try*</code> z tego samego powodu co <code>ConcurrentQueue&lt;T&gt;</code>.</p>
   
-  
-  <div class="topic-nav"><a class="prev" href="change-tracking.html"><span class="lbl">← wstecz</span>Change Tracking pod spodem</a><a class="next" href="ef-transactions.html"><span class="lbl">dalej →</span>EF Core i transakcje</a></div>
+  <div class="topic-nav"><a class="prev" href="iequatable.html"><span class="lbl">← wstecz</span>IEquatable&lt;T&gt;</a><a class="next" href="automapper-basics.html"><span class="lbl">dalej →</span>AutoMapper</a></div>
 </div>
     </div>
   </main>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Migracje w zespole — .NET / C# Kompendium wiedzy</title>
+<title>SDLC - Software Development Life Cycle — .NET / C# Kompendium wiedzy</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/nord.min.css">
 <link rel="stylesheet" href="../styles.css">
 </head>
@@ -115,7 +115,7 @@
     <a class="nav-item" data-topic-id="rate-limiting" data-tags="rate limiting throttling fixed window sliding token bucket concurrency 429" href="../topics/rate-limiting.html">Rate Limiting w ASP.NET Core</a>
   </div>
 </details>
-<details class="nav-group" data-cat-id="ef" open>
+<details class="nav-group" data-cat-id="ef">
   <summary class="nav-group-btn">
     <span style="display:flex;align-items:center;gap:.5rem;">
       <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
@@ -233,7 +233,7 @@
     <a class="nav-item" data-topic-id="code-review-example" data-tags="singleton anti-pattern socket exhaustion httpclientfactory code review" href="../topics/code-review-example.html">Przykład code review — HttpClientFactory</a>
   </div>
 </details>
-<details class="nav-group" data-cat-id="process">
+<details class="nav-group" data-cat-id="process" open>
   <summary class="nav-group-btn">
     <span style="display:flex;align-items:center;gap:.5rem;">
       <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
@@ -251,79 +251,110 @@
   <main class="main wide" id="mainArea">
     <div class="content" id="content">
 <div class="topic">
-  <div class="crumb">.NET / C# <span class="sep">/</span> <span class="cat">Entity Framework Core</span></div>
+  <div class="crumb">.NET / C# <span class="sep">/</span> <span class="cat">Proces i metodyki</span></div>
   
-  <h1>Migracje EF Core w pracy zespołowej</h1>
-<h2>Problem - konflikty migracji przy pracy wielu osób</h2>
-<p>Gdy kilka osób w zespole równolegle zmienia model danych, każda generuje <strong>własną</strong> migrację - klasyczny scenariusz konfliktu:</p>
-<pre><code class="language-csharp">Deweloper A: dodaje kolumnę &quot;Status&quot; do Order      → migracja 20240115_AddOrderStatus
-Deweloper B: dodaje kolumnę &quot;DiscountCode&quot; do Order → migracja 20240115_AddDiscountCode
+  <h1>SDLC — Software Development Life Cycle</h1>
+<h2>Co to jest</h2>
+<p>SDLC (Software Development Life Cycle, cykl życia oprogramowania) to ustrukturyzowany proces opisujący <strong>wszystkie fazy</strong> powstawania i utrzymania oprogramowania — od zebrania wymagań, przez projekt i implementację, aż po wdrożenie i dalsze wsparcie. To nie jest konkretna metodologia (jak Scrum czy Waterfall) — to ogólny model fazowy, który <strong>każda</strong> metodologia w jakiś sposób realizuje (sekwencyjnie, iteracyjnie, ciągle).</p>
+<h2>6 faz SDLC</h2>
+<h3>1. Planning / Requirements Analysis (planowanie i analiza wymagań)</h3>
+<p>Zbieranie wymagań biznesowych i technicznych, określenie zakresu, szacowanie kosztu i czasu, identyfikacja ryzyk. Efekt: dokument wymagań (funkcjonalnych i niefunkcjonalnych), backlog produktu.</p>
+<h3>2. Design (projektowanie)</h3>
+<p>Projekt architektury systemu: podział na moduły/serwisy, wybór wzorców (np. <strong>SOLID</strong>, <strong>MVVM</strong>, <strong>CQRS</strong> — patrz odpowiednie tematy na tej stronie), projekt bazy danych, API, UI/UX. Efekt: dokumentacja architektoniczna, diagramy, kontrakty API.</p>
+<h3>3. Implementation / Coding (implementacja)</h3>
+<p>Pisanie kodu zgodnie z projektem i standardami zespołu (code style, code review). Tu w praktyce żyje większość tematów technicznych z tej strony — wzorce projektowe, DI, EF Core, Web API.</p>
+<h3>4. Testing (testowanie)</h3>
+<p>Weryfikacja, że oprogramowanie działa zgodnie z wymaganiami i nie zawiera regresji: testy jednostkowe (<strong>xUnit</strong>, <strong>Moq</strong>), testy integracyjne, testy manualne/UAT (User Acceptance Testing). Efekt: raporty z testów, lista wykrytych błędów.</p>
+<h3>5. Deployment (wdrożenie)</h3>
+<p>Udostępnienie oprogramowania użytkownikom: budowanie, migracja bazy danych (<strong>EF Core migrations</strong>), konteneryzacja i orkiestracja (<strong>Docker, Kubernetes</strong>), wdrożenie na środowisko produkcyjne (często przez pipeline CI/CD).</p>
+<h3>6. Maintenance (utrzymanie)</h3>
+<p>Monitorowanie działania systemu na produkcji, naprawa błędów (bugfixing), wsparcie użytkowników, wprowadzanie drobnych usprawnień. Ta faza trwa <strong>najdłużej</strong> w całym cyklu życia projektu — często dłużej niż wszystkie poprzednie razem wzięte.</p>
+<pre><code>Planning → Design → Implementation → Testing → Deployment → Maintenance
+                                                                    │
+                                                                    ▼
+                                                        (wraca do Planning dla
+                                                         kolejnych wersji/funkcji)
 </code></pre>
-<p>Obie migracje bazują na <strong>tym samym</strong> modelu "przed zmianą" - gdy obie trafią do głównej gałęzi (np. przez merge), EF Core może się "pogubić" w kolejności, a snapshot modelu (<code>ModelSnapshot.cs</code>) będzie w konflikcie.</p>
-<h2><code>ModelSnapshot.cs</code> - źródło konfliktów w Git</h2>
-<p>EF Core przechowuje <strong>pełny snapshot</strong> aktualnego modelu w wygenerowanym pliku <code>AppDbContextModelSnapshot.cs</code> - to jest plik, który <strong>będzie miał konflikt merge</strong> przy równoległych migracjach, bo obie osoby modyfikują <strong>ten sam wygenerowany plik</strong>.</p>
-<pre><code class="language-csharp">// AppDbContextModelSnapshot.cs (fragment, WYGENEROWANY, nie edytuj ręcznie)
-[DbContext(typeof(AppDbContext))]
-partial class AppDbContextModelSnapshot : ModelSnapshot
-{
-    protected override void BuildModel(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity(&quot;MyApp.Order&quot;, b =&gt;
-        {
-            b.Property&lt;int&gt;(&quot;Id&quot;);
-            b.Property&lt;string&gt;(&quot;Status&quot;); // dodane przez Dewelopera A
-            b.Property&lt;string&gt;(&quot;DiscountCode&quot;); // dodane przez Dewelopera B - KONFLIKT MERGE
-        });
-    }
-}
+<h2>Modele / metodologie realizujące SDLC</h2>
+<p>Powyższe fazy są wspólne dla każdego podejścia — różnica jest w tym, <strong>jak</strong> te fazy są rozłożone w czasie.</p>
+<h3>Waterfall (model kaskadowy)</h3>
+<p>Fazy wykonywane <strong>sekwencyjnie</strong>, jedna po drugiej, bez powrotu do poprzedniej (w teorii). Cały projekt jest najpierw w pełni zaplanowany i zaprojektowany, zanim zacznie się kodowanie.</p>
+<pre><code>Planning → Design → Implementation → Testing → Deployment → Maintenance
+   (każda faza kończy się w 100% przed startem następnej)
 </code></pre>
-<h2>Praktyczne rozwiązanie konfliktu</h2>
-<p><strong>Krok 1:</strong> Po merge/rebase, jeśli jest konflikt w <code>ModelSnapshot.cs</code> - <strong>NIE</strong> próbuj ręcznie scalać tego pliku (jest generowany, ręczna edycja jest bardzo podatna na błędy).</p>
-<p><strong>Krok 2:</strong> Usuń lokalnie migracje, które jeszcze nie trafiły do bazy produkcyjnej/współdzielonej:</p>
-<pre><code class="language-bash">dotnet ef migrations remove  # usuwa OSTATNIĄ migrację (jeśli jeszcze nie zaaplikowana)
+<p><strong>Zalety:</strong> przewidywalność, jasna dokumentacja, dobrze działa dla projektów z niezmiennym, dobrze znanym z góry zakresem (np. systemy regulowane prawnie).</p>
+<p><strong>Wady:</strong> błąd w wymaganiach wykryty na etapie testowania jest bardzo kosztowny do naprawienia (trzeba wrócić na początek); brak elastyczności na zmiany; klient widzi działający produkt bardzo późno.</p>
+<h3>Agile / Scrum</h3>
+<p>Praca podzielona na krótkie, <strong>iteracyjne cykle (sprinty)</strong>, zwykle 1-4 tygodnie. W każdym sprincie powstaje mały, ale kompletny i działający przyrost produktu — czyli w każdym sprincie w miniaturze przechodzimy przez planning → design → implementation → testing → (często) deployment.</p>
+<pre><code>Sprint 1: Plan → Design → Code → Test → Review  ─┐
+Sprint 2: Plan → Design → Code → Test → Review  ─┼─► przyrosty produktu
+Sprint 3: Plan → Design → Code → Test → Review  ─┘    (ciągła informacja zwrotna)
 </code></pre>
-<p><strong>Krok 3:</strong> Wygeneruj migrację <strong>na nowo</strong>, na podstawie już scalonego modelu (zawierającego zmiany OBU deweloperów):</p>
-<pre><code class="language-bash">dotnet ef migrations add AddOrderStatusAndDiscountCode
+<p><strong>Zalety:</strong> szybka informacja zwrotna od klienta, łatwa adaptacja do zmieniających się wymagań, działający produkt widoczny od wczesnego etapu.</p>
+<p><strong>Wady:</strong> wymaga dużego zaangażowania klienta/product ownera, trudniej przewidzieć dokładny koniec i koszt całego projektu z góry.</p>
+<h3>DevOps / CI-CD (continuous integration / continuous delivery)</h3>
+<p>Rozszerza Agile o <strong>automatyzację</strong> i <strong>zatarcie granicy</strong> między Development i Operations — kod jest budowany, testowany i wdrażany <strong>ciągle</strong>, często wiele razy dziennie, przez automatyczny pipeline.</p>
+<pre><code>Commit → Build → Automated Tests → (EF Core migrations) → 
+  → Containerize (Docker) → Deploy (Kubernetes) → Monitor
+  (cały łańcuch odpalany automatycznie przy każdym commicie/merge'u)
 </code></pre>
-<p>Teraz EF Core generuje <strong>jedną, spójną</strong> migrację, bazującą na modelu zawierającym zmiany obu osób naraz - <code>ModelSnapshot.cs</code> jest odtwarzany bez konfliktu, bo to nowy, czysty plik po merge.</p>
-<h2>Zasada zespołowa - komunikacja przed migracją</h2>
-<p>Praktyczna rekomendacja, którą wiele zespołów stosuje: <strong>zanim wygenerujesz migrację, pociągnij (<code>git pull</code>) najnowsze zmiany z głównej gałęzi</strong>, żeby Twoja migracja bazowała na najświeższym modelu, a nie na przestarzałej wersji z rana.</p>
-<h2>Kolejność stosowania migracji - <code>__EFMigrationsHistory</code></h2>
-<p>EF Core śledzi, które migracje zostały już zastosowane do konkretnej bazy, w specjalnej tabeli:</p>
-<pre><code class="language-sql">SELECT * FROM __EFMigrationsHistory ORDER BY MigrationId;
+<p><strong>Zalety:</strong> bardzo szybkie wykrywanie błędów (fail fast), małe, częste, mniej ryzykowne wdrożenia, silne powiązanie Testing-Deployment-Maintenance w jeden ciągły proces.</p>
+<p><strong>Wady:</strong> duży koszt wstępny (infrastruktura CI/CD, automatyzacja testów), wymaga kultury organizacyjnej gotowej na częste wdrożenia.</p>
+<h3>V-Model (model weryfikacji i walidacji)</h3>
+<p>Rozszerzenie Waterfall, w którym każdej fazie projektowej odpowiada symetrycznie faza testowa — planowana <strong>równolegle</strong>, zanim jeszcze napisano kod.</p>
+<pre><code>Requirements Analysis  ──────────────────────  Acceptance Testing
+      │                                                │
+  System Design       ──────────────────────    System Testing
+      │                                                │
+  Architecture Design ──────────────────────  Integration Testing
+      │                                                │
+  Module Design       ──────────────────────      Unit Testing
+      │                                                │
+      └──────────────────► Coding ────────────────────┘
 </code></pre>
-<p>Jeśli dwie migracje z różnych brancherów mają <strong>kolidujące</strong> nazwy plików/timestampy, <code>dotnet ef database update</code> <strong>może próbować</strong> zastosować je w nieoczekiwanej kolejności - stąd zasada "usuń niezaaplikowaną migrację i wygeneruj ją na nowo po scaleniu kodu" jest bezpieczniejsza niż próba ręcznego scalania.</p>
-<h2>Migracje "puste" (data seeding, operacje niereprezentowane w modelu)</h2>
-<p>Czasem potrzebujesz migracji, która <strong>nie zmienia</strong> struktury tabel, tylko np. wypełnia dane:</p>
-<pre><code class="language-bash">dotnet ef migrations add SeedDefaultStatuses --  # pusta migracja
-</code></pre>
-<pre><code class="language-csharp">protected override void Up(MigrationBuilder migrationBuilder)
-{
-    migrationBuilder.InsertData(
-        table: &quot;OrderStatuses&quot;,
-        columns: new[] { &quot;Id&quot;, &quot;Name&quot; },
-        values: new object[] { 1, &quot;Pending&quot; });
-}
-</code></pre>
-<h2>Rozdzielenie środowisk - <code>dotnet ef database update</code> w CI/CD</h2>
-<p>W praktyce zespołowej migracje <strong>nie są stosowane ręcznie na produkcji</strong> przez developera - typowy pipeline CI/CD:</p>
-<pre><code class="language-yaml"># Fragment pipeline (pseudo-YAML)
-steps:
-  - run: dotnet ef database update --connection &quot;$PROD_CONNECTION_STRING&quot;
-    # stosowane AUTOMATYCZNIE przy deploy, po code review i testach
-</code></pre>
-<p>To minimalizuje ryzyko "zapomniałem zaktualizować bazę produkcyjną" albo zastosowania migracji w złym środowisku przez przypadek.</p>
-<h2>Podsumowanie - checklist dla pracy zespołowej</h2>
-<ol>
-<li>Zawsze <code>git pull</code> najnowszy model przed wygenerowaniem nowej migracji</li>
-<li>Konflikt w <code>ModelSnapshot.cs</code>? Usuń niezaaplikowaną lokalną migrację, wygeneruj ponownie po merge</li>
-<li>Nigdy nie edytuj ręcznie wygenerowanych plików migracji/snapshotu</li>
-<li>Migracje stosowane automatycznie przez CI/CD, nie ręcznie na produkcji</li>
-<li>Dla danych seedowanych używaj dedykowanych, "pustych" migracji z <code>InsertData</code></li>
-</ol>
+<p><strong>Zalety:</strong> testy są zaplanowane od samego początku (nie są "doklejane" na końcu), wysoka wykrywalność błędów na wczesnym etapie.</p>
+<p><strong>Wady:</strong> tak samo sztywny jak Waterfall — słabo radzi sobie ze zmieniającymi się wymaganiami.</p>
+<h2>Porównanie</h2>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Elastyczność</th>
+<th>Kiedy wykrywane błędy</th>
+<th>Typowe zastosowanie</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Waterfall</td>
+<td>niska</td>
+<td>późno (faza Testing)</td>
+<td>projekty z ustalonym z góry, niezmiennym zakresem (np. systemy regulowane)</td>
+</tr>
+<tr>
+<td>Agile/Scrum</td>
+<td>wysoka</td>
+<td>na bieżąco, co sprint</td>
+<td>produkty z ewoluującymi wymaganiami, startupy, większość dzisiejszego software house</td>
+</tr>
+<tr>
+<td>DevOps/CI-CD</td>
+<td>bardzo wysoka</td>
+<td>natychmiast po commicie</td>
+<td>zespoły z dojrzałą automatyzacją, częste wdrożenia (SaaS, mikroserwisy)</td>
+</tr>
+<tr>
+<td>V-Model</td>
+<td>niska</td>
+<td>wcześnie zaplanowane, ale sztywno</td>
+<td>projekty safety-critical (medycyna, lotnictwo, finanse)</td>
+</tr>
+</tbody>
+</table>
+<h2>Dlaczego to pytanie pada na rozmowach na stanowisko SE III</h2>
+<p>Na poziomie Senior/SE III rekruterzy oczekują nie tylko umiejętności kodowania, ale <strong>świadomości procesu</strong> — zrozumienia, że kod który piszesz jest jednym z ogniw większego cyklu: że decyzje projektowe (Design) wpływają na koszt testowania (Testing) i wdrożenia (Deployment), że błąd złapany w Code Review jest dziesiątki razy tańszy niż złapany na produkcji, i że umiejętność doboru odpowiedniego modelu (Waterfall vs Agile vs DevOps) do kontekstu projektu jest realną kompetencją inżynierską, nie tylko "papierologią".</p>
   
-  
-  <div class="topic-nav"><a class="prev" href="change-tracking.html"><span class="lbl">← wstecz</span>Change Tracking pod spodem</a><a class="next" href="ef-transactions.html"><span class="lbl">dalej →</span>EF Core i transakcje</a></div>
+  <div class="topic-nav"><a class="prev" href="code-review-example.html"><span class="lbl">← wstecz</span>Przykład code review — HttpClientFactory</a><span></span></div>
 </div>
     </div>
   </main>
