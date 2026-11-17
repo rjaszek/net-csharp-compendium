@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Czym jest CQRS — .NET / C# Kompendium wiedzy</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/nord.min.css">
-<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../styles.css?v=2">
 </head>
 <body>
 
@@ -38,7 +38,7 @@
       <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
       SOLID, Clean Code, DI
     </span>
-    <span class="n">9</span>
+    <span class="n">11</span>
   </summary>
   <div class="nav-items">
     <a class="nav-item" data-topic-id="oop-enterprise" data-tags="oop encapsulation inheritance polymorphism abstraction enterprise overengineering yagni" href="../topics/oop-enterprise.html">OOP i &quot;Enterprise OOP&quot;</a>
@@ -50,6 +50,8 @@
     <a class="nav-item" data-topic-id="scope-factory-threadsafe" data-tags="scope factory singleton thread safe lock interlocked" href="../topics/scope-factory-threadsafe.html">IServiceScopeFactory i thread-safety</a>
     <a class="nav-item" data-topic-id="di-methods" data-tags="constructor property method injection service locator anti-pattern" href="../topics/di-methods.html">Sposoby wdrożenia DI</a>
     <a class="nav-item" data-topic-id="ioc" data-tags="ioc di hollywood principle template method middleware" href="../topics/ioc.html">Inversion of Control (IoC)</a>
+    <a class="nav-item" data-topic-id="clean-architecture" data-tags="clean architecture dependency rule onion hexagonal domain application infrastructure use case ports adapters composition root netarchtest vertical slice agregat aggregate root ddd domain events zdarzenia domenowe cqrs komendy zapytania mediatr" href="../topics/clean-architecture.html">Clean Architecture</a>
+    <a class="nav-item" data-topic-id="ddd" data-tags="ddd domain driven design agregat aggregate entity value object bounded context ubiquitous language domain service zdarzenia domenowe repozytorium anemic model bogaty strategiczne taktyczne" href="../topics/ddd.html">DDD - Domain-Driven Design</a>
   </div>
 </details>
 <details class="nav-group" data-cat-id="wpf">
@@ -245,6 +247,19 @@
     <a class="nav-item" data-topic-id="sdlc" data-tags="sdlc waterfall agile scrum devops ci cd v-model proces metodyka" href="../topics/sdlc.html">SDLC - Software Development Life Cycle</a>
   </div>
 </details>
+<details class="nav-group" data-cat-id="security">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Bezpieczeństwo
+    </span>
+    <span class="n">2</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="crypto-basics" data-tags="kryptografia szyfrowanie symetryczne asymetryczne aes rsa ecdh diffie hellman tls handshake forward secrecy hash hmac pbkdf2 podpis cyfrowy klucz publiczny prywatny gcm" href="../topics/crypto-basics.html">Kryptografia: szyfrowanie symetryczne i asymetryczne, TLS</a>
+    <a class="nav-item" data-topic-id="webapi-security" data-tags="bezpieczeństwo webapi jwt oauth oauth2 oidc openid connect sso saml certyfikat tls mtls certificate pinning authentication authorization uwierzytelnianie autoryzacja bearer idor bola scope policy jwks" href="../topics/webapi-security.html">Zabezpieczanie WebAPI: JWT, OAuth2, OIDC, SSO, certyfikaty</a>
+  </div>
+</details>
     </nav>
   </aside>
 
@@ -324,6 +339,136 @@ Query → osobna baza odczytu (read model, zdenormalizowana, zoptymalizowana pod
 </code></pre>
 <h2>Relacja do wcześniejszej rozmowy o Repository/UoW</h2>
 <p>To nawiązuje do dyskusji o Repository - w architekturze CQRS <strong>Command Handler</strong> często pisze bezpośrednio przez <code>DbContext</code> (potrzebuje pełnego modelu domenowego z logiką biznesową), a <strong>Query Handler</strong> może pisać <strong>bardzo uproszczone, zoptymalizowane</strong> zapytania LINQ z projekcją bezpośrednio na DTO (<code>Select(o =&gt; new OrderSummaryDto(...))</code>), bez przechodzenia przez pełne encje domenowe - to jest miejsce, gdzie "generyczne repozytorium" (<code>GetAllAsync()</code> zwracające pełne encje) staje się szczególnie niewygodne, bo tłamsi możliwość takiej optymalizacji.</p>
+<h2>Kto woła handlery? Brakujące ogniwo</h2>
+<p>Handler <strong>sam się nie uruchamia</strong> - to zwykła klasa z metodą <code>Handle()</code>. Wywołuje go <strong>punkt wejścia aplikacji</strong> (warstwa prezentacji): kontroler MVC / endpoint Minimal API, konsument kolejki (RabbitMQ, Kafka), zadanie w tle (<code>BackgroundService</code>, Hangfire) albo ViewModel w WPF/Blazor. Handler nie wie i nie powinien wiedzieć, kto go woła - dzięki temu ten sam use case można uruchomić z API, z kolejki i z testu.</p>
+<pre><code>Klient (HTTP) → Kontroler / Endpoint → Handler → DbContext → baza
+                  (mapuje request      (cała logika  
+                   na Command/Query)    use case'u)
+                        ↑                    │
+                        └──── wynik (Id / DTO) ┘
+</code></pre>
+<p>Są dwa sposoby, żeby punkt wejścia dostał właściwy handler. Zacznijmy od tego <strong>bez żadnej biblioteki</strong>, bo pokazuje całą mechanikę.</p>
+<h3>Wariant 1: kontroler woła handler bezpośrednio (bez MediatR)</h3>
+<p>Wspólne interfejsy dla handlerów:</p>
+<pre><code class="language-csharp">public interface ICommandHandler&lt;in TCommand, TResult&gt;
+{
+    Task&lt;TResult&gt; Handle(TCommand command, CancellationToken ct);
+}
+
+public interface IQueryHandler&lt;in TQuery, TResult&gt;
+{
+    Task&lt;TResult&gt; Handle(TQuery query, CancellationToken ct);
+}
+
+// Handlery implementują interfejsy
+public class PlaceOrderHandler : ICommandHandler&lt;PlaceOrderCommand, int&gt;
+{
+    private readonly AppDbContext _context;
+    public PlaceOrderHandler(AppDbContext context) =&gt; _context = context;
+
+    public async Task&lt;int&gt; Handle(PlaceOrderCommand command, CancellationToken ct)
+    {
+        var order = new Order { CustomerName = command.CustomerName };
+        _context.Orders.Add(order);
+        await _context.SaveChangesAsync(ct);
+        return order.Id;
+    }
+}
+
+public class GetOrderSummaryHandler : IQueryHandler&lt;GetOrderSummaryQuery, OrderSummaryDto?&gt;
+{
+    private readonly AppDbContext _context;
+    public GetOrderSummaryHandler(AppDbContext context) =&gt; _context = context;
+
+    public Task&lt;OrderSummaryDto?&gt; Handle(GetOrderSummaryQuery query, CancellationToken ct) =&gt;
+        _context.Orders
+            .Where(o =&gt; o.Id == query.OrderId)
+            .Select(o =&gt; new OrderSummaryDto(o.Id, o.CustomerName, o.Items.Count, o.TotalAmount))
+            .FirstOrDefaultAsync(ct);
+}
+</code></pre>
+<p>Rejestracja w DI (<code>Program.cs</code>) - każdy handler jako <code>Scoped</code>, bo korzysta z <code>DbContext</code>:</p>
+<pre><code class="language-csharp">builder.Services.AddScoped&lt;ICommandHandler&lt;PlaceOrderCommand, int&gt;, PlaceOrderHandler&gt;();
+builder.Services.AddScoped&lt;IQueryHandler&lt;GetOrderSummaryQuery, OrderSummaryDto?&gt;, GetOrderSummaryHandler&gt;();
+</code></pre>
+<p>I właśnie <strong>kontroler jest tym, kto woła handlery</strong> - dostaje je przez konstruktor (DI) i tłumaczy żądanie HTTP na Command/Query:</p>
+<pre><code class="language-csharp">[ApiController]
+[Route(&quot;api/orders&quot;)]
+public class OrdersController : ControllerBase
+{
+    private readonly ICommandHandler&lt;PlaceOrderCommand, int&gt; _placeOrder;
+    private readonly IQueryHandler&lt;GetOrderSummaryQuery, OrderSummaryDto?&gt; _getOrder;
+
+    public OrdersController(
+        ICommandHandler&lt;PlaceOrderCommand, int&gt; placeOrder,
+        IQueryHandler&lt;GetOrderSummaryQuery, OrderSummaryDto?&gt; getOrder)
+    {
+        _placeOrder = placeOrder;
+        _getOrder = getOrder;
+    }
+
+    [HttpPost]
+    public async Task&lt;IActionResult&gt; Create(PlaceOrderRequest request, CancellationToken ct)
+    {
+        // 1. kontroler tylko mapuje request HTTP na Command
+        var command = new PlaceOrderCommand(request.CustomerName, request.Items);
+
+        // 2. woła handler i dostaje wynik (Id)
+        var orderId = await _placeOrder.Handle(command, ct);
+
+        // 3. zamienia wynik na odpowiedź HTTP
+        return CreatedAtAction(nameof(Get), new { id = orderId }, orderId);
+    }
+
+    [HttpGet(&quot;{id}&quot;)]
+    public async Task&lt;IActionResult&gt; Get(int id, CancellationToken ct)
+    {
+        var dto = await _getOrder.Handle(new GetOrderSummaryQuery(id), ct);
+        return dto is null ? NotFound() : Ok(dto);
+    }
+}
+</code></pre>
+<p>W <strong>Minimal API</strong> to samo, tylko handler trafia jako parametr endpointu (DI wstrzykuje go automatycznie):</p>
+<pre><code class="language-csharp">app.MapPost(&quot;/api/orders&quot;, async (
+    PlaceOrderRequest request,
+    ICommandHandler&lt;PlaceOrderCommand, int&gt; handler,
+    CancellationToken ct) =&gt;
+{
+    var id = await handler.Handle(new PlaceOrderCommand(request.CustomerName, request.Items), ct);
+    return Results.Created($&quot;/api/orders/{id}&quot;, id);
+});
+</code></pre>
+<p><strong>Plus tego wariantu:</strong> zero &quot;magii&quot; - w IDE przechodzisz z kontrolera wprost do handlera (F12). <strong>Minus:</strong> kontroler z wieloma akcjami dostaje długą listę handlerów w konstruktorze (&quot;constructor bloat&quot;), a każdy nowy handler trzeba ręcznie zarejestrować w DI (można to zautomatyzować skanowaniem assembly, np. biblioteką <strong>Scrutor</strong>).</p>
+<h3>Wariant 2: kontroler woła mediatora, a mediator woła handler</h3>
+<p>Żeby uniknąć długiej listy zależności, wprowadza się <strong>pośrednika</strong> (Mediator / dispatcher). Kontroler zna tylko jego i wysyła mu Command/Query, a pośrednik sam znajduje w DI właściwy handler po <strong>typie</strong> komunikatu. Gotową implementacją jest <strong>MediatR</strong> - pełny opis i przykład kontrolera z <code>IMediator</code> jest w temacie <a href="cqrs-mediatr.html">MediatR - jak działa i jak używać</a>:</p>
+<pre><code class="language-csharp">// Kontroler: jedna zależność zamiast N handlerów
+var orderId = await _mediator.Send(new PlaceOrderCommand(request.CustomerName, request.Items));
+//                 ↑ MediatR znajduje PlaceOrderHandler w DI i wywołuje jego Handle()
+</code></pre>
+<p>Dodatkowa korzyść: skoro wszystko przechodzi przez jeden punkt, można w nim podpiąć walidację, logowanie i transakcje (Pipeline Behaviors).</p>
+<h3>Pełny przepływ - co dokładnie się dzieje</h3>
+<ol>
+<li>Klient wysyła <code>POST /api/orders</code> z JSON-em.</li>
+<li>ASP.NET Core wykonuje model binding i tworzy kontroler (DI wstrzykuje handler albo <code>IMediator</code>).</li>
+<li><strong>Kontroler</strong> buduje <code>PlaceOrderCommand</code> i woła handler (bezpośrednio albo przez mediatora).</li>
+<li><strong>Handler</strong> wykonuje use case: reguły biznesowe, zapis przez <code>DbContext</code>, <code>SaveChangesAsync</code>.</li>
+<li>Handler zwraca <code>Id</code>; kontroler zamienia je na <code>201 Created</code>.</li>
+<li>Przy <code>GET</code> ten sam schemat, ale z Query Handlerem, który tylko czyta i zwraca DTO.</li>
+</ol>
+<h3>Kto jeszcze może wołać handlery</h3>
+<ul>
+<li><strong>Konsument kolejki</strong> - komunikat z RabbitMQ/Kafka jest zamieniany na Command i trafia do tego samego handlera, którego używa API.</li>
+<li><strong>Zadanie w tle</strong> (<code>BackgroundService</code>, Hangfire) - np. nocny przeliczeniowy Command. Pamiętaj o utworzeniu scope DI (<code>IServiceScopeFactory</code>), bo handler jest <code>Scoped</code>.</li>
+<li><strong>Test jednostkowy / integracyjny</strong> - tworzy handler i woła <code>Handle()</code> bez HTTP.</li>
+<li><strong>Inny handler</strong> - technicznie możliwe, ale zwykle to zapach; zamiast tego użyj zdarzeń domenowych albo wydziel wspólną logikę do serwisu domenowego.</li>
+</ul>
+<h3>Zasady, które warto zapamiętać</h3>
+<ul>
+<li><strong>Kontroler jest cienki</strong> - mapuje request na Command/Query, woła handler, mapuje wynik na odpowiedź. Żadnej logiki biznesowej.</li>
+<li><strong>Query Handler nigdy nie woła Command Handlera</strong> i nie zmienia stanu.</li>
+<li><strong>Jeden handler = jeden use case</strong>; handler nie zna HTTP (<code>HttpContext</code>, <code>IActionResult</code>) - dzięki temu działa z każdego punktu wejścia.</li>
+<li>Rozdział Command/Query dotyczy <strong>kodu</strong>, nie transportu: oba mogą iść tym samym endpointem HTTP i tą samą bazą.</li>
+</ul>
 <h2>Zalety CQRS</h2>
 <ul>
 <li><strong>Jasność intencji</strong> - patrząc na <code>PlaceOrderCommand</code>, wiesz dokładnie, co ta operacja robi, bez czytania implementacji</li>
@@ -370,6 +515,6 @@ Query → osobna baza odczytu (read model, zdenormalizowana, zoptymalizowana pod
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
-<script src="../app.js"></script>
+<script src="../app.js?v=2"></script>
 </body>
 </html>

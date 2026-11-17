@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Kafka vs RabbitMQ - porównanie i implementacja — .NET / C# Kompendium wiedzy</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/nord.min.css">
-<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../styles.css?v=2">
 </head>
 <body>
 
@@ -38,7 +38,7 @@
       <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
       SOLID, Clean Code, DI
     </span>
-    <span class="n">9</span>
+    <span class="n">11</span>
   </summary>
   <div class="nav-items">
     <a class="nav-item" data-topic-id="oop-enterprise" data-tags="oop encapsulation inheritance polymorphism abstraction enterprise overengineering yagni" href="../topics/oop-enterprise.html">OOP i &quot;Enterprise OOP&quot;</a>
@@ -50,6 +50,8 @@
     <a class="nav-item" data-topic-id="scope-factory-threadsafe" data-tags="scope factory singleton thread safe lock interlocked" href="../topics/scope-factory-threadsafe.html">IServiceScopeFactory i thread-safety</a>
     <a class="nav-item" data-topic-id="di-methods" data-tags="constructor property method injection service locator anti-pattern" href="../topics/di-methods.html">Sposoby wdrożenia DI</a>
     <a class="nav-item" data-topic-id="ioc" data-tags="ioc di hollywood principle template method middleware" href="../topics/ioc.html">Inversion of Control (IoC)</a>
+    <a class="nav-item" data-topic-id="clean-architecture" data-tags="clean architecture dependency rule onion hexagonal domain application infrastructure use case ports adapters composition root netarchtest vertical slice agregat aggregate root ddd domain events zdarzenia domenowe cqrs komendy zapytania mediatr" href="../topics/clean-architecture.html">Clean Architecture</a>
+    <a class="nav-item" data-topic-id="ddd" data-tags="ddd domain driven design agregat aggregate entity value object bounded context ubiquitous language domain service zdarzenia domenowe repozytorium anemic model bogaty strategiczne taktyczne" href="../topics/ddd.html">DDD - Domain-Driven Design</a>
   </div>
 </details>
 <details class="nav-group" data-cat-id="wpf">
@@ -243,6 +245,19 @@
   </summary>
   <div class="nav-items">
     <a class="nav-item" data-topic-id="sdlc" data-tags="sdlc waterfall agile scrum devops ci cd v-model proces metodyka" href="../topics/sdlc.html">SDLC - Software Development Life Cycle</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="security">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Bezpieczeństwo
+    </span>
+    <span class="n">2</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="crypto-basics" data-tags="kryptografia szyfrowanie symetryczne asymetryczne aes rsa ecdh diffie hellman tls handshake forward secrecy hash hmac pbkdf2 podpis cyfrowy klucz publiczny prywatny gcm" href="../topics/crypto-basics.html">Kryptografia: szyfrowanie symetryczne i asymetryczne, TLS</a>
+    <a class="nav-item" data-topic-id="webapi-security" data-tags="bezpieczeństwo webapi jwt oauth oauth2 oidc openid connect sso saml certyfikat tls mtls certificate pinning authentication authorization uwierzytelnianie autoryzacja bearer idor bola scope policy jwks" href="../topics/webapi-security.html">Zabezpieczanie WebAPI: JWT, OAuth2, OIDC, SSO, certyfikaty</a>
   </div>
 </details>
     </nav>
@@ -462,6 +477,272 @@ public class KafkaConsumer
 }
 </code></pre>
 <p><strong>Kluczowa różnica widoczna w kodzie:</strong> Kafka <strong>nie ma</strong> <code>BasicAck</code> na pojedynczej wiadomości - zamiast tego <code>Commit()</code> zapisuje <strong>offset</strong> (pozycję w partycji). To odzwierciedla fundamentalną różnicę modelu: RabbitMQ potwierdza <strong>konkretną wiadomość</strong>, Kafka potwierdza <strong>punkt w logu</strong>, do którego doczytałeś.</p>
+<h2>Działający przykład - uruchom RabbitMQ i Kafkę i zobacz różnicę</h2>
+<p>Poniżej kompletny, minimalny projekt konsolowy (.NET 8), który <strong>można uruchomić</strong>: jedna aplikacja z czterema trybami (<code>rabbit-send</code>, <code>rabbit-receive</code>, <code>kafka-send</code>, <code>kafka-receive</code>) i brokery w Dockerze. Wystarczy skopiować poniższe pliki do jednego folderu <code>MessagingDemo</code>.</p>
+<h3>1. Brokery w Dockerze - <code>docker-compose.yml</code></h3>
+<pre><code class="language-yaml">services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - &quot;5672:5672&quot;     # AMQP (used by the app)
+      - &quot;15672:15672&quot;   # management UI: http://localhost:15672 (guest / guest)
+
+  kafka:
+    image: apache/kafka:3.8.0   # single node, KRaft mode (no ZooKeeper)
+    ports:
+      - &quot;9092:9092&quot;
+</code></pre>
+<pre><code class="language-bash">docker compose up -d   # poczekaj ok. 20 s na start Kafki
+</code></pre>
+<h3>2. Projekt - <code>MessagingDemo.csproj</code></h3>
+<pre><code class="language-xml">&lt;Project Sdk=&quot;Microsoft.NET.Sdk&quot;&gt;
+
+  &lt;PropertyGroup&gt;
+    &lt;OutputType&gt;Exe&lt;/OutputType&gt;
+    &lt;TargetFramework&gt;net8.0&lt;/TargetFramework&gt;
+    &lt;Nullable&gt;enable&lt;/Nullable&gt;
+    &lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;
+  &lt;/PropertyGroup&gt;
+
+  &lt;ItemGroup&gt;
+    &lt;PackageReference Include=&quot;RabbitMQ.Client&quot; Version=&quot;7.0.0&quot; /&gt;
+    &lt;PackageReference Include=&quot;Confluent.Kafka&quot; Version=&quot;2.6.0&quot; /&gt;
+  &lt;/ItemGroup&gt;
+
+&lt;/Project&gt;
+</code></pre>
+<p>Utworzenie od zera: <code>dotnet new console -n MessagingDemo</code>, potem <code>dotnet add package RabbitMQ.Client</code> oraz <code>dotnet add package Confluent.Kafka</code>. Przykład używa <strong>asynchronicznego API RabbitMQ.Client 7.x</strong> (<code>CreateConnectionAsync</code>, <code>BasicPublishAsync</code>, <code>AsyncEventingBasicConsumer</code>).</p>
+<h3>3. Wiadomość - <code>OrderMessage.cs</code></h3>
+<pre><code class="language-csharp">namespace MessagingDemo;
+
+// The message sent through both brokers (serialized as JSON).
+public record OrderMessage(int Id, string Customer, decimal Amount);
+</code></pre>
+<h3>4. RabbitMQ - <code>RabbitDemo.cs</code></h3>
+<pre><code class="language-csharp">using System.Text.Json;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
+
+namespace MessagingDemo;
+
+public static class RabbitDemo
+{
+    private const string QueueName = &quot;orders&quot;;
+
+    private static ConnectionFactory CreateFactory() =&gt; new()
+    {
+        HostName = &quot;localhost&quot;,
+        Port = 5672,
+        UserName = &quot;guest&quot;,
+        Password = &quot;guest&quot;
+    };
+
+    // PRODUCER: publishes messages to a queue (default exchange routes by queue name).
+    public static async Task SendAsync(int count)
+    {
+        await using var connection = await CreateFactory().CreateConnectionAsync();
+        await using var channel = await connection.CreateChannelAsync();
+
+        // Idempotent: creates the queue if it does not exist. Durable = survives broker restart.
+        await channel.QueueDeclareAsync(queue: QueueName, durable: true, exclusive: false, autoDelete: false);
+
+        for (var i = 1; i &lt;= count; i++)
+        {
+            var order = new OrderMessage(i, $&quot;Customer {i}&quot;, 10m * i);
+            var body = JsonSerializer.SerializeToUtf8Bytes(order);
+            var props = new BasicProperties { Persistent = true, ContentType = &quot;application/json&quot; };
+
+            await channel.BasicPublishAsync(
+                exchange: string.Empty,      // default exchange: routingKey == queue name
+                routingKey: QueueName,
+                mandatory: false,
+                basicProperties: props,
+                body: body);
+
+            Console.WriteLine($&quot;[RabbitMQ] sent: {order}&quot;);
+        }
+    }
+
+    // CONSUMER: the broker PUSHES messages; we must ACK each one, otherwise it is redelivered.
+    public static async Task ReceiveAsync(CancellationToken ct)
+    {
+        await using var connection = await CreateFactory().CreateConnectionAsync();
+        await using var channel = await connection.CreateChannelAsync();
+
+        await channel.QueueDeclareAsync(queue: QueueName, durable: true, exclusive: false, autoDelete: false);
+
+        // Fair dispatch: at most 1 unacknowledged message per consumer.
+        await channel.BasicQosAsync(prefetchSize: 0, prefetchCount: 1, global: false);
+
+        var consumer = new AsyncEventingBasicConsumer(channel);
+        consumer.ReceivedAsync += async (_, ea) =&gt;
+        {
+            var order = JsonSerializer.Deserialize&lt;OrderMessage&gt;(ea.Body.Span);
+            Console.WriteLine($&quot;[RabbitMQ] received: {order}&quot;);
+
+            await Task.Delay(300); // simulate work
+
+            // Confirm THIS message. After the ACK the broker deletes it from the queue.
+            await channel.BasicAckAsync(ea.DeliveryTag, multiple: false);
+        };
+
+        await channel.BasicConsumeAsync(queue: QueueName, autoAck: false, consumer: consumer);
+
+        Console.WriteLine(&quot;[RabbitMQ] waiting for messages... (Ctrl+C to quit)&quot;);
+        try { await Task.Delay(Timeout.Infinite, ct); }
+        catch (OperationCanceledException) { }
+    }
+}
+</code></pre>
+<h3>5. Kafka - <code>KafkaDemo.cs</code></h3>
+<pre><code class="language-csharp">using System.Text.Json;
+using Confluent.Kafka;
+using Confluent.Kafka.Admin;
+
+namespace MessagingDemo;
+
+public static class KafkaDemo
+{
+    private const string Topic = &quot;orders&quot;;
+    private const string Bootstrap = &quot;localhost:9092&quot;;
+
+    // Creates the topic with 3 partitions (does nothing if it already exists).
+    private static async Task EnsureTopicAsync()
+    {
+        using var admin = new AdminClientBuilder(new AdminClientConfig { BootstrapServers = Bootstrap }).Build();
+        try
+        {
+            await admin.CreateTopicsAsync(new[]
+            {
+                new TopicSpecification { Name = Topic, NumPartitions = 3, ReplicationFactor = 1 }
+            });
+        }
+        catch (CreateTopicsException e) when (e.Results.All(r =&gt; r.Error.Code == ErrorCode.TopicAlreadyExists))
+        {
+            // already there - fine
+        }
+    }
+
+    // PRODUCER: appends messages to the log. The KEY decides the partition
+    // (same key =&gt; same partition =&gt; ordering is preserved per key).
+    public static async Task SendAsync(int count)
+    {
+        await EnsureTopicAsync();
+
+        var config = new ProducerConfig { BootstrapServers = Bootstrap, Acks = Acks.All };
+        using var producer = new ProducerBuilder&lt;string, string&gt;(config).Build();
+
+        for (var i = 1; i &lt;= count; i++)
+        {
+            var order = new OrderMessage(i, $&quot;Customer {i}&quot;, 10m * i);
+            var message = new Message&lt;string, string&gt;
+            {
+                Key = $&quot;customer-{i % 3}&quot;,
+                Value = JsonSerializer.Serialize(order)
+            };
+
+            var result = await producer.ProduceAsync(Topic, message);
+            Console.WriteLine($&quot;[Kafka] sent: {order} -&gt; partition {result.Partition.Value}, offset {result.Offset.Value}&quot;);
+        }
+    }
+
+    // CONSUMER: PULLS messages (Consume) and remembers its position (offset) per consumer GROUP.
+    // Messages are NOT deleted - another group (or a reset offset) can read them again.
+    public static async Task ReceiveAsync(string groupId, CancellationToken ct)
+    {
+        await EnsureTopicAsync();
+
+        var config = new ConsumerConfig
+        {
+            BootstrapServers = Bootstrap,
+            GroupId = groupId,
+            AutoOffsetReset = AutoOffsetReset.Earliest, // new group starts from the beginning of the log
+            EnableAutoCommit = false                    // we commit the offset manually
+        };
+
+        using var consumer = new ConsumerBuilder&lt;string, string&gt;(config).Build();
+        consumer.Subscribe(Topic);
+
+        Console.WriteLine($&quot;[Kafka] group '{groupId}' waiting for messages... (Ctrl+C to quit)&quot;);
+        try
+        {
+            while (!ct.IsCancellationRequested)
+            {
+                var cr = consumer.Consume(ct);
+                var order = JsonSerializer.Deserialize&lt;OrderMessage&gt;(cr.Message.Value);
+                Console.WriteLine($&quot;[Kafka] received: {order} (key {cr.Message.Key}, partition {cr.Partition.Value}, offset {cr.Offset.Value})&quot;);
+
+                await Task.Delay(300); // simulate work
+
+                // Save the position in the log - NOT an ACK of a single message.
+                consumer.Commit(cr);
+            }
+        }
+        catch (OperationCanceledException) { }
+        finally
+        {
+            consumer.Close(); // leave the group cleanly
+        }
+    }
+}
+</code></pre>
+<h3>6. Punkt wejścia - <code>Program.cs</code></h3>
+<pre><code class="language-csharp">using MessagingDemo;
+
+// Usage: dotnet run -- &lt;mode&gt; [argument]
+//   rabbit-send [count]       publish messages to RabbitMQ
+//   rabbit-receive            consume messages from RabbitMQ
+//   kafka-send [count]        publish messages to Kafka
+//   kafka-receive [groupId]   consume messages from Kafka (default group: demo-group)
+
+using var cts = new CancellationTokenSource();
+Console.CancelKeyPress += (_, e) =&gt; { e.Cancel = true; cts.Cancel(); };
+
+var mode = args.Length &gt; 0 ? args[0] : string.Empty;
+var arg = args.Length &gt; 1 ? args[1] : null;
+var count = int.TryParse(arg, out var n) ? n : 5;
+
+try
+{
+    switch (mode)
+    {
+        case &quot;rabbit-send&quot;:    await RabbitDemo.SendAsync(count); break;
+        case &quot;rabbit-receive&quot;: await RabbitDemo.ReceiveAsync(cts.Token); break;
+        case &quot;kafka-send&quot;:     await KafkaDemo.SendAsync(count); break;
+        case &quot;kafka-receive&quot;:  await KafkaDemo.ReceiveAsync(arg ?? &quot;demo-group&quot;, cts.Token); break;
+        default:
+            Console.WriteLine(&quot;Usage: dotnet run -- &lt;rabbit-send|rabbit-receive|kafka-send|kafka-receive&gt; [argument]&quot;);
+            break;
+    }
+}
+catch (Exception ex)
+{
+    Console.WriteLine($&quot;Error: {ex.Message}&quot;);
+    Console.WriteLine(&quot;Is the broker running? Start it with: docker compose up -d&quot;);
+    Environment.ExitCode = 1;
+}
+</code></pre>
+<h3>7. Scenariusze do wypróbowania</h3>
+<p><strong>RabbitMQ - wiadomość znika po odebraniu:</strong></p>
+<pre><code class="language-bash">dotnet run -- rabbit-send 5      # 5 wiadomości trafia do kolejki &quot;orders&quot;
+dotnet run -- rabbit-receive     # odbiera 5 wiadomości (Ctrl+C kończy)
+dotnet run -- rabbit-receive     # ponownie: pusto, bo po ACK wiadomości zostały usunięte
+</code></pre>
+<p>Uruchom dwa <code>rabbit-receive</code> naraz i wyślij więcej wiadomości - zostaną <strong>rozdzielone</strong> między konsumentów (competing consumers). Panel zarządzania: http://localhost:15672 (guest / guest).</p>
+<p><strong>Kafka - log można czytać wielokrotnie:</strong></p>
+<pre><code class="language-bash">dotnet run -- kafka-send 6               # klucze customer-0/1/2 trafiają do różnych partycji
+dotnet run -- kafka-receive              # grupa &quot;demo-group&quot; czyta wszystko od początku
+dotnet run -- kafka-receive              # ta sama grupa: nic nowego (offset zapisany)
+dotnet run -- kafka-receive inna-grupa   # NOWA grupa czyta całą historię jeszcze raz
+</code></pre>
+<h3>Co ten przykład pokazuje</h3>
+<ul>
+<li><strong>Ten sam komunikat, inny los:</strong> w RabbitMQ po <code>BasicAck</code> wiadomość znika z kolejki; w Kafce po <code>Commit</code> konsument tylko zapamiętuje <em>pozycję</em> w logu, a wiadomości zostają i może je przeczytać inna grupa.</li>
+<li><strong>Push vs pull:</strong> RabbitMQ wypycha wiadomości do konsumenta (<code>ReceivedAsync</code>), a konsument Kafki sam je pobiera (<code>Consume</code>).</li>
+<li><strong>Klucz i partycje:</strong> w Kafce <code>Key</code> decyduje o partycji, więc wiadomości z tym samym kluczem zachowują kolejność; w wyjściu widać <code>partition</code> i <code>offset</code>.</li>
+<li><strong>Competing consumers vs consumer groups:</strong> wielu konsumentów jednej kolejki dzieli się wiadomościami; w Kafce dzieli się nimi wielu członków <strong>jednej grupy</strong> (po partycjach), a każda kolejna grupa dostaje komplet.</li>
+<li><strong>Sprzątanie:</strong> po testach <code>docker compose down -v</code> usuwa brokery razem z danymi.</li>
+</ul>
 <h2>Kiedy które</h2>
 <blockquote>
 <p><strong>RabbitMQ</strong> - gdy masz komendy/zadania, które mają się wykonać <strong>raz</strong>, z bogatym routingiem (fanout do wielu kolejek, routing po wzorcach) i niższą krzywą wejścia. <strong>Kafka</strong> - gdy masz zdarzenia biznesowe, które <strong>wiele</strong> niezależnych systemów chce czytać (czasem z różnym tempem), potrzebujesz replay'u historii, albo skalujesz do bardzo dużych wolumenów (logi, telemetria, event sourcing).</p>
@@ -497,6 +778,6 @@ public class KafkaConsumer
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
-<script src="../app.js"></script>
+<script src="../app.js?v=2"></script>
 </body>
 </html>
