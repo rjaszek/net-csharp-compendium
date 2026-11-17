@@ -589,6 +589,149 @@ curl -i -X POST http://localhost:5002/refresh -H &quot;Content-Type: application
 <li><strong>Atomowość:</strong> <code>Rotate</code> działa pod blokadą. W bazie to musi być jedna transakcja z unikalnym indeksem.</li>
 <li><strong>Wylogowanie</strong> unieważnia łańcuch tokenów, ale access token żyje do wygaśnięcia (dlatego ma być krótki).</li>
 </ul>
+<h2>Wariant z bazą danych (EF Core) - <code>RefreshTokenDbDemo</code></h2>
+<p>W produkcji magazyn refresh tokenów to tabela w bazie, nie <code>Dictionary</code>. Pełny projekt (SQLite, port 5003, ten sam scenariusz w <code>requests.http</code>) jest w <code>examples/RefreshTokenDbDemo</code>. Poniżej najważniejsze fragmenty.</p>
+<p><strong>Co się zmienia względem wersji w pamięci:</strong></p>
+<ul>
+<li><strong>Przy generowaniu tokenu nie sprawdzasz, czy już istnieje.</strong> Token ma 512 bitów entropii, więc kolizja jest praktycznie niemożliwa. Ręczne „sprawdź i wstaw” i tak byłoby wyścigiem, więc zamiast tego: <strong>unikalny indeks</strong> na <code>TokenHash</code> i ponowienie losowania, gdy baza odrzuci zapis.</li>
+<li><strong>Przy odświeżaniu szukasz tokenu po skrócie.</strong> Nie ma wpisu, jest wygasły lub unieważniony: 401. Jest już użyty: unieważnij rodzinę i 401. Jest ważny: oznacz jako użyty i wydaj nowy.</li>
+<li><strong>Oznaczenie jako użyty musi być atomowe.</strong> Zwykłe „odczytaj, sprawdź flagę, zapisz” ma ten sam wyścig co <code>Dictionary</code> bez <code>lock</code>. Rozwiązanie: <strong>jedno warunkowe <code>UPDATE</code></strong> (<code>ExecuteUpdateAsync</code>), które zmienia <code>UsedAt</code> tylko wtedy, gdy token wciąż jest nieużyty, i zwraca liczbę zmienionych wierszy. Dokładnie jedno z równoległych żądań dostanie <code>1</code>, reszta <code>0</code>. Działa też przy wielu instancjach aplikacji, czego <code>lock</code> w pamięci nie zapewni.</li>
+<li><strong>Raw token nigdy nie trafia do bazy ani do logów</strong>, tylko jego skrót.</li>
+</ul>
+<pre><code class="language-csharp">using Microsoft.EntityFrameworkCore;
+
+public class RefreshToken
+{
+    public Guid Id { get; set; }
+    public string TokenHash { get; set; } = string.Empty;  // only the HASH is stored (unique index)
+    public string UserId { get; set; } = string.Empty;
+    public Guid FamilyId { get; set; }                     // all tokens of one login (index)
+    public DateTime ExpiresAt { get; set; }
+    public DateTime? UsedAt { get; set; }                  // set exactly once, atomically
+    public DateTime? RevokedAt { get; set; }
+}
+
+public class AppDb(DbContextOptions&lt;AppDb&gt; options) : DbContext(options)
+{
+    public DbSet&lt;RefreshToken&gt; RefreshTokens =&gt; Set&lt;RefreshToken&gt;();
+
+    protected override void OnModelCreating(ModelBuilder b)
+    {
+        b.Entity&lt;RefreshToken&gt;().HasIndex(t =&gt; t.TokenHash).IsUnique(); // guards against collisions and speeds up lookups
+        b.Entity&lt;RefreshToken&gt;().HasIndex(t =&gt; t.FamilyId);             // revoking a whole family filters by it
+    }
+}
+</code></pre>
+<pre><code class="language-csharp">using System.Security.Cryptography;
+using System.Text;
+using Microsoft.EntityFrameworkCore;
+
+public enum RotateStatus { Ok, Invalid, ReuseDetected }
+
+// Database-backed refresh token store. It works with several app instances because the database,
+// not an in-process lock, decides which request &quot;wins&quot; (a conditional UPDATE is atomic).
+public class DbRefreshTokenStore(AppDb db)
+{
+    private static readonly TimeSpan Lifetime = TimeSpan.FromDays(7);
+
+    // Creates and stores a new token. No &quot;does it exist already?&quot; check: the token has 512 bits of entropy,
+    // and the unique index would reject a (practically impossible) duplicate, so we just retry.
+    public async Task&lt;string&gt; CreateAsync(string userId, Guid familyId, CancellationToken ct = default)
+    {
+        for (var attempt = 0; attempt &lt; 3; attempt++)
+        {
+            var raw = GenerateRaw();
+            db.RefreshTokens.Add(new RefreshToken
+            {
+                Id = Guid.NewGuid(),
+                TokenHash = Hash(raw),
+                UserId = userId,
+                FamilyId = familyId,
+                ExpiresAt = DateTime.UtcNow.Add(Lifetime)
+            });
+            try
+            {
+                await db.SaveChangesAsync(ct);
+                return raw;
+            }
+            catch (DbUpdateException) when (attempt &lt; 2)
+            {
+                db.ChangeTracker.Clear(); // unique index violation: forget the entity and draw a new token
+            }
+        }
+        throw new InvalidOperationException(&quot;Could not generate a unique refresh token.&quot;);
+    }
+
+    public async Task&lt;(RotateStatus Status, string? UserId, string? NewToken)&gt; RotateAsync(string raw, CancellationToken ct = default)
+    {
+        var hash = Hash(raw);
+        var now = DateTime.UtcNow;
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+
+        // Atomic &quot;claim&quot;: the condition and the change are ONE statement, so when two requests bring
+        // the same token, exactly one gets 1 affected row and the other gets 0.
+        var claimed = await db.RefreshTokens
+            .Where(t =&gt; t.TokenHash == hash &amp;&amp; t.UsedAt == null &amp;&amp; t.RevokedAt == null &amp;&amp; t.ExpiresAt &gt; now)
+            .ExecuteUpdateAsync(s =&gt; s.SetProperty(t =&gt; t.UsedAt, now), ct);
+
+        if (claimed == 0)
+        {
+            var existing = await db.RefreshTokens.AsNoTracking().FirstOrDefaultAsync(t =&gt; t.TokenHash == hash, ct);
+            if (existing is { UsedAt: not null, RevokedAt: null })
+            {
+                // An already used token came back: possible theft, so kill the whole family.
+                await RevokeFamilyAsync(existing.FamilyId, ct);
+                await tx.CommitAsync(ct);
+                return (RotateStatus.ReuseDetected, null, null);
+            }
+            return (RotateStatus.Invalid, null, null); // unknown, expired or already revoked
+        }
+
+        var current = await db.RefreshTokens.AsNoTracking().FirstAsync(t =&gt; t.TokenHash == hash, ct);
+        var next = await CreateAsync(current.UserId, current.FamilyId, ct); // same family, new token
+        await tx.CommitAsync(ct);
+        return (RotateStatus.Ok, current.UserId, next);
+    }
+
+    // Logout: revoke the whole chain.
+    public async Task RevokeAsync(string raw, CancellationToken ct = default)
+    {
+        var hash = Hash(raw);
+        var familyId = await db.RefreshTokens.Where(t =&gt; t.TokenHash == hash)
+            .Select(t =&gt; (Guid?)t.FamilyId).FirstOrDefaultAsync(ct);
+        if (familyId is not null) await RevokeFamilyAsync(familyId.Value, ct);
+    }
+
+    private Task&lt;int&gt; RevokeFamilyAsync(Guid familyId, CancellationToken ct)
+    {
+        var now = DateTime.UtcNow;
+        return db.RefreshTokens
+            .Where(t =&gt; t.FamilyId == familyId &amp;&amp; t.RevokedAt == null)
+            .ExecuteUpdateAsync(s =&gt; s.SetProperty(t =&gt; t.RevokedAt, now), ct);
+    }
+
+    private static string GenerateRaw() =&gt;
+        Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)).Replace('+', '-').Replace('/', '_').TrimEnd('=');
+
+    // SHA-256 is enough: the token is random and long (unlike a password, it cannot be brute-forced).
+    private static string Hash(string raw) =&gt; Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(raw)));
+}
+</code></pre>
+<h3>Co jeszcze potrzeba w produkcji</h3>
+<ul>
+<li><strong>Zadanie sprzątające</strong> usuwające wygasłe tokeny (użyte trzymaj do wygaśnięcia, bo dzięki nim wykrywasz ponowne użycie).</li>
+<li><strong>Migracje</strong> zamiast <code>EnsureCreated()</code> i prawdziwa baza (PostgreSQL, SQL Server). Do przykładu wybrano SQLite, bo provider <code>InMemory</code> nie obsługuje <code>ExecuteUpdate</code>.</li>
+<li><strong>Indeks na <code>FamilyId</code></strong> (jest w przykładzie), bo unieważnianie rodziny filtruje po nim.</li>
+</ul>
+<h2>Gotowe rozwiązania w ASP.NET Core 8</h2>
+<p>Pisanie własnego serwera tokenów (jak w przykładach powyżej) służy nauce. W prawdziwym projekcie zwykle sięgasz po gotowe narzędzie:</p>
+<ul>
+<li><strong>Identity API endpoints (.NET 8)</strong> - <code>AddIdentityApiEndpoints&lt;TUser&gt;()</code> i <code>MapIdentityApi&lt;TUser&gt;()</code> dodają gotowe endpointy <code>/register</code>, <code>/login</code>, <code>/refresh</code>, <code>/manage/info</code> i inne, a pod spodem działa <code>AddBearerToken</code>. Dostajesz access token i refresh token bez pisania kodu. <strong>Ograniczenia:</strong> tokeny nie są JWT, tylko zabezpieczonymi przez Data Protection biletami (nieprzezroczystymi dla klienta); refresh token jest bezstanowy (nie ma tabeli, więc <strong>nie ma rotacji, wykrywania ponownego użycia ani unieważniania pojedynczej sesji</strong>, a unieważnienie wszystkich sesji użytkownika to zmiana jego <code>SecurityStamp</code>); to rozwiązanie dla aplikacji własnych (first-party), <strong>bez OpenID Connect</strong>.</li>
+<li><strong>OpenIddict</strong> - darmowy, otwarty serwer OAuth 2.0 / OpenID Connect dla ASP.NET Core. Przechowuje tokeny w bazie (EF Core), obsługuje rotację refresh tokenów i pełne przepływy (Authorization Code + PKCE, Client Credentials).</li>
+<li><strong>Duende IdentityServer</strong> - dojrzały, komercyjny (licencja dla większych firm) serwer OIDC.</li>
+<li><strong>Zewnętrzny dostawca</strong> (Microsoft Entra ID, Auth0, Keycloak) - najmniej własnego kodu, serwer tokenów i przechowywanie refresh tokenów są po ich stronie, a Twoje API tylko waliduje JWT.</li>
+</ul>
+<p><strong>Reguła:</strong> nie pisz serwera tokenów samodzielnie w produkcji. Własna implementacja ma sens, gdy rozumiesz mechanizm (rozmowa rekrutacyjna) albo masz bardzo proste, zamknięte wymagania.</p>
 <h2>Po stronie klienta: jedno odświeżenie naraz</h2>
 <p>Częsty błąd w SPA lub aplikacji mobilnej: kilka równoległych żądań dostaje 401 i <strong>każde</strong> próbuje odświeżyć token. Przy rotacji drugie odświeżenie używa już zużytego tokenu, więc serwer uznaje to za kradzież i <strong>unieważnia sesję</strong>. Rozwiązanie: <strong>tylko jedno odświeżenie w danym momencie</strong>, a pozostałe żądania czekają na jego wynik:</p>
 <pre><code class="language-csharp">private static readonly SemaphoreSlim Gate = new(1, 1); // only ONE refresh at a time
@@ -627,6 +770,8 @@ private async Task&lt;string&gt; GetFreshAccessTokenAsync(string staleToken, Can
 <li><strong>Gdzie przechowywać refresh token w SPA?</strong> W ciasteczku <code>HttpOnly</code> ustawianym przez backend (BFF), nie w <code>localStorage</code>.</li>
 <li><strong>Czy trzeba go używać w Client Credentials?</strong> Nie, klient po prostu pobiera nowy access token swoim sekretem lub certyfikatem.</li>
 <li><strong>Jak unieważnić dostęp użytkownika?</strong> Unieważnić jego rodziny refresh tokenów. Access token wygaśnie sam, dlatego ma żyć krótko.</li>
+<li><strong>Czy przed wygenerowaniem refresh tokenu sprawdzasz w bazie, czy już istnieje?</strong> Nie, token ma 512 bitów entropii, a kolizję wyłapie unikalny indeks. Sprawdzenie jest potrzebne przy odbiorze tokenu od klienta, a oznaczenie go jako użytego musi być atomowym <code>UPDATE</code>.</li>
+<li><strong>Czy ASP.NET Core 8 ma gotowe endpointy z refresh tokenem?</strong> Tak, <code>MapIdentityApi</code> z <code>AddBearerToken</code>, ale tokeny są bezstanowe (bez rotacji i reuse detection) i bez OIDC. Do pełnych scenariuszy służy OpenIddict, Duende lub zewnętrzny dostawca.</li>
 <li><strong>Dlaczego w bazie trzymamy skrót, a nie token?</strong> Żeby wyciek bazy nie ujawnił działających tokenów. SHA-256 wystarcza, bo token jest losowy i długi.</li>
 </ul>
   
