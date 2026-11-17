@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Refresh token: jak działa i kiedy go używać — .NET / C# Kompendium wiedzy</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/nord.min.css">
+<link rel="stylesheet" href="../styles.css?v=2">
+</head>
+<body>
+
+<div class="topbar">
+  <button class="burger" id="burgerBtn" aria-label="Menu">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <a class="brand" id="topbarBrand" href="../index.html"><b>C#</b> / .NET Kompendium</a>
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <a class="sidebar-head" id="sidebarHead" href="../index.html">
+      <h1>.NET &amp; C# Kompendium</h1>
+      <div class="sub">Notatki z rozmowy, zorganizowane w dział → temat</div>
+    </a>
+    <div class="search-wrap">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="searchInput" placeholder="Szukaj tematu…" autocomplete="off" />
+      </div>
+      <div class="search-count" id="searchCount"></div>
+    </div>
+    <nav class="nav" id="navList">
+<details class="nav-group" data-cat-id="solid">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      SOLID, Clean Code, DI
+    </span>
+    <span class="n">11</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="oop-enterprise" data-tags="oop encapsulation inheritance polymorphism abstraction enterprise overengineering yagni" href="../topics/oop-enterprise.html">OOP i &quot;Enterprise OOP&quot;</a>
+    <a class="nav-item" data-topic-id="solid-basics" data-tags="solid srp ocp lsp isp dip" href="../topics/solid-basics.html">Zasady SOLID</a>
+    <a class="nav-item" data-topic-id="clean-code" data-tags="clean code czytelność nazewnictwo dry" href="../topics/clean-code.html">Clean Code</a>
+    <a class="nav-item" data-topic-id="di-mvvm-concept" data-tags="di dependency injection mvvm viewmodel" href="../topics/di-mvvm-concept.html">DI w MVVM — koncepcja</a>
+    <a class="nav-item" data-topic-id="di-mvvm-wpf" data-tags="wpf mvvm di viewmodelbase servicecollection" href="../topics/di-mvvm-wpf.html">MVVM + DI w WPF (pełny przykład)</a>
+    <a class="nav-item" data-topic-id="lifetimes" data-tags="di lifetime singleton transient scoped captive dependency" href="../topics/lifetimes.html">Singleton vs Transient vs Scoped</a>
+    <a class="nav-item" data-topic-id="scope-factory-threadsafe" data-tags="scope factory singleton thread safe lock interlocked" href="../topics/scope-factory-threadsafe.html">IServiceScopeFactory i thread-safety</a>
+    <a class="nav-item" data-topic-id="di-methods" data-tags="constructor property method injection service locator anti-pattern" href="../topics/di-methods.html">Sposoby wdrożenia DI</a>
+    <a class="nav-item" data-topic-id="ioc" data-tags="ioc di hollywood principle template method middleware" href="../topics/ioc.html">Inversion of Control (IoC)</a>
+    <a class="nav-item" data-topic-id="clean-architecture" data-tags="clean architecture dependency rule onion hexagonal domain application infrastructure use case ports adapters composition root netarchtest vertical slice agregat aggregate root ddd domain events zdarzenia domenowe cqrs komendy zapytania mediatr" href="../topics/clean-architecture.html">Clean Architecture</a>
+    <a class="nav-item" data-topic-id="ddd" data-tags="ddd domain driven design agregat aggregate entity value object bounded context ubiquitous language domain service zdarzenia domenowe repozytorium anemic model bogaty strategiczne taktyczne" href="../topics/ddd.html">DDD - Domain-Driven Design</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="wpf">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      WPF
+    </span>
+    <span class="n">4</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="wpf-recap" data-tags="wpf dependency property routed event data binding visual tree" href="../topics/wpf-recap.html">WPF — co przypomnieć</a>
+    <a class="nav-item" data-topic-id="synccontext" data-tags="async await synchronizationcontext configureawait deadlock ui thread" href="../topics/synccontext.html">SynchronizationContext i ConfigureAwait</a>
+    <a class="nav-item" data-topic-id="icommand" data-tags="icommand relaycommand canexecute commandmanager async void" href="../topics/icommand.html">ICommand i RelayCommand</a>
+    <a class="nav-item" data-topic-id="callermembername" data-tags="callermembername inotifypropertychanged magic string nameof" href="../topics/callermembername.html">[CallerMemberName]</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="csharp">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      C# — fundamenty języka
+    </span>
+    <span class="n">14</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="delegates" data-tags="delegate action func predicate multicast event" href="../topics/delegates.html">Delegaty</a>
+    <a class="nav-item" data-topic-id="callback-vs-function" data-tags="callback funkcja kontrola przepływu inversion" href="../topics/callback-vs-function.html">Callback vs funkcja</a>
+    <a class="nav-item" data-topic-id="underscore" data-tags="discard underscore lambda separator cyfr" href="../topics/underscore.html">Znak &quot;_&quot; w C#</a>
+    <a class="nav-item" data-topic-id="class-vs-record" data-tags="record class equality value reference with init" href="../topics/class-vs-record.html">Class vs record</a>
+    <a class="nav-item" data-topic-id="record-declaration" data-tags="record positional syntax deconstruct equals hashcode generowany kod" href="../topics/record-declaration.html">Deklaracja record vs class</a>
+    <a class="nav-item" data-topic-id="record-vs-class-compare" data-tags="equals gethashcode referenceequals iequatable iequalitycomparer" href="../topics/record-vs-class-compare.html">Jak porównywać record i class</a>
+    <a class="nav-item" data-topic-id="abstract-vs-interface" data-tags="abstract interface dziedziczenie wielokrotne template method" href="../topics/abstract-vs-interface.html">Klasa abstrakcyjna vs interfejs</a>
+    <a class="nav-item" data-topic-id="access-modifiers" data-tags="public private protected internal protected internal private protected" href="../topics/access-modifiers.html">Modyfikatory dostępu</a>
+    <a class="nav-item" data-topic-id="inheritance-modifiers" data-tags="virtual abstract override sealed new method hiding polimorfizm" href="../topics/inheritance-modifiers.html">Modyfikatory dziedziczenia</a>
+    <a class="nav-item" data-topic-id="lock-mutex-semaphore" data-tags="lock mutex semaphore semaphoreslim thread synchronization async" href="../topics/lock-mutex-semaphore.html">lock, Mutex, Semaphore</a>
+    <a class="nav-item" data-topic-id="struct" data-tags="struct value type stack boxing readonly struct" href="../topics/struct.html">struct</a>
+    <a class="nav-item" data-topic-id="struct-vs-record" data-tags="record struct readonly record struct wartość referencja" href="../topics/struct-vs-record.html">struct vs record</a>
+    <a class="nav-item" data-topic-id="icomparable" data-tags="icomparable compareto sortowanie comparer sort orderby" href="../topics/icomparable.html">IComparable</a>
+    <a class="nav-item" data-topic-id="ienumerable-iqueryable" data-tags="ienumerable iqueryable expression func deferred execution ef core" href="../topics/ienumerable-iqueryable.html">IEnumerable vs IQueryable</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="web">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Web API, Blazor
+    </span>
+    <span class="n">12</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="webapi-mvc" data-tags="webapi mvc controller dto apicontroller minimal api" href="../topics/webapi-mvc.html">Web API jako implementacja MVC</a>
+    <a class="nav-item" data-topic-id="model-binding" data-tags="fromroute fromquery frombody fromheader fromservices apicontroller" href="../topics/model-binding.html">Model Binding i [FromBody]</a>
+    <a class="nav-item" data-topic-id="actionresult" data-tags="actionresult ok notfound badrequest problemdetails result pattern" href="../topics/actionresult.html">ActionResult&lt;T&gt; — zwracanie wyniku i błędów</a>
+    <a class="nav-item" data-topic-id="actionresult-client" data-tags="httpclient apiresult wpf blazor consuming api statuscode" href="../topics/actionresult-client.html">ActionResult po stronie klienta</a>
+    <a class="nav-item" data-topic-id="db-webapi" data-tags="dbcontext connection string appsettings migrations di" href="../topics/db-webapi.html">Podłączenie bazy danych do Web API</a>
+    <a class="nav-item" data-topic-id="blazor-mvc" data-tags="blazor komponent mvvm razor lifecycle" href="../topics/blazor-mvc.html">Blazor — NIE jest MVC</a>
+    <a class="nav-item" data-topic-id="signalr-blazor" data-tags="signalr circuit websocket blazor server sticky sessions" href="../topics/signalr-blazor.html">SignalR w Blazor Server</a>
+    <a class="nav-item" data-topic-id="pwa-rendermodes" data-tags="pwa progressive web app service worker render modes blazor united" href="../topics/pwa-rendermodes.html">PWA i Render Modes</a>
+    <a class="nav-item" data-topic-id="blazor-structure" data-tags="blazor wasm server struktura projektu shared client program.cs" href="../topics/blazor-structure.html">Struktura projektu Blazor</a>
+    <a class="nav-item" data-topic-id="endpoint-routing" data-tags="endpoint routing middleware useendpoints minimal api authorization metadata" href="../topics/endpoint-routing.html">Endpoint Routing w ASP.NET Core</a>
+    <a class="nav-item" data-topic-id="iis-hosting-models" data-tags="iis ancm kestrel w3wp hosting model inprocess outofprocess" href="../topics/iis-hosting-models.html">In-process vs Out-of-process (IIS)</a>
+    <a class="nav-item" data-topic-id="rate-limiting" data-tags="rate limiting throttling fixed window sliding token bucket concurrency 429" href="../topics/rate-limiting.html">Rate Limiting w ASP.NET Core</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="ef">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Entity Framework Core
+    </span>
+    <span class="n">6</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="ef-basics" data-tags="dbcontext dbset asnotracking include n+1 migrations" href="../topics/ef-basics.html">Podstawy EF Core</a>
+    <a class="nav-item" data-topic-id="repo-uow" data-tags="repository unit of work dbset savechanges extension methods" href="../topics/repo-uow.html">Repository + Unit of Work nad EF Core</a>
+    <a class="nav-item" data-topic-id="ef-async" data-tags="async await io cpu bound task run warstwy" href="../topics/ef-async.html">Async w EF Core — kiedy tak, kiedy nie</a>
+    <a class="nav-item" data-topic-id="change-tracking" data-tags="snapshot statemanager detectchanges identity map entitystate" href="../topics/change-tracking.html">Change Tracking pod spodem</a>
+    <a class="nav-item" data-topic-id="migrations-team" data-tags="migracje modelsnapshot konflikty git idempotent skrypt sql" href="../topics/migrations-team.html">Migracje w zespole</a>
+    <a class="nav-item" data-topic-id="ef-transactions" data-tags="savechangesasync begintransaction executionstrategy isolation level savepoints" href="../topics/ef-transactions.html">EF Core i transakcje</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="cqrs">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      CQRS, MediatR
+    </span>
+    <span class="n">2</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="cqrs-what" data-tags="cqrs cqs command query segregation event sourcing eventual consistency" href="../topics/cqrs-what.html">Czym jest CQRS</a>
+    <a class="nav-item" data-topic-id="cqrs-mediatr" data-tags="mediatr irequest irequesthandler pipeline behavior send" href="../topics/cqrs-mediatr.html">MediatR — jak działa i jak używać</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="testing">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Testy
+    </span>
+    <span class="n">3</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="xunit" data-tags="xunit fact theory inlinedata memberdata classfixture aaa" href="../topics/xunit.html">xUnit — podstawy</a>
+    <a class="nav-item" data-topic-id="moq" data-tags="moq mock setup verify times itisany callback" href="../topics/moq.html">Moq — mockowanie</a>
+    <a class="nav-item" data-topic-id="integration-tests" data-tags="webapplicationfactory testcontainers piramida testow inmemory" href="../topics/integration-tests.html">Testy integracyjne</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="algo">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Algorytmy, struktury danych
+    </span>
+    <span class="n">5</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="bigo" data-tags="big o złożoność hashset dictionary list queue stack" href="../topics/bigo.html">Big O i struktury danych .NET</a>
+    <a class="nav-item" data-topic-id="hashset" data-tags="hashset unikalne elementy equalitycomparer intersect union except" href="../topics/hashset.html">HashSet&lt;T&gt;</a>
+    <a class="nav-item" data-topic-id="extension-methods" data-tags="extension methods this static linq where select" href="../topics/extension-methods.html">Extension Methods</a>
+    <a class="nav-item" data-topic-id="iequatable" data-tags="iequatable equals gethashcode boxing struct record" href="../topics/iequatable.html">IEquatable&lt;T&gt;</a>
+    <a class="nav-item" data-topic-id="concurrentqueue" data-tags="concurrentqueue concurrent collections thread lock-free producer consumer channel" href="../topics/concurrentqueue.html">ConcurrentQueue&lt;T&gt;</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="automapper">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      AutoMapper
+    </span>
+    <span class="n">1</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="automapper-basics" data-tags="automapper profile projectto reversemap assertconfigurationisvalid" href="../topics/automapper-basics.html">AutoMapper</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="distributed">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Architektura rozproszona
+    </span>
+    <span class="n">8</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="saga" data-tags="saga orchestration choreography compensating transaction idempotencja" href="../topics/saga.html">Saga Pattern</a>
+    <a class="nav-item" data-topic-id="outbox" data-tags="outbox pattern dual write at least once idempotent cdc debezium" href="../topics/outbox.html">Outbox Pattern</a>
+    <a class="nav-item" data-topic-id="reference-data" data-tags="reference data słowniki denormalizacja synchroniczne odpytywanie cache ttl" href="../topics/reference-data.html">Dane słownikowe między mikroserwisami</a>
+    <a class="nav-item" data-topic-id="kafka" data-tags="kafka topic partition consumer group retention at least once producer consumer" href="../topics/kafka.html">Apache Kafka</a>
+    <a class="nav-item" data-topic-id="docker-k8s" data-tags="docker container image kubernetes pod deployment service self healing" href="../topics/docker-k8s.html">Docker, kontenery, Kubernetes</a>
+    <a class="nav-item" data-topic-id="rebus-servicebus" data-tags="rebus servicebus messagebus rabbitmq masstransit saga" href="../topics/rebus-servicebus.html">Rebus (.NET Service Bus)</a>
+    <a class="nav-item" data-topic-id="rabbitmq-fundamentals" data-tags="rabbitmq amqp broker exchange queue push pull" href="../topics/rabbitmq-fundamentals.html">Jak działa RabbitMQ (AMQP vs HTTP)</a>
+    <a class="nav-item" data-topic-id="kafka-vs-rabbitmq" data-tags="kafka rabbitmq porównanie confluent rabbitmq.client producer consumer" href="../topics/kafka-vs-rabbitmq.html">Kafka vs RabbitMQ - porównanie i implementacja</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="memory">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Pamięć i wątki
+    </span>
+    <span class="n">2</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="memory-management" data-tags="garbage collector gc generacje loh workstation server gc cgroups datas" href="../topics/memory-management.html">Zarządzanie pamięcią: Framework, Core, .NET</a>
+    <a class="nav-item" data-topic-id="async-thread" data-tags="async await thread pool i/o completion ports task run state machine" href="../topics/async-thread.html">Czy async tworzy nowy wątek?</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="recap">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Przypomnienie / wzorce web
+    </span>
+    <span class="n">3</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="mvc-mvvm-mvp" data-tags="mvc mvvm mvp controller presenter viewmodel przykłady" href="../topics/mvc-mvvm-mvp.html">MVC, MVVM, MVP — porównanie</a>
+    <a class="nav-item" data-topic-id="dto-mvvm-placement" data-tags="dto models folder struktura projektu wpf" href="../topics/dto-mvvm-placement.html">Gdzie umieszczać DTO w projekcie MVVM</a>
+    <a class="nav-item" data-topic-id="code-review-example" data-tags="singleton anti-pattern socket exhaustion httpclientfactory code review" href="../topics/code-review-example.html">Przykład code review — HttpClientFactory</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="process">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Proces i metodyki
+    </span>
+    <span class="n">1</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="sdlc" data-tags="sdlc waterfall agile scrum devops ci cd v-model proces metodyka" href="../topics/sdlc.html">SDLC - Software Development Life Cycle</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="security" open>
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Bezpieczeństwo
+    </span>
+    <span class="n">4</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="crypto-basics" data-tags="kryptografia szyfrowanie symetryczne asymetryczne aes rsa ecdh diffie hellman tls handshake forward secrecy hash hmac pbkdf2 podpis cyfrowy klucz publiczny prywatny gcm" href="../topics/crypto-basics.html">Kryptografia: szyfrowanie symetryczne i asymetryczne, TLS</a>
+    <a class="nav-item" data-topic-id="webapi-security" data-tags="bezpieczeństwo webapi jwt oauth oauth2 oidc openid connect sso saml certyfikat tls mtls certificate pinning authentication authorization uwierzytelnianie autoryzacja bearer idor bola scope policy jwks" href="../topics/webapi-security.html">Zabezpieczanie WebAPI: JWT, OAuth2, OIDC, SSO, certyfikaty</a>
+    <a class="nav-item" data-topic-id="multi-tenancy" data-tags="tenant multi-tenancy multitenancy saas najemca tid entra azure ad izolacja danych global query filter tenantid cross-tenant bola idor" href="../topics/multi-tenancy.html">Multi-tenancy i bezpieczeństwo WebAPI: czym jest tenant</a>
+    <a class="nav-item" data-topic-id="refresh-token" data-tags="refresh token access token rotacja reuse detection offline_access oauth jwt sesja wylogowanie bff httponly cookie rodzina tokenów" href="../topics/refresh-token.html">Refresh token: jak działa i kiedy go używać</a>
+  </div>
+</details>
+    </nav>
+  </aside>
+
+  <main class="main wide" id="mainArea">
+    <div class="content" id="content">
+<div class="topic">
+  <div class="crumb">.NET / C# <span class="sep">/</span> <span class="cat">Bezpieczeństwo</span></div>
+  
+  <h1>Refresh token: jak działa i kiedy go używać</h1>
+<h2>Problem, który rozwiązuje</h2>
+<p>Access token (zwykle JWT) jest samowystarczalny: API sprawdza jego podpis i nie pyta nikogo o zdanie, więc <strong>nie da się go łatwo unieważnić</strong>. Dlatego powinien żyć <strong>krótko</strong> (5-15 minut). Krótki token ogranicza szkody po kradzieży, ale użytkownik nie chce się logować co kilka minut. Rozwiązaniem jest drugi token: <strong>refresh token</strong>. Szerszy kontekst (JWT, OAuth 2.0, OIDC) jest w temacie <a href="webapi-security.html">Zabezpieczanie WebAPI</a>.</p>
+<h2>Czym jest refresh token</h2>
+<ul>
+<li><strong>Długo żyjący</strong> (dni lub tygodnie) sekret, którego jedynym zadaniem jest uzyskanie <strong>nowego access tokenu</strong> bez ponownego podawania hasła.</li>
+<li>Zwykle <strong>nieprzezroczysty (opaque)</strong>: losowy ciąg, a nie JWT. Nic w nim nie ma, a serwer zna jego znaczenie z bazy.</li>
+<li>Wysyłany <strong>wyłącznie do endpointu tokenów</strong> (serwera autoryzacji), <strong>nigdy do API z zasobami</strong>. Dzięki temu rzadko jest narażony na przechwycenie.</li>
+<li>W OAuth 2.0 uzyskuje się go przez scope <code>offline_access</code> (w OIDC) i wymienia przez <code>grant_type=refresh_token</code>.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Access token</th>
+<th>Refresh token</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Do czego</td>
+<td>dostęp do API</td>
+<td>zdobycie nowego access tokenu</td>
+</tr>
+<tr>
+<td>Czas życia</td>
+<td>krótki (minuty)</td>
+<td>długi (dni, tygodnie)</td>
+</tr>
+<tr>
+<td>Dokąd wysyłany</td>
+<td>do każdego API z zasobami</td>
+<td>tylko do serwera tokenów</td>
+</tr>
+<tr>
+<td>Format</td>
+<td>zwykle JWT (samowystarczalny)</td>
+<td>zwykle losowy, nieprzezroczysty</td>
+</tr>
+<tr>
+<td>Unieważnianie</td>
+<td>trudne (czeka do wygaśnięcia)</td>
+<td>łatwe (serwer trzyma jego stan)</td>
+</tr>
+<tr>
+<td>Ryzyko kradzieży</td>
+<td>ograniczone czasem</td>
+<td>większe, więc wymaga ochrony i rotacji</td>
+</tr>
+</tbody>
+</table>
+<h2>Przepływ krok po kroku</h2>
+<pre><code>1. Klient --- login + hasło ----------------------------&gt; Serwer tokenów
+   Klient &lt;-- access token (60 s) + refresh token (7 dni) --
+
+2. Klient --- access token -----------------------------&gt; API  --&gt; 200 OK
+
+3. (po 60 s) Klient --- access token ------------------&gt; API  --&gt; 401 (wygasł)
+
+4. Klient --- refresh token ----------------------------&gt; Serwer tokenów
+   Klient &lt;-- NOWY access token + NOWY refresh token ----   (stary refresh token przestaje działać)
+
+5. Klient --- nowy access token ------------------------&gt; API  --&gt; 200 OK
+</code></pre>
+<p>Zapytanie OAuth 2.0 o odświeżenie wygląda tak:</p>
+<pre><code class="language-http">POST /token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=refresh_token&amp;refresh_token=&lt;token&gt;&amp;client_id=my-spa
+</code></pre>
+<h2>Rotacja i wykrywanie ponownego użycia (najważniejszy mechanizm bezpieczeństwa)</h2>
+<p>Samo długie życie refresh tokenu to ryzyko: kto go ukradnie, może wiecznie generować nowe access tokeny. Dlatego stosuje się <strong>rotację</strong>:</p>
+<ol>
+<li><strong>Każdy refresh token jest jednorazowy.</strong> Po użyciu serwer wydaje <strong>nowy</strong> i unieważnia stary.</li>
+<li>Tokeny jednego logowania tworzą <strong>rodzinę (family)</strong>, czyli łańcuch kolejnych rotacji.</li>
+<li>Jeśli <strong>użyty już</strong> refresh token wróci do serwera (<strong>reuse detection</strong>), to znaczy, że ktoś go skopiował: legalny użytkownik i złodziej mają ten sam token. Serwer <strong>unieważnia całą rodzinę</strong>, co wymusza ponowne logowanie i wyrzuca złodzieja.</li>
+</ol>
+<p>To zalecenie z OAuth 2.0 Security Best Current Practice dla klientów publicznych (SPA, aplikacje mobilne).</p>
+<h2>Gdzie i jak przechowywać</h2>
+<p><strong>Po stronie klienta:</strong></p>
+<ul>
+<li><strong>SPA:</strong> najlepiej w ciasteczku <code>HttpOnly; Secure; SameSite</code> ustawianym przez własny backend (wzorzec <strong>BFF</strong>), tak aby skrypt JavaScript nie miał do niego dostępu. <code>localStorage</code> jest podatny na kradzież przez XSS.</li>
+<li><strong>Aplikacja mobilna:</strong> w bezpiecznym magazynie systemu (iOS Keychain, Android Keystore).</li>
+<li><strong>Aplikacja serwerowa lub desktopowa:</strong> zaszyfrowany magazyn (DPAPI, Key Vault).</li>
+</ul>
+<p><strong>Po stronie serwera:</strong></p>
+<ul>
+<li>Zapisuj <strong>tylko skrót</strong> tokenu (SHA-256 wystarczy, bo token jest losowy i długi, w przeciwieństwie do haseł, które wymagają wolnego hasha z solą), a nie sam token.</li>
+<li>Przechowuj: identyfikator użytkownika, rodzinę, termin ważności, flagi „użyty” i „unieważniony”, a w razie potrzeby urządzenie lub adres IP.</li>
+<li><strong>Unikalny indeks na skrócie</strong> i operacja rotacji w <strong>jednej transakcji</strong>, żeby dwa równoległe żądania nie użyły tego samego tokenu.</li>
+<li><strong>Termin ważności:</strong> bezwzględny (np. 30 dni od logowania) lub przesuwany (sliding), często oba naraz.</li>
+<li>Wylogowanie to unieważnienie rodziny. Możesz też pozwalać „wyloguj ze wszystkich urządzeń”.</li>
+</ul>
+<h2>Kiedy używać</h2>
+<ul>
+<li><strong>Tak:</strong> SPA i aplikacje mobilne, gdzie użytkownik ma pozostać zalogowany przez dni (access token krótki, sesja długa).</li>
+<li><strong>Tak:</strong> gdy potrzebujesz możliwości <strong>odwołania dostępu</strong> użytkownika bez czekania na wygaśnięcie JWT.</li>
+<li><strong>Nie potrzeba:</strong> komunikacja serwis-serwis (OAuth 2.0 <strong>Client Credentials</strong>) - klient po prostu pobiera nowy access token, używając swojego sekretu lub certyfikatu.</li>
+<li><strong>Nie potrzeba:</strong> krótkie sesje, po których ponowne logowanie nie przeszkadza, oraz sesje cookie w klasycznym MVC.</li>
+<li><strong>Nie próbuj pisać tego sam</strong>, jeśli masz dostawcę tożsamości: Entra ID, Keycloak, Auth0 i Duende IdentityServer mają rotację i reuse detection. W ASP.NET Core 8 <code>MapIdentityApi</code> wystawia też endpoint <code>/refresh</code>.</li>
+</ul>
+<h2>Działający przykład - <code>RefreshTokenDemo</code></h2>
+<p>Minimalne API (.NET 8, pakiet <code>Microsoft.AspNetCore.Authentication.JwtBearer</code>): logowanie wydaje access token ważny 60 sekund oraz refresh token, <code>/refresh</code> robi rotację, a ponowne użycie starego tokenu unieważnia całą rodzinę.</p>
+<pre><code class="language-csharp">using System.Security.Cryptography;
+using System.Text;
+
+public enum RotateStatus { Ok, Invalid, ReuseDetected }
+
+public class RefreshTokenRecord
+{
+    public string Hash { get; init; } = string.Empty;      // only the HASH is stored, never the token itself
+    public string UserId { get; init; } = string.Empty;
+    public string FamilyId { get; init; } = string.Empty;  // all tokens of one login (one chain of rotations)
+    public DateTime ExpiresAt { get; init; }
+    public bool Used { get; set; }
+    public bool Revoked { get; set; }
+}
+
+// In-memory store for the demo. In production: a database table with a unique index on Hash,
+// and Rotate() as one transaction (so two parallel requests cannot both use the same token).
+public class RefreshTokenStore
+{
+    private static readonly TimeSpan Lifetime = TimeSpan.FromDays(7); // absolute lifetime of one token
+    private readonly Dictionary&lt;string, RefreshTokenRecord&gt; _tokens = new();
+    private readonly object _lock = new();
+
+    public string Create(string userId, string familyId)
+    {
+        // opaque, random, high-entropy value (NOT a JWT)
+        var raw = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64))
+            .Replace('+', '-').Replace('/', '_').TrimEnd('=');
+
+        var record = new RefreshTokenRecord
+        {
+            Hash = Hash(raw),
+            UserId = userId,
+            FamilyId = familyId,
+            ExpiresAt = DateTime.UtcNow.Add(Lifetime)
+        };
+
+        lock (_lock) _tokens[record.Hash] = record;
+        return raw;
+    }
+
+    // Rotation: a refresh token can be used ONCE; the answer contains a brand new refresh token.
+    public (RotateStatus Status, string? UserId, string? NewToken) Rotate(string raw)
+    {
+        lock (_lock)
+        {
+            if (!_tokens.TryGetValue(Hash(raw), out var record)
+                || record.Revoked
+                || record.ExpiresAt &lt; DateTime.UtcNow)
+                return (RotateStatus.Invalid, null, null);
+
+            if (record.Used)
+            {
+                // An already used token came back: either the client is buggy or the token was STOLEN
+                // (the thief and the owner both hold it). Safest reaction: kill the whole family.
+                RevokeFamily(record.FamilyId);
+                return (RotateStatus.ReuseDetected, null, null);
+            }
+
+            record.Used = true;
+            var next = Create(record.UserId, record.FamilyId); // same family, new token
+            return (RotateStatus.Ok, record.UserId, next);
+        }
+    }
+
+    // Logout: revoke the whole chain, so no refresh token of this login works any more.
+    public void Revoke(string raw)
+    {
+        lock (_lock)
+        {
+            if (_tokens.TryGetValue(Hash(raw), out var record)) RevokeFamily(record.FamilyId);
+        }
+    }
+
+    private void RevokeFamily(string familyId)
+    {
+        foreach (var t in _tokens.Values.Where(t =&gt; t.FamilyId == familyId)) t.Revoked = true;
+    }
+
+    // SHA-256 is enough here: the token is random and long, so it cannot be guessed or brute-forced
+    // (unlike passwords, which need a slow hash with a salt).
+    private static string Hash(string raw) =&gt; Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(raw)));
+}
+</code></pre>
+<pre><code class="language-csharp">using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// DEMO ONLY: in production tokens come from an identity provider and the key is not stored in code.
+const string Issuer = &quot;https://demo.local&quot;;
+const string Audience = &quot;demo-api&quot;;
+var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(&quot;demo-key-change-me-at-least-32-bytes-long!!&quot;));
+var accessLifetime = TimeSpan.FromSeconds(60); // SHORT on purpose, so you can watch it expire
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(o =&gt;
+    {
+        o.MapInboundClaims = false;
+        o.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true, ValidIssuer = Issuer,
+            ValidateAudience = true, ValidAudience = Audience,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero, // no tolerance, so expiry is visible exactly after 60 s
+            ValidateIssuerSigningKey = true, IssuerSigningKey = signingKey,
+            ValidAlgorithms = new[] { SecurityAlgorithms.HmacSha256 }
+        };
+    });
+builder.Services.AddAuthorization();
+builder.Services.AddSingleton&lt;RefreshTokenStore&gt;();
+
+var app = builder.Build();
+app.UseAuthentication();
+app.UseAuthorization();
+
+string CreateAccessToken(string userId)
+{
+    var token = new JwtSecurityToken(Issuer, Audience,
+        claims: new[] { new Claim(&quot;sub&quot;, userId) },
+        expires: DateTime.UtcNow.Add(accessLifetime),
+        signingCredentials: new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256));
+    return new JwtSecurityTokenHandler().WriteToken(token);
+}
+
+var users = new Dictionary&lt;string, string&gt; { [&quot;alice&quot;] = &quot;alice123&quot;, [&quot;bob&quot;] = &quot;bob123&quot; };
+
+// 1) Login: the user proves who they are ONCE and gets a pair of tokens.
+app.MapPost(&quot;/login&quot;, (LoginRequest request, RefreshTokenStore store) =&gt;
+{
+    if (!users.TryGetValue(request.Username, out var password) || password != request.Password)
+        return Results.Unauthorized();
+
+    var refresh = store.Create(request.Username, familyId: Guid.NewGuid().ToString(&quot;N&quot;));
+    return Results.Ok(new TokenResponse(CreateAccessToken(request.Username), (int)accessLifetime.TotalSeconds, refresh));
+});
+
+// 2) Refresh: exchange a refresh token for a NEW pair (no password needed, the old refresh token dies).
+app.MapPost(&quot;/refresh&quot;, (RefreshRequest request, RefreshTokenStore store) =&gt;
+{
+    var (status, userId, newRefresh) = store.Rotate(request.RefreshToken);
+    return status switch
+    {
+        RotateStatus.Ok =&gt; Results.Ok(new TokenResponse(CreateAccessToken(userId!), (int)accessLifetime.TotalSeconds, newRefresh!)),
+        RotateStatus.ReuseDetected =&gt; Results.Json(
+            new { error = &quot;refresh token reuse detected - the whole session was revoked, log in again&quot; },
+            statusCode: StatusCodes.Status401Unauthorized),
+        _ =&gt; Results.Unauthorized()
+    };
+});
+
+// 3) Logout: the refresh token chain is revoked (the access token still lives until it expires).
+app.MapPost(&quot;/logout&quot;, (RefreshRequest request, RefreshTokenStore store) =&gt;
+{
+    store.Revoke(request.RefreshToken);
+    return Results.NoContent();
+});
+
+// A protected resource: only the ACCESS token is sent here, never the refresh token.
+app.MapGet(&quot;/api/me&quot;, (ClaimsPrincipal user) =&gt; new
+{
+    user = user.FindFirstValue(&quot;sub&quot;),
+    accessTokenExpiresAtUtc = DateTimeOffset.FromUnixTimeSeconds(long.Parse(user.FindFirstValue(&quot;exp&quot;)!))
+}).RequireAuthorization();
+
+app.Run();
+
+record LoginRequest(string Username, string Password);
+record RefreshRequest(string RefreshToken);
+record TokenResponse(string AccessToken, int ExpiresIn, string RefreshToken);
+</code></pre>
+<p>Projekt (<code>RefreshTokenDemo.csproj</code>):</p>
+<pre><code class="language-xml">&lt;Project Sdk=&quot;Microsoft.NET.Sdk.Web&quot;&gt;
+
+  &lt;PropertyGroup&gt;
+    &lt;TargetFramework&gt;net8.0&lt;/TargetFramework&gt;
+    &lt;Nullable&gt;enable&lt;/Nullable&gt;
+    &lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;
+  &lt;/PropertyGroup&gt;
+
+  &lt;ItemGroup&gt;
+    &lt;PackageReference Include=&quot;Microsoft.AspNetCore.Authentication.JwtBearer&quot; Version=&quot;8.0.10&quot; /&gt;
+  &lt;/ItemGroup&gt;
+
+&lt;/Project&gt;
+</code></pre>
+<h3>Jak to wypróbować</h3>
+<p><code>dotnet run</code> (adres http://localhost:5002), potem plik <code>requests.http</code> lub <code>curl</code>:</p>
+<pre><code class="language-bash"># 1) log in: access token (60 s) + refresh token
+curl -X POST http://localhost:5002/login -H &quot;Content-Type: application/json&quot; \
+     -d '{&quot;username&quot;:&quot;alice&quot;,&quot;password&quot;:&quot;alice123&quot;}'
+
+# 2) call the API with the access token -&gt; 200 (after 60 s -&gt; 401)
+curl http://localhost:5002/api/me -H &quot;Authorization: Bearer &lt;accessToken&gt;&quot;
+
+# 3) refresh: new pair of tokens, the old refresh token dies
+curl -X POST http://localhost:5002/refresh -H &quot;Content-Type: application/json&quot; \
+     -d '{&quot;refreshToken&quot;:&quot;&lt;refreshToken&gt;&quot;}'
+
+# 4) reuse the OLD refresh token -&gt; 401 &quot;reuse detected&quot;, and now even the newest one is dead
+curl -i -X POST http://localhost:5002/refresh -H &quot;Content-Type: application/json&quot; \
+     -d '{&quot;refreshToken&quot;:&quot;&lt;old refreshToken&gt;&quot;}'
+</code></pre>
+<h3>Co ten przykład pokazuje</h3>
+<ul>
+<li><strong>Krótki access token</strong> (<code>ClockSkew = Zero</code>, 60 s), więc wygaśnięcie widać gołym okiem.</li>
+<li><strong>Refresh token to losowy ciąg</strong>, a w magazynie jest tylko jego skrót SHA-256.</li>
+<li><strong>Rotacja:</strong> po <code>/refresh</code> stary token jest oznaczony jako użyty, a odpowiedź zawiera nowy.</li>
+<li><strong>Reuse detection:</strong> ponowne użycie starego tokenu unieważnia całą rodzinę (<code>RevokeFamily</code>).</li>
+<li><strong>Atomowość:</strong> <code>Rotate</code> działa pod blokadą. W bazie to musi być jedna transakcja z unikalnym indeksem.</li>
+<li><strong>Wylogowanie</strong> unieważnia łańcuch tokenów, ale access token żyje do wygaśnięcia (dlatego ma być krótki).</li>
+</ul>
+<h2>Po stronie klienta: jedno odświeżenie naraz</h2>
+<p>Częsty błąd w SPA lub aplikacji mobilnej: kilka równoległych żądań dostaje 401 i <strong>każde</strong> próbuje odświeżyć token. Przy rotacji drugie odświeżenie używa już zużytego tokenu, więc serwer uznaje to za kradzież i <strong>unieważnia sesję</strong>. Rozwiązanie: <strong>tylko jedno odświeżenie w danym momencie</strong>, a pozostałe żądania czekają na jego wynik:</p>
+<pre><code class="language-csharp">private static readonly SemaphoreSlim Gate = new(1, 1); // only ONE refresh at a time
+
+private async Task&lt;string&gt; GetFreshAccessTokenAsync(string staleToken, CancellationToken ct)
+{
+    await Gate.WaitAsync(ct);
+    try
+    {
+        // another request may have already refreshed while we were waiting
+        if (_tokens.AccessToken != staleToken) return _tokens.AccessToken;
+
+        var pair = await _auth.RefreshAsync(_tokens.RefreshToken, ct); // POST /refresh
+        _tokens.Save(pair);                                            // the old refresh token is now useless
+        return pair.AccessToken;
+    }
+    finally { Gate.Release(); }
+}
+</code></pre>
+<p>Dobrą praktyką jest też odświeżanie <strong>zawczasu</strong> (np. na minutę przed wygaśnięciem, zgodnie z <code>expires_in</code>) oraz krótka <strong>tolerancja</strong> po stronie serwera dla odpowiedzi, która zgubiła się w sieci (klient nie dostał nowego tokenu i ponawia żądanie).</p>
+<h2>Najczęstsze pułapki</h2>
+<ul>
+<li><strong>Refresh token w <code>localStorage</code></strong> - kradzież przez XSS. Użyj ciasteczka <code>HttpOnly</code> (BFF).</li>
+<li><strong>Refresh token jako JWT bez możliwości unieważnienia</strong> - traci się główną zaletę, czyli kontrolę po stronie serwera.</li>
+<li><strong>Brak rotacji</strong> - skradziony token działa do końca terminu ważności.</li>
+<li><strong>Zapis tokenu w bazie w postaci jawnej</strong> - wyciek bazy to wyciek wszystkich sesji.</li>
+<li><strong>Wysyłanie refresh tokenu do API z zasobami</strong> - powinien trafiać tylko do serwera tokenów.</li>
+<li><strong>Wyścig równoległych odświeżeń</strong> - opisany wyżej.</li>
+<li><strong>Brak limitu sesji i brak „wyloguj ze wszystkich urządzeń”</strong>.</li>
+</ul>
+<h2>Pytania rekrutacyjne</h2>
+<ul>
+<li><strong>Po co refresh token, skoro jest access token?</strong> Pozwala trzymać access token krótko (mała szkoda po kradzieży), a użytkownika zostawić zalogowanego na długo.</li>
+<li><strong>Czym różni się od access tokenu?</strong> Jest długożyjący, zwykle nieprzezroczysty, trafia tylko do serwera tokenów i serwer może go łatwo unieważnić.</li>
+<li><strong>Co to rotacja refresh tokenów i reuse detection?</strong> Każdy token jest jednorazowy. Ponowne użycie zużytego tokenu oznacza kradzież i unieważnia całą rodzinę tokenów.</li>
+<li><strong>Gdzie przechowywać refresh token w SPA?</strong> W ciasteczku <code>HttpOnly</code> ustawianym przez backend (BFF), nie w <code>localStorage</code>.</li>
+<li><strong>Czy trzeba go używać w Client Credentials?</strong> Nie, klient po prostu pobiera nowy access token swoim sekretem lub certyfikatem.</li>
+<li><strong>Jak unieważnić dostęp użytkownika?</strong> Unieważnić jego rodziny refresh tokenów. Access token wygaśnie sam, dlatego ma żyć krótko.</li>
+<li><strong>Dlaczego w bazie trzymamy skrót, a nie token?</strong> Żeby wyciek bazy nie ujawnił działających tokenów. SHA-256 wystarcza, bo token jest losowy i długi.</li>
+</ul>
+  
+  
+  <div class="topic-nav"><a class="prev" href="multi-tenancy.html"><span class="lbl">← wstecz</span>Multi-tenancy i bezpieczeństwo WebAPI: czym jest tenant</a><span></span></div>
+</div>
+    </div>
+  </main>
+</div>
+
+<a class="fab coffee-btn" href="https://www.naffy.io/radoslaw-jaszek-znpwl/net-csharp-kompendium" target="_blank" rel="noopener noreferrer" aria-label="Postaw mi kawę" title="Postaw mi kawę">
+  <span class="coffee-label">Postaw mi kawę</span>
+  <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M6 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/></svg>
+</a>
+
+<button type="button" class="fab theme-toggle" id="themeToggle" aria-label="Zmień tryb ciemny/jasny" title="Tryb jasny">
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4" y1="12" x2="2" y2="12"/><line x1="22" y1="12" x2="20" y2="12"/><line x1="19.07" y1="4.93" x2="17.66" y2="6.34"/><line x1="6.34" y1="17.66" x2="4.93" y2="19.07"/><line x1="19.07" y1="19.07" x2="17.66" y2="17.66"/><line x1="6.34" y1="6.34" x2="4.93" y2="4.93"/>
+  </svg>
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </svg>
+</button>
+
+<button type="button" class="fab width-toggle" id="widthToggle" aria-label="Pełna szerokość" title="Wąska treść">
+  <svg id="widthToggleIcon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="10" y1="14" x2="3" y2="21"/>
+  </svg>
+</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
+<script src="../app.js?v=2"></script>
+</body>
+</html>

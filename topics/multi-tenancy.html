@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Multi-tenancy i bezpieczeństwo WebAPI: czym jest tenant — .NET / C# Kompendium wiedzy</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/nord.min.css">
+<link rel="stylesheet" href="../styles.css?v=2">
+</head>
+<body>
+
+<div class="topbar">
+  <button class="burger" id="burgerBtn" aria-label="Menu">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <a class="brand" id="topbarBrand" href="../index.html"><b>C#</b> / .NET Kompendium</a>
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <a class="sidebar-head" id="sidebarHead" href="../index.html">
+      <h1>.NET &amp; C# Kompendium</h1>
+      <div class="sub">Notatki z rozmowy, zorganizowane w dział → temat</div>
+    </a>
+    <div class="search-wrap">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="searchInput" placeholder="Szukaj tematu…" autocomplete="off" />
+      </div>
+      <div class="search-count" id="searchCount"></div>
+    </div>
+    <nav class="nav" id="navList">
+<details class="nav-group" data-cat-id="solid">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      SOLID, Clean Code, DI
+    </span>
+    <span class="n">11</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="oop-enterprise" data-tags="oop encapsulation inheritance polymorphism abstraction enterprise overengineering yagni" href="../topics/oop-enterprise.html">OOP i &quot;Enterprise OOP&quot;</a>
+    <a class="nav-item" data-topic-id="solid-basics" data-tags="solid srp ocp lsp isp dip" href="../topics/solid-basics.html">Zasady SOLID</a>
+    <a class="nav-item" data-topic-id="clean-code" data-tags="clean code czytelność nazewnictwo dry" href="../topics/clean-code.html">Clean Code</a>
+    <a class="nav-item" data-topic-id="di-mvvm-concept" data-tags="di dependency injection mvvm viewmodel" href="../topics/di-mvvm-concept.html">DI w MVVM — koncepcja</a>
+    <a class="nav-item" data-topic-id="di-mvvm-wpf" data-tags="wpf mvvm di viewmodelbase servicecollection" href="../topics/di-mvvm-wpf.html">MVVM + DI w WPF (pełny przykład)</a>
+    <a class="nav-item" data-topic-id="lifetimes" data-tags="di lifetime singleton transient scoped captive dependency" href="../topics/lifetimes.html">Singleton vs Transient vs Scoped</a>
+    <a class="nav-item" data-topic-id="scope-factory-threadsafe" data-tags="scope factory singleton thread safe lock interlocked" href="../topics/scope-factory-threadsafe.html">IServiceScopeFactory i thread-safety</a>
+    <a class="nav-item" data-topic-id="di-methods" data-tags="constructor property method injection service locator anti-pattern" href="../topics/di-methods.html">Sposoby wdrożenia DI</a>
+    <a class="nav-item" data-topic-id="ioc" data-tags="ioc di hollywood principle template method middleware" href="../topics/ioc.html">Inversion of Control (IoC)</a>
+    <a class="nav-item" data-topic-id="clean-architecture" data-tags="clean architecture dependency rule onion hexagonal domain application infrastructure use case ports adapters composition root netarchtest vertical slice agregat aggregate root ddd domain events zdarzenia domenowe cqrs komendy zapytania mediatr" href="../topics/clean-architecture.html">Clean Architecture</a>
+    <a class="nav-item" data-topic-id="ddd" data-tags="ddd domain driven design agregat aggregate entity value object bounded context ubiquitous language domain service zdarzenia domenowe repozytorium anemic model bogaty strategiczne taktyczne" href="../topics/ddd.html">DDD - Domain-Driven Design</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="wpf">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      WPF
+    </span>
+    <span class="n">4</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="wpf-recap" data-tags="wpf dependency property routed event data binding visual tree" href="../topics/wpf-recap.html">WPF — co przypomnieć</a>
+    <a class="nav-item" data-topic-id="synccontext" data-tags="async await synchronizationcontext configureawait deadlock ui thread" href="../topics/synccontext.html">SynchronizationContext i ConfigureAwait</a>
+    <a class="nav-item" data-topic-id="icommand" data-tags="icommand relaycommand canexecute commandmanager async void" href="../topics/icommand.html">ICommand i RelayCommand</a>
+    <a class="nav-item" data-topic-id="callermembername" data-tags="callermembername inotifypropertychanged magic string nameof" href="../topics/callermembername.html">[CallerMemberName]</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="csharp">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      C# — fundamenty języka
+    </span>
+    <span class="n">14</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="delegates" data-tags="delegate action func predicate multicast event" href="../topics/delegates.html">Delegaty</a>
+    <a class="nav-item" data-topic-id="callback-vs-function" data-tags="callback funkcja kontrola przepływu inversion" href="../topics/callback-vs-function.html">Callback vs funkcja</a>
+    <a class="nav-item" data-topic-id="underscore" data-tags="discard underscore lambda separator cyfr" href="../topics/underscore.html">Znak &quot;_&quot; w C#</a>
+    <a class="nav-item" data-topic-id="class-vs-record" data-tags="record class equality value reference with init" href="../topics/class-vs-record.html">Class vs record</a>
+    <a class="nav-item" data-topic-id="record-declaration" data-tags="record positional syntax deconstruct equals hashcode generowany kod" href="../topics/record-declaration.html">Deklaracja record vs class</a>
+    <a class="nav-item" data-topic-id="record-vs-class-compare" data-tags="equals gethashcode referenceequals iequatable iequalitycomparer" href="../topics/record-vs-class-compare.html">Jak porównywać record i class</a>
+    <a class="nav-item" data-topic-id="abstract-vs-interface" data-tags="abstract interface dziedziczenie wielokrotne template method" href="../topics/abstract-vs-interface.html">Klasa abstrakcyjna vs interfejs</a>
+    <a class="nav-item" data-topic-id="access-modifiers" data-tags="public private protected internal protected internal private protected" href="../topics/access-modifiers.html">Modyfikatory dostępu</a>
+    <a class="nav-item" data-topic-id="inheritance-modifiers" data-tags="virtual abstract override sealed new method hiding polimorfizm" href="../topics/inheritance-modifiers.html">Modyfikatory dziedziczenia</a>
+    <a class="nav-item" data-topic-id="lock-mutex-semaphore" data-tags="lock mutex semaphore semaphoreslim thread synchronization async" href="../topics/lock-mutex-semaphore.html">lock, Mutex, Semaphore</a>
+    <a class="nav-item" data-topic-id="struct" data-tags="struct value type stack boxing readonly struct" href="../topics/struct.html">struct</a>
+    <a class="nav-item" data-topic-id="struct-vs-record" data-tags="record struct readonly record struct wartość referencja" href="../topics/struct-vs-record.html">struct vs record</a>
+    <a class="nav-item" data-topic-id="icomparable" data-tags="icomparable compareto sortowanie comparer sort orderby" href="../topics/icomparable.html">IComparable</a>
+    <a class="nav-item" data-topic-id="ienumerable-iqueryable" data-tags="ienumerable iqueryable expression func deferred execution ef core" href="../topics/ienumerable-iqueryable.html">IEnumerable vs IQueryable</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="web">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Web API, Blazor
+    </span>
+    <span class="n">12</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="webapi-mvc" data-tags="webapi mvc controller dto apicontroller minimal api" href="../topics/webapi-mvc.html">Web API jako implementacja MVC</a>
+    <a class="nav-item" data-topic-id="model-binding" data-tags="fromroute fromquery frombody fromheader fromservices apicontroller" href="../topics/model-binding.html">Model Binding i [FromBody]</a>
+    <a class="nav-item" data-topic-id="actionresult" data-tags="actionresult ok notfound badrequest problemdetails result pattern" href="../topics/actionresult.html">ActionResult&lt;T&gt; — zwracanie wyniku i błędów</a>
+    <a class="nav-item" data-topic-id="actionresult-client" data-tags="httpclient apiresult wpf blazor consuming api statuscode" href="../topics/actionresult-client.html">ActionResult po stronie klienta</a>
+    <a class="nav-item" data-topic-id="db-webapi" data-tags="dbcontext connection string appsettings migrations di" href="../topics/db-webapi.html">Podłączenie bazy danych do Web API</a>
+    <a class="nav-item" data-topic-id="blazor-mvc" data-tags="blazor komponent mvvm razor lifecycle" href="../topics/blazor-mvc.html">Blazor — NIE jest MVC</a>
+    <a class="nav-item" data-topic-id="signalr-blazor" data-tags="signalr circuit websocket blazor server sticky sessions" href="../topics/signalr-blazor.html">SignalR w Blazor Server</a>
+    <a class="nav-item" data-topic-id="pwa-rendermodes" data-tags="pwa progressive web app service worker render modes blazor united" href="../topics/pwa-rendermodes.html">PWA i Render Modes</a>
+    <a class="nav-item" data-topic-id="blazor-structure" data-tags="blazor wasm server struktura projektu shared client program.cs" href="../topics/blazor-structure.html">Struktura projektu Blazor</a>
+    <a class="nav-item" data-topic-id="endpoint-routing" data-tags="endpoint routing middleware useendpoints minimal api authorization metadata" href="../topics/endpoint-routing.html">Endpoint Routing w ASP.NET Core</a>
+    <a class="nav-item" data-topic-id="iis-hosting-models" data-tags="iis ancm kestrel w3wp hosting model inprocess outofprocess" href="../topics/iis-hosting-models.html">In-process vs Out-of-process (IIS)</a>
+    <a class="nav-item" data-topic-id="rate-limiting" data-tags="rate limiting throttling fixed window sliding token bucket concurrency 429" href="../topics/rate-limiting.html">Rate Limiting w ASP.NET Core</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="ef">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Entity Framework Core
+    </span>
+    <span class="n">6</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="ef-basics" data-tags="dbcontext dbset asnotracking include n+1 migrations" href="../topics/ef-basics.html">Podstawy EF Core</a>
+    <a class="nav-item" data-topic-id="repo-uow" data-tags="repository unit of work dbset savechanges extension methods" href="../topics/repo-uow.html">Repository + Unit of Work nad EF Core</a>
+    <a class="nav-item" data-topic-id="ef-async" data-tags="async await io cpu bound task run warstwy" href="../topics/ef-async.html">Async w EF Core — kiedy tak, kiedy nie</a>
+    <a class="nav-item" data-topic-id="change-tracking" data-tags="snapshot statemanager detectchanges identity map entitystate" href="../topics/change-tracking.html">Change Tracking pod spodem</a>
+    <a class="nav-item" data-topic-id="migrations-team" data-tags="migracje modelsnapshot konflikty git idempotent skrypt sql" href="../topics/migrations-team.html">Migracje w zespole</a>
+    <a class="nav-item" data-topic-id="ef-transactions" data-tags="savechangesasync begintransaction executionstrategy isolation level savepoints" href="../topics/ef-transactions.html">EF Core i transakcje</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="cqrs">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      CQRS, MediatR
+    </span>
+    <span class="n">2</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="cqrs-what" data-tags="cqrs cqs command query segregation event sourcing eventual consistency" href="../topics/cqrs-what.html">Czym jest CQRS</a>
+    <a class="nav-item" data-topic-id="cqrs-mediatr" data-tags="mediatr irequest irequesthandler pipeline behavior send" href="../topics/cqrs-mediatr.html">MediatR — jak działa i jak używać</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="testing">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Testy
+    </span>
+    <span class="n">3</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="xunit" data-tags="xunit fact theory inlinedata memberdata classfixture aaa" href="../topics/xunit.html">xUnit — podstawy</a>
+    <a class="nav-item" data-topic-id="moq" data-tags="moq mock setup verify times itisany callback" href="../topics/moq.html">Moq — mockowanie</a>
+    <a class="nav-item" data-topic-id="integration-tests" data-tags="webapplicationfactory testcontainers piramida testow inmemory" href="../topics/integration-tests.html">Testy integracyjne</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="algo">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Algorytmy, struktury danych
+    </span>
+    <span class="n">5</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="bigo" data-tags="big o złożoność hashset dictionary list queue stack" href="../topics/bigo.html">Big O i struktury danych .NET</a>
+    <a class="nav-item" data-topic-id="hashset" data-tags="hashset unikalne elementy equalitycomparer intersect union except" href="../topics/hashset.html">HashSet&lt;T&gt;</a>
+    <a class="nav-item" data-topic-id="extension-methods" data-tags="extension methods this static linq where select" href="../topics/extension-methods.html">Extension Methods</a>
+    <a class="nav-item" data-topic-id="iequatable" data-tags="iequatable equals gethashcode boxing struct record" href="../topics/iequatable.html">IEquatable&lt;T&gt;</a>
+    <a class="nav-item" data-topic-id="concurrentqueue" data-tags="concurrentqueue concurrent collections thread lock-free producer consumer channel" href="../topics/concurrentqueue.html">ConcurrentQueue&lt;T&gt;</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="automapper">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      AutoMapper
+    </span>
+    <span class="n">1</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="automapper-basics" data-tags="automapper profile projectto reversemap assertconfigurationisvalid" href="../topics/automapper-basics.html">AutoMapper</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="distributed">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Architektura rozproszona
+    </span>
+    <span class="n">8</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="saga" data-tags="saga orchestration choreography compensating transaction idempotencja" href="../topics/saga.html">Saga Pattern</a>
+    <a class="nav-item" data-topic-id="outbox" data-tags="outbox pattern dual write at least once idempotent cdc debezium" href="../topics/outbox.html">Outbox Pattern</a>
+    <a class="nav-item" data-topic-id="reference-data" data-tags="reference data słowniki denormalizacja synchroniczne odpytywanie cache ttl" href="../topics/reference-data.html">Dane słownikowe między mikroserwisami</a>
+    <a class="nav-item" data-topic-id="kafka" data-tags="kafka topic partition consumer group retention at least once producer consumer" href="../topics/kafka.html">Apache Kafka</a>
+    <a class="nav-item" data-topic-id="docker-k8s" data-tags="docker container image kubernetes pod deployment service self healing" href="../topics/docker-k8s.html">Docker, kontenery, Kubernetes</a>
+    <a class="nav-item" data-topic-id="rebus-servicebus" data-tags="rebus servicebus messagebus rabbitmq masstransit saga" href="../topics/rebus-servicebus.html">Rebus (.NET Service Bus)</a>
+    <a class="nav-item" data-topic-id="rabbitmq-fundamentals" data-tags="rabbitmq amqp broker exchange queue push pull" href="../topics/rabbitmq-fundamentals.html">Jak działa RabbitMQ (AMQP vs HTTP)</a>
+    <a class="nav-item" data-topic-id="kafka-vs-rabbitmq" data-tags="kafka rabbitmq porównanie confluent rabbitmq.client producer consumer" href="../topics/kafka-vs-rabbitmq.html">Kafka vs RabbitMQ - porównanie i implementacja</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="memory">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Pamięć i wątki
+    </span>
+    <span class="n">2</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="memory-management" data-tags="garbage collector gc generacje loh workstation server gc cgroups datas" href="../topics/memory-management.html">Zarządzanie pamięcią: Framework, Core, .NET</a>
+    <a class="nav-item" data-topic-id="async-thread" data-tags="async await thread pool i/o completion ports task run state machine" href="../topics/async-thread.html">Czy async tworzy nowy wątek?</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="recap">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Przypomnienie / wzorce web
+    </span>
+    <span class="n">3</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="mvc-mvvm-mvp" data-tags="mvc mvvm mvp controller presenter viewmodel przykłady" href="../topics/mvc-mvvm-mvp.html">MVC, MVVM, MVP — porównanie</a>
+    <a class="nav-item" data-topic-id="dto-mvvm-placement" data-tags="dto models folder struktura projektu wpf" href="../topics/dto-mvvm-placement.html">Gdzie umieszczać DTO w projekcie MVVM</a>
+    <a class="nav-item" data-topic-id="code-review-example" data-tags="singleton anti-pattern socket exhaustion httpclientfactory code review" href="../topics/code-review-example.html">Przykład code review — HttpClientFactory</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="process">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Proces i metodyki
+    </span>
+    <span class="n">1</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="sdlc" data-tags="sdlc waterfall agile scrum devops ci cd v-model proces metodyka" href="../topics/sdlc.html">SDLC - Software Development Life Cycle</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="security" open>
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Bezpieczeństwo
+    </span>
+    <span class="n">4</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="crypto-basics" data-tags="kryptografia szyfrowanie symetryczne asymetryczne aes rsa ecdh diffie hellman tls handshake forward secrecy hash hmac pbkdf2 podpis cyfrowy klucz publiczny prywatny gcm" href="../topics/crypto-basics.html">Kryptografia: szyfrowanie symetryczne i asymetryczne, TLS</a>
+    <a class="nav-item" data-topic-id="webapi-security" data-tags="bezpieczeństwo webapi jwt oauth oauth2 oidc openid connect sso saml certyfikat tls mtls certificate pinning authentication authorization uwierzytelnianie autoryzacja bearer idor bola scope policy jwks" href="../topics/webapi-security.html">Zabezpieczanie WebAPI: JWT, OAuth2, OIDC, SSO, certyfikaty</a>
+    <a class="nav-item" data-topic-id="multi-tenancy" data-tags="tenant multi-tenancy multitenancy saas najemca tid entra azure ad izolacja danych global query filter tenantid cross-tenant bola idor" href="../topics/multi-tenancy.html">Multi-tenancy i bezpieczeństwo WebAPI: czym jest tenant</a>
+    <a class="nav-item" data-topic-id="refresh-token" data-tags="refresh token access token rotacja reuse detection offline_access oauth jwt sesja wylogowanie bff httponly cookie rodzina tokenów" href="../topics/refresh-token.html">Refresh token: jak działa i kiedy go używać</a>
+  </div>
+</details>
+    </nav>
+  </aside>
+
+  <main class="main wide" id="mainArea">
+    <div class="content" id="content">
+<div class="topic">
+  <div class="crumb">.NET / C# <span class="sep">/</span> <span class="cat">Bezpieczeństwo</span></div>
+  
+  <h1>Multi-tenancy i bezpieczeństwo WebAPI: czym jest tenant</h1>
+<p>Słowo <strong>tenant</strong> (po polsku „najemca”) ma w kontekście bezpieczeństwa API dwa powiązane znaczenia. Wspólny wniosek: <strong>tenant to granica izolacji i zaufania</strong>, której API musi pilnować na każdym kroku. Podstawy uwierzytelniania i autoryzacji są w temacie <a href="webapi-security.html">Zabezpieczanie WebAPI</a>.</p>
+<h2>1. Tenant w aplikacji wielodostępnej (multi-tenancy)</h2>
+<p>W modelu SaaS jedna instancja aplikacji i API obsługuje <strong>wielu niezależnych klientów</strong> (firm, organizacji), a każdy z nich jest osobnym tenantem. Użytkownicy firmy A nie mogą w żaden sposób zobaczyć, zmienić ani nawet wykryć danych firmy B.</p>
+<p>Przykład: system faktur, w którym klientami są firmy Acme i Globex. Obie korzystają z <code>api.faktury.pl</code>, ale każda widzi wyłącznie swoje faktury, użytkowników i ustawienia.</p>
+<p>Główne zagrożenie to <strong>przeciek danych między tenantami (cross-tenant data leak)</strong>. To szczególny przypadek BOLA/IDOR: nie chodzi o cudzy rekord w obrębie firmy, tylko o rekord <strong>innej firmy</strong>. W SaaS taki błąd bywa katastrofalny, bo dotyczy wielu klientów jednocześnie.</p>
+<h2>2. Tenant w Microsoft Entra ID (dawniej Azure AD)</h2>
+<p>Tutaj <strong>tenant to katalog tożsamości organizacji</strong>: jej użytkownicy, grupy i aplikacje. Ma identyfikator (<code>tenant id</code>, GUID) i pojawia się:</p>
+<ul>
+<li>w adresie dostawcy tożsamości: <code>https://login.microsoftonline.com/{tenantId}/v2.0</code>,</li>
+<li>w tokenie JWT jako claim <strong><code>tid</code></strong>, a wystawca (<code>iss</code>) zawiera ten sam identyfikator.</li>
+</ul>
+<p>Aplikację (API) rejestruje się w Entra jako:</p>
+<ul>
+<li><strong>single-tenant</strong> - dostępna tylko dla użytkowników jednej organizacji (typowe aplikacje wewnętrzne),</li>
+<li><strong>multi-tenant</strong> - dostępna dla użytkowników <strong>wielu</strong> organizacji (typowe SaaS).</li>
+</ul>
+<p>W aplikacjach multi-tenant tokeny przychodzą z różnych tenantów, więc <strong>nie wolno walidować wystawcy „na ślepo”</strong>. Przy endpointach <code>common</code> i <code>organizations</code> wystawca się zmienia, dlatego trzeba własnym <code>IssuerValidator</code> dopuścić tylko tenanty, które są Twoimi klientami (allow-list). W przeciwnym razie ktokolwiek z dowolnej firmy korzystającej z Entra mógłby się zalogować do Twojego API.</p>
+<h2>3. Jak API ustala, który to tenant (tenant resolution)</h2>
+<table>
+<thead>
+<tr>
+<th>Źródło</th>
+<th>Przykład</th>
+<th>Uwagi</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Claim w tokenie</strong></td>
+<td><code>tid</code> lub własny <code>tenant_id</code></td>
+<td>najbezpieczniejsze, bo podpisane przez dostawcę tożsamości</td>
+</tr>
+<tr>
+<td>Subdomena</td>
+<td><code>acme.faktury.pl</code></td>
+<td>wygodne, ale musi być zgodne z tenantem z tokenu</td>
+</tr>
+<tr>
+<td>Nagłówek</td>
+<td><code>X-Tenant-Id: acme</code></td>
+<td><strong>nie ufaj bez sprawdzenia</strong>, klient może go podmienić</td>
+</tr>
+<tr>
+<td>Ścieżka</td>
+<td><code>/tenants/acme/orders</code></td>
+<td>jak wyżej: sprawdź, czy użytkownik należy do tego tenanta</td>
+</tr>
+</tbody>
+</table>
+<p>Złota zasada: <strong>tenant bierz z zaufanego źródła (podpisany token), a wszystko, co przysłał klient, traktuj jako dane do zweryfikowania</strong>. Jeśli nagłówek lub subdomena wskazuje inny tenant niż token, odrzuć żądanie (403).</p>
+<h2>4. Modele izolacji danych</h2>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Opis</th>
+<th>Izolacja</th>
+<th>Koszt i skala</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Baza na tenanta</strong></td>
+<td>każdy tenant ma własną bazę</td>
+<td>najsilniejsza</td>
+<td>najdroższe, trudniejsze migracje</td>
+</tr>
+<tr>
+<td><strong>Schemat na tenanta</strong></td>
+<td>jedna baza, osobne schematy</td>
+<td>silna</td>
+<td>średnie</td>
+</tr>
+<tr>
+<td><strong>Wspólna baza i kolumna <code>TenantId</code></strong></td>
+<td>wszystkie dane w tych samych tabelach</td>
+<td>najsłabsza, <strong>wymaga dyscypliny w kodzie</strong></td>
+<td>najtańsze, najlepsza skalowalność</td>
+</tr>
+</tbody>
+</table>
+<p>Przy modelu z kolumną <code>TenantId</code> jedno zapomniane <code>Where(o =&gt; o.TenantId == ...)</code> oznacza wyciek danych. Dlatego filtr wymusza się <strong>centralnie</strong>, a nie ręcznie w każdym zapytaniu.</p>
+<h2>5. Implementacja w .NET: tenant z tokenu i globalny filtr EF Core</h2>
+<p>Najważniejsze elementy to: dostawca tenanta czytający claim z podpisanego tokenu, <strong>globalny filtr zapytań</strong> (<code>HasQueryFilter</code>) oraz <code>SaveChanges</code>, który sam ustawia <code>TenantId</code> nowych rekordów. Efekt: <code>GET /api/orders/3</code> dla zamówienia innej firmy zwraca <strong>404</strong>, bo filtr w ogóle go nie „widzi”.</p>
+<pre><code class="language-csharp">using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
+
+// Where the current tenant comes from.
+public interface ITenantProvider
+{
+    string TenantId { get; }
+}
+
+// Production implementation: the tenant comes from the SIGNED token (&quot;tid&quot; claim),
+// never from a header or body supplied by the client.
+public class ClaimsTenantProvider(IHttpContextAccessor accessor) : ITenantProvider
+{
+    public string TenantId =&gt;
+        accessor.HttpContext?.User.FindFirstValue(&quot;tid&quot;)
+        ?? throw new UnauthorizedAccessException(&quot;No tenant claim in the token&quot;);
+}
+
+// Used for seeding data and for background work that has no HTTP request.
+public class FixedTenantProvider(string tenantId) : ITenantProvider
+{
+    public string TenantId =&gt; tenantId;
+}
+
+public interface ITenantEntity
+{
+    string TenantId { get; set; }
+}
+
+public class Order : ITenantEntity
+{
+    public int Id { get; set; }
+    public string TenantId { get; set; } = string.Empty;
+    public string Item { get; set; } = string.Empty;
+}
+
+public class AppDbContext : DbContext
+{
+    private readonly ITenantProvider _tenant;
+
+    public AppDbContext(DbContextOptions&lt;AppDbContext&gt; options, ITenantProvider tenant) : base(options)
+        =&gt; _tenant = tenant;
+
+    public DbSet&lt;Order&gt; Orders =&gt; Set&lt;Order&gt;();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        // Global query filter: EVERY query on Orders is limited to the current tenant,
+        // so a forgotten Where(...) cannot leak data between tenants.
+        modelBuilder.Entity&lt;Order&gt;().HasQueryFilter(o =&gt; o.TenantId == _tenant.TenantId);
+    }
+
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        ApplyTenant();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override Task&lt;int&gt; SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        ApplyTenant();
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
+    private void ApplyTenant()
+    {
+        foreach (var entry in ChangeTracker.Entries&lt;ITenantEntity&gt;())
+        {
+            if (entry.State == EntityState.Added)
+                entry.Entity.TenantId = _tenant.TenantId;                    // the client cannot choose the tenant
+            else if (entry.State == EntityState.Modified)
+                entry.Property(nameof(ITenantEntity.TenantId)).IsModified = false; // a row cannot be moved to another tenant
+        }
+    }
+}
+</code></pre>
+<p>Podłączenie w API (uwaga na nagłówek <code>X-Tenant-Id</code>, który może tylko <strong>potwierdzić</strong> tenanta z tokenu):</p>
+<pre><code class="language-csharp">using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// DEMO ONLY: in production tokens come from an identity provider (e.g. Entra ID with its &quot;tid&quot; claim)
+// and the key is not stored in code.
+const string Issuer = &quot;https://demo.local&quot;;
+const string Audience = &quot;orders-api&quot;;
+var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(&quot;demo-key-change-me-at-least-32-bytes-long!!&quot;));
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(o =&gt;
+    {
+        o.MapInboundClaims = false; // keep claim names as in the token (&quot;sub&quot;, &quot;tid&quot;)
+        o.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true, ValidIssuer = Issuer,
+            ValidateAudience = true, ValidAudience = Audience,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true, IssuerSigningKey = signingKey,
+            ValidAlgorithms = new[] { SecurityAlgorithms.HmacSha256 }
+        };
+    });
+builder.Services.AddAuthorization();
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped&lt;ITenantProvider, ClaimsTenantProvider&gt;();
+builder.Services.AddDbContext&lt;AppDbContext&gt;(o =&gt; o.UseInMemoryDatabase(&quot;tenants-demo&quot;));
+
+var app = builder.Build();
+
+// Seed: each tenant gets its own orders (a context with a FIXED tenant, no HTTP request here).
+using (var scope = app.Services.CreateScope())
+{
+    var options = scope.ServiceProvider.GetRequiredService&lt;DbContextOptions&lt;AppDbContext&gt;&gt;();
+    var seed = new Dictionary&lt;string, string[]&gt;
+    {
+        [&quot;acme&quot;] = new[] { &quot;Laptop&quot;, &quot;Mouse&quot; },
+        [&quot;globex&quot;] = new[] { &quot;Keyboard&quot; }
+    };
+    foreach (var (tenant, items) in seed)
+    {
+        using var db = new AppDbContext(options, new FixedTenantProvider(tenant));
+        db.Orders.AddRange(items.Select(i =&gt; new Order { Item = i }));
+        db.SaveChanges(); // TenantId is filled in by the context
+    }
+}
+
+app.UseAuthentication();
+
+// A tenant sent by the client (header) may only CONFIRM the tenant from the token, never override it.
+app.Use(async (ctx, next) =&gt;
+{
+    if (ctx.User.Identity?.IsAuthenticated == true
+        &amp;&amp; ctx.Request.Headers.TryGetValue(&quot;X-Tenant-Id&quot;, out var header)
+        &amp;&amp; header != ctx.User.FindFirstValue(&quot;tid&quot;))
+    {
+        ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
+        return;
+    }
+    await next();
+});
+
+app.UseAuthorization();
+
+// demo users: user -&gt; (password, tenant)
+var users = new Dictionary&lt;string, (string Password, string Tenant)&gt;
+{
+    [&quot;alice&quot;] = (&quot;alice123&quot;, &quot;acme&quot;),
+    [&quot;carol&quot;] = (&quot;carol123&quot;, &quot;acme&quot;),
+    [&quot;bob&quot;] = (&quot;bob123&quot;, &quot;globex&quot;)
+};
+
+app.MapPost(&quot;/login&quot;, (LoginRequest request) =&gt;
+{
+    if (!users.TryGetValue(request.Username, out var u) || u.Password != request.Password)
+        return Results.Unauthorized();
+
+    var claims = new[]
+    {
+        new Claim(&quot;sub&quot;, request.Username),
+        new Claim(&quot;tid&quot;, u.Tenant) // the tenant is part of the SIGNED token
+    };
+    var token = new JwtSecurityToken(Issuer, Audience, claims,
+        expires: DateTime.UtcNow.AddMinutes(10),
+        signingCredentials: new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256));
+
+    return Results.Ok(new { access_token = new JwtSecurityTokenHandler().WriteToken(token), tenant = u.Tenant });
+});
+
+// No Where(TenantId) here on purpose: the global query filter does it.
+app.MapGet(&quot;/api/orders&quot;, async (AppDbContext db) =&gt; await db.Orders.ToListAsync())
+   .RequireAuthorization();
+
+// Another tenant's order simply does not exist for the caller -&gt; 404 (not even a hint that it exists).
+// Note: FirstOrDefaultAsync applies the query filter (do not rely on Find for this).
+app.MapGet(&quot;/api/orders/{id:int}&quot;, async (int id, AppDbContext db) =&gt;
+{
+    var order = await db.Orders.FirstOrDefaultAsync(o =&gt; o.Id == id);
+    return order is null ? Results.NotFound() : Results.Ok(order);
+}).RequireAuthorization();
+
+// The client sends only the item; TenantId is assigned by the server.
+app.MapPost(&quot;/api/orders&quot;, async (NewOrder input, AppDbContext db) =&gt;
+{
+    var order = new Order { Item = input.Item };
+    db.Orders.Add(order);
+    await db.SaveChangesAsync();
+    return Results.Created($&quot;/api/orders/{order.Id}&quot;, order);
+}).RequireAuthorization();
+
+// ANTI-PATTERN, on purpose: IgnoreQueryFilters bypasses the tenant filter and leaks all tenants' data.
+// Such a call must never be reachable by ordinary users - review every use of IgnoreQueryFilters.
+app.MapGet(&quot;/api/debug/leak&quot;, async (AppDbContext db) =&gt; await db.Orders.IgnoreQueryFilters().ToListAsync())
+   .RequireAuthorization();
+
+app.Run();
+
+record LoginRequest(string Username, string Password);
+record NewOrder(string Item);
+</code></pre>
+<p>Projekt (<code>TenantIsolationDemo.csproj</code>, pakiety JwtBearer i EF Core InMemory):</p>
+<pre><code class="language-xml">&lt;Project Sdk=&quot;Microsoft.NET.Sdk.Web&quot;&gt;
+
+  &lt;PropertyGroup&gt;
+    &lt;TargetFramework&gt;net8.0&lt;/TargetFramework&gt;
+    &lt;Nullable&gt;enable&lt;/Nullable&gt;
+    &lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;
+  &lt;/PropertyGroup&gt;
+
+  &lt;ItemGroup&gt;
+    &lt;PackageReference Include=&quot;Microsoft.AspNetCore.Authentication.JwtBearer&quot; Version=&quot;8.0.10&quot; /&gt;
+    &lt;PackageReference Include=&quot;Microsoft.EntityFrameworkCore.InMemory&quot; Version=&quot;8.0.10&quot; /&gt;
+  &lt;/ItemGroup&gt;
+
+&lt;/Project&gt;
+</code></pre>
+<h3>Jak to wypróbować</h3>
+<p><code>dotnet run</code>, potem plik <code>requests.http</code> (VS Code z REST Client, Rider, Visual Studio) lub <code>curl</code>. Użytkownicy: <code>alice</code> i <code>carol</code> (tenant <code>acme</code>), <code>bob</code> (tenant <code>globex</code>). Hasła mają postać <code>nazwa123</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Żądanie</th>
+<th>Wynik</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>alice: <code>GET /api/orders</code></td>
+<td>tylko zamówienia tenanta acme (Laptop, Mouse)</td>
+</tr>
+<tr>
+<td>alice: <code>GET /api/orders/3</code> (zamówienie tenanta globex)</td>
+<td>404</td>
+</tr>
+<tr>
+<td>alice z nagłówkiem <code>X-Tenant-Id: globex</code></td>
+<td>403</td>
+</tr>
+<tr>
+<td>bob: <code>POST /api/orders</code></td>
+<td>zamówienie z tenantem globex, niewidoczne dla alice</td>
+</tr>
+<tr>
+<td>alice: <code>GET /api/debug/leak</code></td>
+<td><strong>wyciek</strong> zamówień wszystkich tenantów (celowy antywzorzec)</td>
+</tr>
+</tbody>
+</table>
+<h3>Pułapki tego podejścia</h3>
+<ul>
+<li><code>IgnoreQueryFilters()</code> i <strong>surowy SQL</strong> (<code>FromSqlRaw</code>) omijają filtr, więc trzeba je kontrolować w code review.</li>
+<li><strong>Zadania w tle i konsumenci kolejek</strong> nie mają <code>HttpContext</code>, więc tenant musi trafić do nich w komunikacie i zostać jawnie ustawiony (jak <code>FixedTenantProvider</code> przy zasiewie danych).</li>
+<li><strong><code>Find</code>/<code>FindAsync</code> nie nadaje się</strong> do pewnej izolacji, używaj <code>FirstOrDefaultAsync</code> z filtrem.</li>
+<li><strong>Globalne tabele</strong> (słowniki wspólne dla wszystkich) nie powinny mieć filtra.</li>
+<li><strong>Migracje i raporty administracyjne</strong> wymagają świadomego, audytowanego obejścia filtra.</li>
+</ul>
+<h2>6. Co jeszcze oznacza tenant dla bezpieczeństwa</h2>
+<ul>
+<li><strong>Autoryzacja ma dwa poziomy:</strong> najpierw „czy ten użytkownik należy do tego tenanta”, potem „co wolno mu w tym tenancie”. Role i polityki działają <strong>wewnątrz</strong> tenanta. Administrator tenanta to nie to samo co administrator platformy.</li>
+<li><strong>Cache musi uwzględniać tenant w kluczu</strong> (<code>orders:{tenantId}:{id}</code>), inaczej tenant A dostanie z cache odpowiedź tenanta B.</li>
+<li><strong>Rate limiting i limity zasobów per tenant</strong>, żeby jeden klient nie zajął całej platformy (problem „hałaśliwego sąsiada”, zobacz <a href="rate-limiting.html">Rate limiting</a>).</li>
+<li><strong>Klucze i szyfrowanie per tenant</strong> (osobne klucze w Key Vault) w wymagających branżach, co ogranicza skutki wycieku jednego klucza.</li>
+<li><strong>Logi i audyt</strong> z identyfikatorem tenanta, żeby dało się zbadać incydent u konkretnego klienta.</li>
+<li><strong>Testy izolacji:</strong> zautomatyzowane testy, w których tenant A próbuje odczytać i zmienić dane tenanta B i musi dostać 403 lub 404.</li>
+<li><strong>Sekrety i integracje klienta</strong> (np. własne klucze API tenanta) trzymaj osobno dla każdego tenanta.</li>
+</ul>
+<h2>Odpowiedź na rozmowie w skrócie</h2>
+<blockquote>
+<p>Tenant to klient (organizacja) korzystający z jednej współdzielonej instancji aplikacji SaaS, a w Entra ID katalog tożsamości organizacji, którego identyfikator jest w claimie <code>tid</code> tokenu. W kontekście bezpieczeństwa najważniejsza jest izolacja tenantów: tenant ustalam z podpisanego tokenu, nie z nagłówka od klienta, a dostęp do danych wymuszam centralnie (np. globalny filtr EF Core), żeby nie doszło do przecieku danych między klientami. Przy aplikacji multi-tenant walidacja wystawcy musi przepuszczać tylko dozwolone tenanty.</p>
+</blockquote>
+<h2>Pytania rekrutacyjne</h2>
+<ul>
+<li><strong>Co to tenant?</strong> Klient (organizacja) korzystający ze wspólnej instancji aplikacji, a w Entra ID katalog tożsamości organizacji (claim <code>tid</code>).</li>
+<li><strong>Jak zapewnić izolację danych w multi-tenancy?</strong> Baza lub schemat na tenanta albo wspólna baza z kolumną <code>TenantId</code> wymuszaną centralnie (globalny filtr zapytań EF Core).</li>
+<li><strong>Skąd brać tenanta w żądaniu?</strong> Z podpisanego tokenu, a nagłówek lub subdomenę tylko porównywać z nim, nigdy nie ufać im samodzielnie.</li>
+<li><strong>Czym grozi multi-tenant app w Entra bez walidacji wystawcy?</strong> Zalogować się mogłaby dowolna organizacja, więc trzeba dopuścić tylko znanych klientów (allow-list tenantów).</li>
+<li><strong>Jak zwykły filtr <code>TenantId</code> może zawieść?</strong> <code>IgnoreQueryFilters</code>, surowy SQL, <code>Find</code>, zadania w tle bez kontekstu HTTP oraz cache bez tenanta w kluczu.</li>
+<li><strong>Czym różni się BOLA/IDOR od wycieku między tenantami?</strong> To ta sama klasa błędu, ale przy multi-tenancy dotyczy danych innej firmy, więc skutki są dużo poważniejsze.</li>
+</ul>
+  
+  
+  <div class="topic-nav"><a class="prev" href="webapi-security.html"><span class="lbl">← wstecz</span>Zabezpieczanie WebAPI: JWT, OAuth2, OIDC, SSO, certyfikaty</a><a class="next" href="refresh-token.html"><span class="lbl">dalej →</span>Refresh token: jak działa i kiedy go używać</a></div>
+</div>
+    </div>
+  </main>
+</div>
+
+<a class="fab coffee-btn" href="https://www.naffy.io/radoslaw-jaszek-znpwl/net-csharp-kompendium" target="_blank" rel="noopener noreferrer" aria-label="Postaw mi kawę" title="Postaw mi kawę">
+  <span class="coffee-label">Postaw mi kawę</span>
+  <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M6 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/></svg>
+</a>
+
+<button type="button" class="fab theme-toggle" id="themeToggle" aria-label="Zmień tryb ciemny/jasny" title="Tryb jasny">
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4" y1="12" x2="2" y2="12"/><line x1="22" y1="12" x2="20" y2="12"/><line x1="19.07" y1="4.93" x2="17.66" y2="6.34"/><line x1="6.34" y1="17.66" x2="4.93" y2="19.07"/><line x1="19.07" y1="19.07" x2="17.66" y2="17.66"/><line x1="6.34" y1="6.34" x2="4.93" y2="4.93"/>
+  </svg>
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </svg>
+</button>
+
+<button type="button" class="fab width-toggle" id="widthToggle" aria-label="Pełna szerokość" title="Wąska treść">
+  <svg id="widthToggleIcon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="10" y1="14" x2="3" y2="21"/>
+  </svg>
+</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
+<script src="../app.js?v=2"></script>
+</body>
+</html>
