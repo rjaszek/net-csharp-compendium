@@ -1,4 +1,68 @@
+# .NET / C# Interview Compendium
+
+**English** | [Polski](#kompendium-net--c-przed-rozmową-rekrutacyjną)
+
+A bilingual (English and Polish) set of notes for preparing for a .NET / C# developer job interview. It is not a course "from scratch", but concise write-ups of the topics interviewers ask about, with code examples, typical pitfalls and interview questions at the end of each topic.
+
+**Site (EN):** https://net-csharp-kompendium.rhoster.pl/en/
+**Strona (PL):** https://net-csharp-kompendium.rhoster.pl/
+
+The PL/EN switch is in the header of every page and leads to the same topic in the other language. All 77 topics are available in both languages.
+
+## What is inside
+
+77 topics in 14 sections:
+
+| Section | Example subjects |
+|---|---|
+| C# — language fundamentals | types, async/await, LINQ, `IEquatable`, collections |
+| SOLID, Clean Code, DI | SOLID, dependency injection, Clean Architecture, DDD |
+| Web API, Blazor | ASP.NET Core, middleware, REST, Blazor |
+| Entity Framework Core | queries, change tracking, migrations, performance |
+| CQRS, MediatR | commands and queries, who calls the handlers |
+| Distributed architecture | Kafka vs RabbitMQ, asynchronous communication, data consistency |
+| Security | cryptography, JWT / OAuth2 / OIDC, certificates and TLS, multi-tenancy, refresh tokens |
+| Memory and threads | memory management, concurrency, `ConcurrentQueue` |
+| Algorithms, data structures | complexity, collections, classic problems |
+| Testing, WPF, AutoMapper | unit tests, MVVM, object mapping |
+| Process and methodologies | SDLC and software development methodologies |
+
+Every topic has searchable tags. The search box on the home page searches titles, tags and content. Topics link to each other ("See also").
+
+## How this repository is built
+
+This is a **generated static site** (no framework and no server-side build step):
+
+```
+index.html             <- home page (PL): section menu, search
+topics/<id>.html       <- one file per topic (PL)
+en/index.html          <- home page (EN)
+en/topics/<id>.html    <- one file per topic (EN)
+styles.css             <- styles (shared by both languages)
+app.js                 <- search and navigation (shared, picks the language from the URL)
+```
+
+`index.html`, `topics/*.html` and `en/**` are **generated** from the source files `data.js` (Polish) and `data.en.js` (English, built from the translations in `i18n/`) kept in a separate source folder outside this repository, so manual edits to these files will be overwritten on the next generation. Content is changed in the source and only the finished result lands here. `styles.css` and `app.js` are edited directly in this repository; after changing them, bump the asset version number so browsers fetch fresh files.
+
+The same content is also available as a single-file interactive version (a Claude Artifact), maintained in parallel with this site.
+
+## Runnable examples
+
+Some topics come with working .NET 8 projects (including Kafka and RabbitMQ, cryptography, Web API security, multi-tenancy, a refresh token with a database variant). They live in the source folder, not in this repository, and are described in the content of the relevant topics. Not all of them were compiled in the environment where they were written, so treat them as a starting point.
+
+## Publishing
+
+The site is hosted on Rhoster servers. Deployment is done by pushing changes to the `main` branch.
+
+## Notes
+
+The content was created in conversations with Claude and is meant for learning. Before basing production decisions on it (especially in the security topics), verify it against the official documentation.
+
+---
+
 # Kompendium .NET / C# przed rozmową rekrutacyjną
+
+[English](#net--c-interview-compendium) | **Polski**
 
 Dwujęzyczny (polski i angielski) zbiór notatek do przygotowania się do rozmowy rekrutacyjnej na stanowisko .NET / C# developera. To nie jest kurs „od zera”, tylko zwięzłe omówienia tematów, o które pytają na rozmowach, razem z przykładami kodu, typowymi pułapkami i pytaniami rekrutacyjnymi na końcu każdego tematu.
 
@@ -9,7 +73,7 @@ Przełącznik języka PL/EN jest w nagłówku każdej strony i prowadzi do tego 
 
 ## Co jest w środku
 
-Ponad 70 tematów w 14 działach:
+77 tematów w 14 działach:
 
 | Dział | Przykładowe zagadnienia |
 |---|---|
