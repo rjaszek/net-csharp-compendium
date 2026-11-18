@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Clean Architecture — .NET / C# Interview Compendium</title>
+<link rel="alternate" hreflang="pl" href="https://net-csharp-kompendium.rhoster.pl/topics/clean-architecture.html" />
+<link rel="alternate" hreflang="en" href="https://net-csharp-kompendium.rhoster.pl/en/topics/clean-architecture.html" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/nord.min.css">
+<link rel="stylesheet" href="../../styles.css?v=3">
+</head>
+<body>
+
+<div class="topbar">
+  <button class="burger" id="burgerBtn" aria-label="Menu">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <a class="brand" id="topbarBrand" href="../index.html"><b>C#</b> / .NET Compendium</a>
+  <span class="lang-bar"><a data-lang-switch href="../../topics/clean-architecture.html" hreflang="pl" lang="pl" title="Polska wersja">PL</a><a class="active" data-lang-switch href="clean-architecture.html" hreflang="en" lang="en" title="English version">EN</a></span>
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <span class="lang-bar"><a data-lang-switch href="../../topics/clean-architecture.html" hreflang="pl" lang="pl" title="Polska wersja">PL</a><a class="active" data-lang-switch href="clean-architecture.html" hreflang="en" lang="en" title="English version">EN</a></span>
+    <a class="sidebar-head" id="sidebarHead" href="../index.html">
+      <h1>.NET &amp; C# Compendium</h1>
+      <div class="sub">Interview notes organised as section → topic</div>
+    </a>
+    <div class="search-wrap">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="searchInput" placeholder="Search topics…" autocomplete="off" />
+      </div>
+      <div class="search-count" id="searchCount"></div>
+    </div>
+    <nav class="nav" id="navList">
+<details class="nav-group" data-cat-id="solid" open>
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      SOLID, Clean Code, DI
+    </span>
+    <span class="n">11</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="oop-enterprise" data-tags="oop encapsulation inheritance polymorphism abstraction enterprise overengineering yagni" href="../topics/oop-enterprise.html">OOP and &quot;Enterprise OOP&quot;</a>
+    <a class="nav-item" data-topic-id="solid-basics" data-tags="solid srp ocp lsp isp dip" href="../topics/solid-basics.html">SOLID principles</a>
+    <a class="nav-item" data-topic-id="clean-code" data-tags="clean code readability naming dry" href="../topics/clean-code.html">Clean Code</a>
+    <a class="nav-item" data-topic-id="di-mvvm-concept" data-tags="di dependency injection mvvm viewmodel" href="../topics/di-mvvm-concept.html">DI in MVVM — the concept</a>
+    <a class="nav-item" data-topic-id="di-mvvm-wpf" data-tags="wpf mvvm di viewmodelbase servicecollection" href="../topics/di-mvvm-wpf.html">MVVM + DI in WPF (full example)</a>
+    <a class="nav-item" data-topic-id="lifetimes" data-tags="di lifetime singleton transient scoped captive dependency" href="../topics/lifetimes.html">Singleton vs Transient vs Scoped</a>
+    <a class="nav-item" data-topic-id="scope-factory-threadsafe" data-tags="scope factory singleton thread safe lock interlocked" href="../topics/scope-factory-threadsafe.html">IServiceScopeFactory and thread-safety</a>
+    <a class="nav-item" data-topic-id="di-methods" data-tags="constructor property method injection service locator anti-pattern" href="../topics/di-methods.html">Ways to implement DI</a>
+    <a class="nav-item" data-topic-id="ioc" data-tags="ioc di hollywood principle template method middleware" href="../topics/ioc.html">Inversion of Control (IoC)</a>
+    <a class="nav-item" data-topic-id="clean-architecture" data-tags="clean architecture dependency rule onion hexagonal domain application infrastructure use case ports adapters composition root netarchtest vertical slice aggregate root ddd domain events cqrs commands queries mediatr" href="../topics/clean-architecture.html">Clean Architecture</a>
+    <a class="nav-item" data-topic-id="ddd" data-tags="ddd domain driven design aggregate entity value object bounded context ubiquitous language domain service domain events repository anemic model rich model strategic tactical" href="../topics/ddd.html">DDD - Domain-Driven Design</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="wpf">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      WPF
+    </span>
+    <span class="n">4</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="wpf-recap" data-tags="wpf dependency property routed event data binding visual tree" href="../topics/wpf-recap.html">WPF — what to refresh</a>
+    <a class="nav-item" data-topic-id="synccontext" data-tags="async await synchronizationcontext configureawait deadlock ui thread" href="../topics/synccontext.html">SynchronizationContext and ConfigureAwait</a>
+    <a class="nav-item" data-topic-id="icommand" data-tags="icommand relaycommand canexecute commandmanager async void" href="../topics/icommand.html">ICommand and RelayCommand</a>
+    <a class="nav-item" data-topic-id="callermembername" data-tags="callermembername inotifypropertychanged magic string nameof" href="../topics/callermembername.html">[CallerMemberName]</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="csharp">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      C# — language fundamentals
+    </span>
+    <span class="n">14</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="delegates" data-tags="delegate action func predicate multicast event" href="../topics/delegates.html">Delegates</a>
+    <a class="nav-item" data-topic-id="callback-vs-function" data-tags="callback function control flow inversion" href="../topics/callback-vs-function.html">Callback vs function</a>
+    <a class="nav-item" data-topic-id="underscore" data-tags="discard underscore lambda separator digit" href="../topics/underscore.html">The &quot;_&quot; character in C#</a>
+    <a class="nav-item" data-topic-id="class-vs-record" data-tags="record class equality value reference with init" href="../topics/class-vs-record.html">Class vs record</a>
+    <a class="nav-item" data-topic-id="record-declaration" data-tags="record positional syntax deconstruct equals hashcode generated code" href="../topics/record-declaration.html">record vs class declaration</a>
+    <a class="nav-item" data-topic-id="record-vs-class-compare" data-tags="equals gethashcode referenceequals iequatable iequalitycomparer" href="../topics/record-vs-class-compare.html">How to compare record and class</a>
+    <a class="nav-item" data-topic-id="abstract-vs-interface" data-tags="abstract interface multiple inheritance template method" href="../topics/abstract-vs-interface.html">Abstract class vs interface</a>
+    <a class="nav-item" data-topic-id="access-modifiers" data-tags="public private protected internal protected internal private protected" href="../topics/access-modifiers.html">Access modifiers</a>
+    <a class="nav-item" data-topic-id="inheritance-modifiers" data-tags="virtual abstract override sealed new method hiding polymorphism" href="../topics/inheritance-modifiers.html">Inheritance modifiers</a>
+    <a class="nav-item" data-topic-id="lock-mutex-semaphore" data-tags="lock mutex semaphore semaphoreslim thread synchronization async" href="../topics/lock-mutex-semaphore.html">lock, Mutex, Semaphore</a>
+    <a class="nav-item" data-topic-id="struct" data-tags="struct value type stack boxing readonly struct" href="../topics/struct.html">struct</a>
+    <a class="nav-item" data-topic-id="struct-vs-record" data-tags="record struct readonly record struct value reference" href="../topics/struct-vs-record.html">struct vs record</a>
+    <a class="nav-item" data-topic-id="icomparable" data-tags="icomparable compareto sorting comparer sort orderby" href="../topics/icomparable.html">IComparable</a>
+    <a class="nav-item" data-topic-id="ienumerable-iqueryable" data-tags="ienumerable iqueryable expression func deferred execution ef core" href="../topics/ienumerable-iqueryable.html">IEnumerable vs IQueryable</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="web">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Web API, Blazor
+    </span>
+    <span class="n">12</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="webapi-mvc" data-tags="webapi mvc controller dto apicontroller minimal api" href="../topics/webapi-mvc.html">Web API as an implementation of MVC</a>
+    <a class="nav-item" data-topic-id="model-binding" data-tags="fromroute fromquery frombody fromheader fromservices apicontroller" href="../topics/model-binding.html">Model Binding and [FromBody]</a>
+    <a class="nav-item" data-topic-id="actionresult" data-tags="actionresult ok notfound badrequest problemdetails result pattern" href="../topics/actionresult.html">ActionResult&lt;T&gt; — returning results and errors</a>
+    <a class="nav-item" data-topic-id="actionresult-client" data-tags="httpclient apiresult wpf blazor consuming api statuscode" href="../topics/actionresult-client.html">ActionResult on the client side</a>
+    <a class="nav-item" data-topic-id="db-webapi" data-tags="dbcontext connection string appsettings migrations di" href="../topics/db-webapi.html">Connecting a database to Web API</a>
+    <a class="nav-item" data-topic-id="blazor-mvc" data-tags="blazor component mvvm razor lifecycle" href="../topics/blazor-mvc.html">Blazor — is NOT MVC</a>
+    <a class="nav-item" data-topic-id="signalr-blazor" data-tags="signalr circuit websocket blazor server sticky sessions" href="../topics/signalr-blazor.html">SignalR in Blazor Server</a>
+    <a class="nav-item" data-topic-id="pwa-rendermodes" data-tags="pwa progressive web app service worker render modes blazor united" href="../topics/pwa-rendermodes.html">PWA and Render Modes</a>
+    <a class="nav-item" data-topic-id="blazor-structure" data-tags="blazor wasm server project structure shared client program.cs" href="../topics/blazor-structure.html">Blazor project structure</a>
+    <a class="nav-item" data-topic-id="endpoint-routing" data-tags="endpoint routing middleware useendpoints minimal api authorization metadata" href="../topics/endpoint-routing.html">Endpoint Routing in ASP.NET Core</a>
+    <a class="nav-item" data-topic-id="iis-hosting-models" data-tags="iis ancm kestrel w3wp hosting model inprocess outofprocess" href="../topics/iis-hosting-models.html">In-process vs Out-of-process (IIS)</a>
+    <a class="nav-item" data-topic-id="rate-limiting" data-tags="rate limiting throttling fixed window sliding token bucket concurrency 429" href="../topics/rate-limiting.html">Rate Limiting in ASP.NET Core</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="ef">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Entity Framework Core
+    </span>
+    <span class="n">6</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="ef-basics" data-tags="dbcontext dbset asnotracking include n+1 migrations" href="../topics/ef-basics.html">EF Core basics</a>
+    <a class="nav-item" data-topic-id="repo-uow" data-tags="repository unit of work dbset savechanges extension methods" href="../topics/repo-uow.html">Repository + Unit of Work over EF Core</a>
+    <a class="nav-item" data-topic-id="ef-async" data-tags="async await io cpu bound task run layers" href="../topics/ef-async.html">Async in EF Core — when yes, when no</a>
+    <a class="nav-item" data-topic-id="change-tracking" data-tags="snapshot statemanager detectchanges identity map entitystate" href="../topics/change-tracking.html">Change Tracking under the hood</a>
+    <a class="nav-item" data-topic-id="migrations-team" data-tags="migrations modelsnapshot conflicts git idempotent script sql" href="../topics/migrations-team.html">Migrations in a team</a>
+    <a class="nav-item" data-topic-id="ef-transactions" data-tags="savechangesasync begintransaction executionstrategy isolation level savepoints" href="../topics/ef-transactions.html">EF Core and transactions</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="cqrs">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      CQRS, MediatR
+    </span>
+    <span class="n">2</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="cqrs-what" data-tags="cqrs cqs command query segregation event sourcing eventual consistency" href="../topics/cqrs-what.html">What CQRS is</a>
+    <a class="nav-item" data-topic-id="cqrs-mediatr" data-tags="mediatr irequest irequesthandler pipeline behavior send" href="../topics/cqrs-mediatr.html">MediatR — how it works and how to use it</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="testing">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Testing
+    </span>
+    <span class="n">3</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="xunit" data-tags="xunit fact theory inlinedata memberdata classfixture aaa" href="../topics/xunit.html">xUnit — the basics</a>
+    <a class="nav-item" data-topic-id="moq" data-tags="moq mock setup verify times itisany callback" href="../topics/moq.html">Moq — mocking</a>
+    <a class="nav-item" data-topic-id="integration-tests" data-tags="webapplicationfactory testcontainers test pyramid inmemory" href="../topics/integration-tests.html">Integration tests</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="algo">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Algorithms, data structures
+    </span>
+    <span class="n">5</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="bigo" data-tags="big o complexity hashset dictionary list queue stack" href="../topics/bigo.html">Big O and .NET data structures</a>
+    <a class="nav-item" data-topic-id="hashset" data-tags="hashset unique elements equalitycomparer intersect union except" href="../topics/hashset.html">HashSet&lt;T&gt;</a>
+    <a class="nav-item" data-topic-id="extension-methods" data-tags="extension methods this static linq where select" href="../topics/extension-methods.html">Extension Methods</a>
+    <a class="nav-item" data-topic-id="iequatable" data-tags="iequatable equals gethashcode boxing struct record" href="../topics/iequatable.html">IEquatable&lt;T&gt;</a>
+    <a class="nav-item" data-topic-id="concurrentqueue" data-tags="concurrentqueue concurrent collections thread lock-free producer consumer channel" href="../topics/concurrentqueue.html">ConcurrentQueue&lt;T&gt;</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="automapper">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      AutoMapper
+    </span>
+    <span class="n">1</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="automapper-basics" data-tags="automapper profile projectto reversemap assertconfigurationisvalid" href="../topics/automapper-basics.html">AutoMapper</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="distributed">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Distributed architecture
+    </span>
+    <span class="n">8</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="saga" data-tags="saga orchestration choreography compensating transaction idempotency" href="../topics/saga.html">Saga Pattern</a>
+    <a class="nav-item" data-topic-id="outbox" data-tags="outbox pattern dual write at least once idempotent cdc debezium" href="../topics/outbox.html">Outbox Pattern</a>
+    <a class="nav-item" data-topic-id="reference-data" data-tags="reference data dictionaries denormalization synchronous polling cache ttl" href="../topics/reference-data.html">Reference data across microservices</a>
+    <a class="nav-item" data-topic-id="kafka" data-tags="kafka topic partition consumer group retention at least once producer consumer" href="../topics/kafka.html">Apache Kafka</a>
+    <a class="nav-item" data-topic-id="docker-k8s" data-tags="docker container image kubernetes pod deployment service self healing" href="../topics/docker-k8s.html">Docker, containers, Kubernetes</a>
+    <a class="nav-item" data-topic-id="rebus-servicebus" data-tags="rebus servicebus messagebus rabbitmq masstransit saga" href="../topics/rebus-servicebus.html">Rebus (.NET Service Bus)</a>
+    <a class="nav-item" data-topic-id="rabbitmq-fundamentals" data-tags="rabbitmq amqp broker exchange queue push pull" href="../topics/rabbitmq-fundamentals.html">How RabbitMQ works (AMQP vs HTTP)</a>
+    <a class="nav-item" data-topic-id="kafka-vs-rabbitmq" data-tags="kafka rabbitmq comparison confluent rabbitmq.client producer consumer" href="../topics/kafka-vs-rabbitmq.html">Kafka vs RabbitMQ - comparison and implementation</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="memory">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Memory and threads
+    </span>
+    <span class="n">2</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="memory-management" data-tags="garbage collector gc generations loh workstation server gc cgroups datas" href="../topics/memory-management.html">Memory management: Framework, Core, .NET</a>
+    <a class="nav-item" data-topic-id="async-thread" data-tags="async await thread pool i/o completion ports task run state machine" href="../topics/async-thread.html">Does async create a new thread?</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="recap">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Refresher / web patterns
+    </span>
+    <span class="n">3</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="mvc-mvvm-mvp" data-tags="mvc mvvm mvp controller presenter viewmodel examples" href="../topics/mvc-mvvm-mvp.html">MVC, MVVM, MVP — comparison</a>
+    <a class="nav-item" data-topic-id="dto-mvvm-placement" data-tags="dto models folder project structure wpf" href="../topics/dto-mvvm-placement.html">Where to put DTOs in an MVVM project</a>
+    <a class="nav-item" data-topic-id="code-review-example" data-tags="singleton anti-pattern socket exhaustion httpclientfactory code review" href="../topics/code-review-example.html">Code review example — HttpClientFactory</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="process">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Process and methodologies
+    </span>
+    <span class="n">1</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="sdlc" data-tags="sdlc waterfall agile scrum devops ci cd v-model process methodology" href="../topics/sdlc.html">SDLC - Software Development Life Cycle</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="security">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Security
+    </span>
+    <span class="n">5</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="crypto-basics" data-tags="cryptography encryption symmetric asymmetric aes rsa ecdh diffie hellman tls handshake forward secrecy hash hmac pbkdf2 signature public key private key gcm" href="../topics/crypto-basics.html">Cryptography: symmetric and asymmetric encryption, TLS</a>
+    <a class="nav-item" data-topic-id="webapi-security" data-tags="security webapi jwt oauth oauth2 oidc openid connect sso saml certificate tls mtls certificate pinning authentication authorization bearer idor bola scope policy jwks" href="../topics/webapi-security.html">Securing a Web API: JWT, OAuth2, OIDC, SSO, certificates</a>
+    <a class="nav-item" data-topic-id="multi-tenancy" data-tags="tenant multi-tenancy multitenancy saas entra azure ad data isolation global query filter tenantid cross-tenant bola idor" href="../topics/multi-tenancy.html">Multi-tenancy and Web API security: what a tenant is</a>
+    <a class="nav-item" data-topic-id="refresh-token" data-tags="refresh token access token rotation reuse detection offline_access oauth jwt session logout bff httponly cookie token family" href="../topics/refresh-token.html">Refresh token: how it works and when to use it</a>
+    <a class="nav-item" data-topic-id="api-client-credentials" data-tags="client credentials oauth2 openiddict api key m2m machine server-to-server scope pricing rate limiting client_id client_secret" href="../topics/api-client-credentials.html">API for companies: Client Credentials, API keys and OpenIddict</a>
+  </div>
+</details>
+    </nav>
+  </aside>
+
+  <main class="main wide" id="mainArea">
+    <div class="content" id="content">
+<div class="topic">
+  <div class="crumb">.NET / C# <span class="sep">/</span> <span class="cat">SOLID, Clean Code, DI</span></div>
+  
+  <h1>Clean Architecture - an architecture independent of frameworks and the database</h1>
+<h2>What it is and where it comes from</h2>
+<p><strong>Clean Architecture</strong> is a style of organising code described by Robert C. Martin ("Uncle Bob") on his blog in 2012 and expanded in a book in 2017. It is not an entirely new idea - it is a <strong>synthesis of several earlier approaches</strong> that share a common goal:</p>
+<ul>
+<li><strong>Hexagonal Architecture</strong> (Ports and Adapters, Alistair Cockburn, 2005),</li>
+<li><strong>Onion Architecture</strong> (Jeffrey Palermo, 2008),</li>
+<li><strong>BCE / DCI</strong> and other architectures focused on business logic.</li>
+</ul>
+<p>The shared idea: <strong>business logic is the heart of the application and must not depend on technical details</strong> - the database, the web framework, the UI, external APIs. The details are supposed to depend on the logic, not the other way round.</p>
+<p>What this gives you in practice:</p>
+<ul>
+<li><strong>Testability</strong> - business logic can be tested without a database, without an HTTP server, without a DI container,</li>
+<li><strong>Replaceable details</strong> - switching from EF Core to Dapper or from SQL Server to PostgreSQL touches one layer, not the whole application,</li>
+<li><strong>Deferred decisions</strong> - you can start writing logic before deciding on the database or the UI,</li>
+<li><strong>Longevity</strong> - frameworks get old (WinForms, WCF, ASP.NET MVC 5), but the business rules stay.</li>
+</ul>
+<h2>The Dependency Rule</h2>
+<p>This is <strong>the one truly key rule</strong> of the whole approach. The architecture is drawn as concentric circles:</p>
+<pre><code>┌─────────────────────────────────────────────────────────┐
+│  Frameworks &amp; Drivers   (Web, UI, DB, external APIs)    │
+│  ┌───────────────────────────────────────────────────┐  │
+│  │  Interface Adapters   (kontrolery, repozytoria)   │  │
+│  │  ┌─────────────────────────────────────────────┐  │  │
+│  │  │  Use Cases   (logika aplikacji)             │  │  │
+│  │  │  ┌───────────────────────────────────────┐  │  │  │
+│  │  │  │  Entities   (business rules)          │  │  │  │
+│  │  │  └───────────────────────────────────────┘  │  │  │
+│  │  └─────────────────────────────────────────────┘  │  │
+│  └───────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────┘
+
+        Source code dependencies ALWAYS point inward
+</code></pre>
+<blockquote>
+<p><strong>Source code dependencies can only point inwards.</strong> An inner circle knows nothing about the existence of an outer one - it doesn't import its classes, doesn't use its names, doesn't know its types.</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>Circle</th>
+<th>What it contains</th>
+<th>Example in .NET</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Entities</strong></td>
+<td>Enterprise-wide business rules, domain objects</td>
+<td><code>Order</code>, <code>Customer</code>, <code>Money</code>, domain exceptions</td>
+</tr>
+<tr>
+<td><strong>Use Cases</strong></td>
+<td>Application-specific rules, usage scenarios</td>
+<td>Command/query handlers, repository interfaces</td>
+</tr>
+<tr>
+<td><strong>Interface Adapters</strong></td>
+<td>Conversion of data between use cases and the outside world</td>
+<td>Controllers, presenters, repository implementations</td>
+</tr>
+<tr>
+<td><strong>Frameworks &amp; Drivers</strong></td>
+<td>Technical details</td>
+<td>ASP.NET Core, EF Core, SQL Server, RabbitMQ, the file system</td>
+</tr>
+</tbody>
+</table>
+<h3>How is that possible, if a Use Case has to save data to the database?</h3>
+<p>This is where the <strong>Dependency Inversion Principle</strong> from SOLID comes in (discussed at the beginning of this site). The flow of control goes "outwards" (the handler calls the database), but the dependency in code is <strong>inverted</strong>:</p>
+<pre><code>Control flow:          Handler ───────────────► Database
+
+Code dependencies:     Handler ──► IOrderRepository ◄── OrderRepository (EF Core)
+                       (Application)  (Application)       (Infrastructure)
+</code></pre>
+<p>The <code>IOrderRepository</code> interface <strong>belongs to the inner layer</strong> (Application) - it dictates what it needs. The EF Core implementation lives on the outside and <strong>depends on the interface</strong>, not the other way round. This is exactly what a DI container does with Inversion of Control.</p>
+<h2>Mapping onto a .NET solution</h2>
+<p>In practice the circles turn into <strong>4 projects</strong> (assemblies) in one solution. The references between projects <strong>enforce</strong> the dependency rule already at the compiler level:</p>
+<pre><code>Shop.sln
+├── Shop.Domain           ← Entities (zero references to other projects)
+├── Shop.Application      ← Use Cases (referencja: Domain)
+├── Shop.Infrastructure   ← EF Core, external services (references: Application, Domain)
+└── Shop.WebApi           ← Presentation + Composition Root (referencje: Application, Infrastructure)
+</code></pre>
+<pre><code>        WebApi ─────────┬──────────► Application ──────► Domain
+           │            │                 ▲
+           └────────► Infrastructure ─────┘
+              (tylko do rejestracji DI)
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Project</th>
+<th>Contents</th>
+<th>What is NOT here</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Domain</strong></td>
+<td>Entities, value objects, enums, domain exceptions, domain events</td>
+<td>EF Core, ASP.NET, JSON, any "technical" NuGet packages</td>
+</tr>
+<tr>
+<td><strong>Application</strong></td>
+<td>Commands/queries and handlers, interfaces (<code>IOrderRepository</code>, <code>IEmailSender</code>, <code>IUnitOfWork</code>), DTOs, validators, mappings</td>
+<td>Data access implementations, controllers, <code>DbContext</code></td>
+</tr>
+<tr>
+<td><strong>Infrastructure</strong></td>
+<td><code>DbContext</code>, EF configurations, repositories, HTTP clients, <code>IEmailSender</code> implementations, Kafka/RabbitMQ</td>
+<td>Business logic</td>
+</tr>
+<tr>
+<td><strong>WebApi</strong></td>
+<td>Controllers / minimal API, middleware, <code>Program.cs</code> (the Composition Root)</td>
+<td>Business logic, direct use of <code>DbContext</code></td>
+</tr>
+</tbody>
+</table>
+<p>The <strong>WebApi</strong> layer is the only one that "sees everything" - because it assembles the application into a whole (the <strong>Composition Root</strong>), registering the implementations in the DI container. Concrete infrastructure classes must not be created anywhere else.</p>
+<h2>A full example - creating an order</h2>
+<h3>Domain - an entity with business rules</h3>
+<pre><code class="language-csharp">namespace Shop.Domain.Orders;
+
+public class Order
+{
+    private readonly List&lt;OrderItem&gt; _items = new();
+
+    public int Id { get; private set; }
+    public string CustomerName { get; private set; } = default!;
+    public IReadOnlyCollection&lt;OrderItem&gt; Items =&gt; _items.AsReadOnly();
+    public decimal TotalAmount =&gt; _items.Sum(i =&gt; i.UnitPrice * i.Quantity);
+
+    private Order() { } // wymagany przez EF Core, ale nie &quot;przecieka&quot; do reszty kodu
+
+    public Order(string customerName)
+    {
+        if (string.IsNullOrWhiteSpace(customerName))
+            throw new DomainException(&quot;Nazwa klienta jest wymagana.&quot;);
+
+        CustomerName = customerName;
+    }
+
+    // Business rules live IN the entity, not in a service or a controller
+    public void AddItem(string productName, decimal unitPrice, int quantity)
+    {
+        if (quantity &lt;= 0)
+            throw new DomainException(&quot;Quantity must be greater than zero.&quot;);
+
+        _items.Add(new OrderItem(productName, unitPrice, quantity));
+    }
+}
+</code></pre>
+<p>This is an <strong>aggregate root</strong> (more in the "Aggregates" section below). Note: <strong>no</strong> <code>using Microsoft.EntityFrameworkCore</code>, no <code>[Key]</code>/<code>[Table]</code> attributes. The mapping configuration is in Infrastructure (Fluent API). The entity has private setters and protects its invariants - it is not a "bag of data" (an anemic model).</p>
+<h3>Application - interfaces (ports) and a use case</h3>
+<pre><code class="language-csharp">namespace Shop.Application.Orders;
+
+// PORT - Application says what it needs; it knows nothing about EF Core
+public interface IOrderRepository
+{
+    Task AddAsync(Order order, CancellationToken ct);
+    Task&lt;Order?&gt; GetByIdAsync(int id, CancellationToken ct);
+}
+
+public interface IUnitOfWork
+{
+    Task&lt;int&gt; SaveChangesAsync(CancellationToken ct);
+}
+
+public record OrderItemDto(string ProductName, decimal UnitPrice, int Quantity);
+
+public record CreateOrderCommand(string CustomerName, List&lt;OrderItemDto&gt; Items) : IRequest&lt;int&gt;;
+
+public class CreateOrderHandler : IRequestHandler&lt;CreateOrderCommand, int&gt;
+{
+    private readonly IOrderRepository _orders;
+    private readonly IUnitOfWork _unitOfWork;
+
+    public CreateOrderHandler(IOrderRepository orders, IUnitOfWork unitOfWork)
+    {
+        _orders = orders;
+        _unitOfWork = unitOfWork;
+    }
+
+    public async Task&lt;int&gt; Handle(CreateOrderCommand command, CancellationToken ct)
+    {
+        var order = new Order(command.CustomerName);
+
+        foreach (var item in command.Items)
+            order.AddItem(item.ProductName, item.UnitPrice, item.Quantity);
+
+        await _orders.AddAsync(order, ct);
+        await _unitOfWork.SaveChangesAsync(ct);
+
+        return order.Id;
+    }
+}
+</code></pre>
+<p>This is a classic <strong>Use Case</strong> - it orchestrates the scenario (create, add items, save), but <strong>the business rules themselves</strong> stay in the entity. The handler uses <strong>MediatR</strong> (see <a href="cqrs-mediatr.html">MediatR - how it works and how to use it</a>), although Clean Architecture itself doesn't require MediatR - it is just a convenient way to implement use cases.</p>
+<h3>Infrastructure - technical details</h3>
+<pre><code class="language-csharp">namespace Shop.Infrastructure.Persistence;
+
+public class AppDbContext : DbContext, IUnitOfWork
+{
+    public AppDbContext(DbContextOptions&lt;AppDbContext&gt; options) : base(options) { }
+
+    public DbSet&lt;Order&gt; Orders =&gt; Set&lt;Order&gt;();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+        =&gt; modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+}
+
+// Konfiguracja mapowania tutaj, a nie atrybutami w encji Domain
+public class OrderConfiguration : IEntityTypeConfiguration&lt;Order&gt;
+{
+    public void Configure(EntityTypeBuilder&lt;Order&gt; builder)
+    {
+        builder.HasKey(o =&gt; o.Id);
+        builder.Property(o =&gt; o.CustomerName).HasMaxLength(200).IsRequired();
+        builder.OwnsMany(o =&gt; o.Items);
+    }
+}
+
+public class OrderRepository : IOrderRepository
+{
+    private readonly AppDbContext _context;
+    public OrderRepository(AppDbContext context) =&gt; _context = context;
+
+    public async Task AddAsync(Order order, CancellationToken ct)
+        =&gt; await _context.Orders.AddAsync(order, ct);
+
+    public Task&lt;Order?&gt; GetByIdAsync(int id, CancellationToken ct)
+        =&gt; _context.Orders.Include(o =&gt; o.Items).FirstOrDefaultAsync(o =&gt; o.Id == id, ct);
+}
+</code></pre>
+<p><code>DbContext</code> implements <code>IUnitOfWork</code> with no additional code - its <code>SaveChangesAsync(CancellationToken)</code> method matches the interface signature. This is the same Repository + Unit of Work pattern we discussed with EF Core.</p>
+<h3>Registering dependencies - each layer exposes its own method</h3>
+<pre><code class="language-csharp">// Shop.Application
+public static class DependencyInjection
+{
+    public static IServiceCollection AddApplication(this IServiceCollection services)
+    {
+        services.AddMediatR(cfg =&gt; cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
+        return services;
+    }
+}
+
+// Shop.Infrastructure
+public static class DependencyInjection
+{
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddDbContext&lt;AppDbContext&gt;(o =&gt; o.UseSqlServer(configuration.GetConnectionString(&quot;Default&quot;)));
+        services.AddScoped&lt;IOrderRepository, OrderRepository&gt;();
+        services.AddScoped&lt;IUnitOfWork&gt;(sp =&gt; sp.GetRequiredService&lt;AppDbContext&gt;());
+        return services;
+    }
+}
+</code></pre>
+<h3>WebApi - a thin presentation layer and the Composition Root</h3>
+<pre><code class="language-csharp">// Program.cs - the ONLY place that knows all the layers
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddControllers();
+</code></pre>
+<pre><code class="language-csharp">[ApiController]
+[Route(&quot;api/orders&quot;)]
+public class OrdersController : ControllerBase
+{
+    private readonly ISender _sender; // MediatR
+    public OrdersController(ISender sender) =&gt; _sender = sender;
+
+    [HttpPost]
+    public async Task&lt;IActionResult&gt; Create(CreateOrderCommand command, CancellationToken ct)
+    {
+        var id = await _sender.Send(command, ct);
+        return Created($&quot;api/orders/{id}&quot;, new { id });
+    }
+}
+</code></pre>
+<p>The controller is <strong>thin</strong> - it has no logic, it only translates an HTTP request into a command and the result into an HTTP response. Thanks to this it can be replaced (gRPC, a queue, a console application, WPF) without touching Application and Domain.</p>
+<h2>The flow of a single request</h2>
+<pre><code>HTTP POST /api/orders
+   │
+   ▼
+OrdersController (WebApi)                 ← translates HTTP into a command
+   │  _sender.Send(command)
+   ▼
+CreateOrderHandler (Application)          ← orkiestruje use case
+   │  new Order(...), order.AddItem(...)  ← rules in the entity (Domain)
+   │  _orders.AddAsync(order)             ← call through the INTERFACE
+   ▼
+OrderRepository (Infrastructure)          ← EF Core, SQL
+   │
+   ▼
+Baza danych
+</code></pre>
+<p><strong>Only simple data crosses layer boundaries</strong> (DTOs, commands, simple types), not EF entities or framework objects. Domain entities don't go out to the HTTP client - the controller returns a DTO (mapped by hand or with AutoMapper), so that a change to the domain model doesn't break the API contract.</p>
+<h2>Aggregates - consistency boundaries in the Domain layer</h2>
+<p>The <code>Order</code> entity from the example above is actually an <strong>aggregate root</strong> - a concept from Domain-Driven Design that fits Clean Architecture very well, because it describes <strong>how to organise the inside of the Domain layer</strong>.</p>
+<p>An <strong>aggregate</strong> is a group of related domain objects treated as <strong>one whole</strong> when changing data and enforcing business rules. One object is the root - <strong>only through it</strong> may anything be changed from the outside. The other objects (here <code>OrderItem</code>) are parts of the aggregate and have no life outside it.</p>
+<pre><code>┌─────────────── Agregat Order ───────────────┐
+│                                             │
+│   Order  (Aggregate Root)                   │
+│    ├── OrderItem                            │
+│    ├── OrderItem                            │
+│    └── OrderItem                            │
+│                                             │
+└─────────────────────────────────────────────┘
+        ▲                          │
+        │ the only entry point     │ reference by Id,
+        │ from outside             ▼ not by reference
+   IOrderRepository          CustomerId ──► (inny agregat: Customer)
+</code></pre>
+<h3>Aggregate rules</h3>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>What it means in practice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Access only through the root</strong></td>
+<td>There is no <code>order.Items.Add(...)</code> from outside and no separate <code>OrderItemRepository</code>. Changes go through methods of the root (<code>order.AddItem(...)</code>), which checks the rules</td>
+</tr>
+<tr>
+<td><strong>Consistency boundary</strong></td>
+<td>After every operation the whole aggregate is consistent (e.g. the order total matches the items, a confirmed order can no longer be changed)</td>
+</tr>
+<tr>
+<td><strong>One transaction = one aggregate</strong></td>
+<td>You save and lock the aggregate as a whole. If one operation has to change two aggregates, it's a sign the boundaries are drawn wrongly or that you need domain events</td>
+</tr>
+<tr>
+<td><strong>References to other aggregates by Id</strong></td>
+<td><code>Order</code> holds <code>CustomerId</code>, not a <code>Customer</code> object. Aggregates stay small and don't drag half the database along with them</td>
+</tr>
+<tr>
+<td><strong>One repository per aggregate</strong></td>
+<td>The repository concerns the root: <code>IOrderRepository</code>, not <code>IOrderItemRepository</code></td>
+</tr>
+<tr>
+<td><strong>Small aggregates</strong></td>
+<td>A huge aggregate (e.g. <code>Customer</code> with all orders inside) means slow queries and concurrency conflicts</td>
+</tr>
+</tbody>
+</table>
+<h3>An example - the aggregate root guards the invariants</h3>
+<pre><code class="language-csharp">namespace Shop.Domain.Orders;
+
+public class Order : Entity
+{
+    private readonly List&lt;OrderItem&gt; _items = new();
+
+    public int Id { get; private set; }
+    public int CustomerId { get; private set; }          // reference to another aggregate by Id
+    public OrderStatus Status { get; private set; } = OrderStatus.Draft;
+    public IReadOnlyCollection&lt;OrderItem&gt; Items =&gt; _items.AsReadOnly();   // brak publicznej listy do modyfikacji
+    public decimal TotalAmount =&gt; _items.Sum(i =&gt; i.UnitPrice * i.Quantity);
+
+    private Order() { }
+
+    public Order(int customerId) =&gt; CustomerId = customerId;
+
+    public void AddItem(string productName, decimal unitPrice, int quantity)
+    {
+        // Invariant: a confirmed order may no longer be changed
+        if (Status != OrderStatus.Draft)
+            throw new DomainException(&quot;A confirmed order cannot be changed.&quot;);
+
+        if (quantity &lt;= 0)
+            throw new DomainException(&quot;Quantity must be greater than zero.&quot;);
+
+        _items.Add(new OrderItem(productName, unitPrice, quantity));
+    }
+
+    public void Confirm()
+    {
+        // Invariant: an order without items makes no sense
+        if (_items.Count == 0)
+            throw new DomainException(&quot;An order must have at least one item.&quot;);
+
+        Status = OrderStatus.Confirmed;
+        Raise(new OrderConfirmedEvent(Id));              // information for other aggregates
+    }
+}
+</code></pre>
+<p>The <code>OrderItem</code> class has an <code>internal</code> constructor (or is nested), so nobody outside Domain can create an item bypassing the order. The rules "a confirmed order is immutable" and "there is no empty order" have <strong>one</strong> place - in the root - instead of being scattered across handlers and controllers.</p>
+<h3>Communication between aggregates - domain events</h3>
+<p>When confirming an order is supposed to affect another aggregate (e.g. reserve stock in <code>Product</code>), <strong>you don't change both in one transaction</strong>. The root raises a <strong>domain event</strong>, and the reaction happens separately:</p>
+<pre><code class="language-csharp">// Domain - events don't depend on any library
+public interface IDomainEvent { }
+public record OrderConfirmedEvent(int OrderId) : IDomainEvent;
+
+public abstract class Entity
+{
+    private readonly List&lt;IDomainEvent&gt; _events = new();
+    public IReadOnlyCollection&lt;IDomainEvent&gt; DomainEvents =&gt; _events.AsReadOnly();
+
+    protected void Raise(IDomainEvent domainEvent) =&gt; _events.Add(domainEvent);
+    public void ClearDomainEvents() =&gt; _events.Clear();
+}
+</code></pre>
+<p>Events are dispatched <strong>after</strong> a successful save (typically in <code>SaveChangesAsync</code> in Infrastructure, e.g. through MediatR <code>INotification</code>), and a handler in Application changes the second aggregate in a <strong>separate</strong> transaction. This is exactly <strong>eventual consistency</strong> - consistency between aggregates is not immediate. For communication between services, the same idea is developed further by the Saga and Outbox patterns described in the section on distributed architecture.</p>
+<h3>What an aggregate looks like on the Application and Infrastructure side</h3>
+<pre><code class="language-csharp">// Application - the handler loads the aggregate, calls its methods, saves the whole
+public async Task Handle(ConfirmOrderCommand command, CancellationToken ct)
+{
+    var order = await _orders.GetByIdAsync(command.OrderId, ct)
+                ?? throw new NotFoundException(nameof(Order), command.OrderId);
+
+    order.Confirm();                              // the root checks the rules, not the handler
+
+    await _unitOfWork.SaveChangesAsync(ct);       // jedna transakcja = jeden agregat
+}
+</code></pre>
+<pre><code class="language-csharp">// Infrastructure - konfiguracja EF Core respektuje granice agregatu
+public class OrderConfiguration : IEntityTypeConfiguration&lt;Order&gt;
+{
+    public void Configure(EntityTypeBuilder&lt;Order&gt; builder)
+    {
+        builder.HasKey(o =&gt; o.Id);
+        builder.OwnsMany(o =&gt; o.Items);                       // items are PART of the aggregate
+        builder.Property&lt;byte[]&gt;(&quot;RowVersion&quot;).IsRowVersion(); // optimistic concurrency on the whole aggregate
+    }
+}
+</code></pre>
+<ul>
+<li><strong><code>GetByIdAsync</code> loads the whole aggregate</strong> (<code>Include(o =&gt; o.Items)</code>), not a fragment - thanks to this the root sees all the data needed to check the invariants.</li>
+<li><strong><code>RowVersion</code></strong> protects against two users changing the same aggregate at the same time - the second save gets a <code>DbUpdateConcurrencyException</code> instead of silently overwriting someone else's changes.</li>
+</ul>
+<h3>Typical mistakes with aggregates</h3>
+<ul>
+<li><strong>A public list modifiable from outside</strong> (<code>public List&lt;OrderItem&gt; Items { get; set; }</code>) - the root loses control and the rules can be bypassed. Expose <code>IReadOnlyCollection&lt;T&gt;</code>.</li>
+<li><strong>A giant aggregate</strong> - <code>Customer</code> containing all orders, addresses and payments. Every change locks and loads the whole thing. Split into smaller aggregates linked by Id.</li>
+<li><strong>References to objects of other aggregates</strong> instead of Ids - they pull half the database into queries and blur transaction boundaries.</li>
+<li><strong>Changing many aggregates in one transaction</strong> - breaks the one-transaction-per-aggregate rule; domain events are usually better.</li>
+<li><strong>Logic outside the root</strong> - if the rules sit in handlers and entities are just getters and setters, the aggregate is only a name (an anemic model).</li>
+<li><strong>Aggregates "just in case"</strong> in simple CRUD - without complex invariants DDD is overkill.</li>
+</ul>
+<h2>Testability - the main benefit in practice</h2>
+<h3>Testing a use case without a database</h3>
+<pre><code class="language-csharp">public class CreateOrderHandlerTests
+{
+    [Fact]
+    public async Task Handle_ValidCommand_AddsOrderAndSaves()
+    {
+        var repository = new Mock&lt;IOrderRepository&gt;();
+        var unitOfWork = new Mock&lt;IUnitOfWork&gt;();
+        var handler = new CreateOrderHandler(repository.Object, unitOfWork.Object);
+
+        var command = new CreateOrderCommand(
+            &quot;Jan Kowalski&quot;,
+            new List&lt;OrderItemDto&gt; { new(&quot;Laptop&quot;, 3000m, 1) });
+
+        await handler.Handle(command, CancellationToken.None);
+
+        repository.Verify(r =&gt; r.AddAsync(
+            It.Is&lt;Order&gt;(o =&gt; o.CustomerName == &quot;Jan Kowalski&quot;),
+            It.IsAny&lt;CancellationToken&gt;()), Times.Once);
+        unitOfWork.Verify(u =&gt; u.SaveChangesAsync(It.IsAny&lt;CancellationToken&gt;()), Times.Once);
+    }
+}
+</code></pre>
+<p>The test is fast (milliseconds), and doesn't need SQL Server or <code>WebApplicationFactory</code>. The rules of the entity itself (<code>Order.AddItem</code> throws for a quantity ≤ 0) are tested even more simply - pure C# code without any mocks.</p>
+<h3>An architecture test - guarding the dependency rule</h3>
+<p>The project structure alone protects against most violations, but not all (e.g. someone adds a reference "because it's quicker"). The <strong>NetArchTest</strong> library lets you write the rule as a test:</p>
+<pre><code class="language-csharp">[Fact]
+public void Domain_ShouldNotDependOn_OtherLayers()
+{
+    var result = Types.InAssembly(typeof(Order).Assembly)
+        .ShouldNot()
+        .HaveDependencyOnAny(&quot;Shop.Application&quot;, &quot;Shop.Infrastructure&quot;, &quot;Shop.WebApi&quot;)
+        .GetResult();
+
+    Assert.True(result.IsSuccessful);
+}
+</code></pre>
+<p>Thanks to this, an architecture violation <strong>breaks the build in CI</strong> instead of only surfacing in code review.</p>
+<h2>Clean Architecture compared with other approaches</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Layered architecture (N-tier)</th>
+<th>Hexagonal / Onion</th>
+<th>Clean Architecture</th>
+<th>Vertical Slice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Direction of dependencies</strong></td>
+<td>UI → Logic → Data access (logic depends on the database)</td>
+<td>Inwards (domain in the centre)</td>
+<td>Inwards (the dependency rule)</td>
+<td>Depends on the slice</td>
+</tr>
+<tr>
+<td><strong>Centre of the system</strong></td>
+<td>The database</td>
+<td>The domain model</td>
+<td>Entities + Use Cases</td>
+<td>The feature</td>
+</tr>
+<tr>
+<td><strong>Division of code</strong></td>
+<td>By technical layers</td>
+<td>By layers, ports and adapters</td>
+<td>By layers (circles)</td>
+<td>By features</td>
+</tr>
+<tr>
+<td><strong>Use case layer</strong></td>
+<td>Usually blurred into "Services"</td>
+<td>Not distinguished</td>
+<td>Explicit, separate</td>
+<td>Inside the slice</td>
+</tr>
+<tr>
+<td><strong>Typical cost</strong></td>
+<td>Few files, a rigid database</td>
+<td>Medium</td>
+<td>More projects and interfaces</td>
+<td>A lot of duplication between slices</td>
+</tr>
+</tbody>
+</table>
+<p>The key difference compared with classic three-tier architecture: there, <strong>the business layer depends on the data access layer</strong> (the BLL references the DAL), so a change of database or ORM leaks into the logic. In Clean Architecture the dependency is <strong>inverted</strong> - infrastructure depends on Application.</p>
+<h2>Typical mistakes and criticism</h2>
+<p><strong>1. Overkill for simple CRUD.</strong> An application that only saves and reads forms has no "business rules" to protect. Four projects, 1:1 interfaces and a handler for every operation are then pure overhead. For small projects a simpler structure is enough.</p>
+<p><strong>2. Anemic Domain Model.</strong> Entities are just getters and setters, and all the logic sits in handlers - then "Domain" is an empty layer and the architecture loses its point.</p>
+<p><strong>3. Leaking <code>IQueryable</code> through the repository.</strong> If <code>IOrderRepository</code> returns <code>IQueryable&lt;Order&gt;</code>, the Application layer starts to depend on the behaviour of a specific EF provider (which operations can be translated to SQL). That is a broken abstraction.</p>
+<p><strong>4. EF entities as domain entities - a pragmatic compromise.</strong> The pure version requires separate models (domain and persistence) with mapping between them. In most .NET projects it is accepted that domain entities are at the same time mapped by EF (with the configuration in Infrastructure). This is a conscious compromise, not a mistake, but it's worth knowing it exists.</p>
+<p><strong>5. A repository over EF Core - a dispute.</strong> <code>DbContext</code> already is a Unit of Work, and <code>DbSet</code> is a repository. Some teams give up their own repositories and define an <code>IApplicationDbContext</code> interface with <code>DbSet&lt;T&gt;</code> in Application, implemented in Infrastructure. They gain less code and lose "purity" (Application knows <code>DbSet</code>/<code>IQueryable</code>). This is the same topic as the controversy around Repository + Unit of Work.</p>
+<p><strong>6. Thoughtless creation of interfaces.</strong> An interface makes sense where there is a <strong>boundary</strong> (the database, an external API, mail). An interface for a class that has one implementation and lives inside one layer is redundant.</p>
+<p><strong>7. Logic in the controller or in Infrastructure.</strong> The most common violation: validation and calculations end up in the controller or the repository, because "it was quicker".</p>
+<h2>When it makes sense</h2>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Clean Architecture?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>An application with elaborate business rules (finance, logistics, insurance)</td>
+<td>✅ Yes - this is where it gives the biggest benefit</td>
+</tr>
+<tr>
+<td>A system developed for years by several teams</td>
+<td>✅ Yes - layer boundaries bring order to the work</td>
+</tr>
+<tr>
+<td>High unit-test coverage of the logic is required</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>A possible change of technology (database, UI) is planned</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>Simple CRUD, a prototype, an internal tool</td>
+<td>❌ Usually overkill</td>
+</tr>
+<tr>
+<td>A microservice with one narrow responsibility</td>
+<td>⚠️ A simplified version or Vertical Slice is often enough</td>
+</tr>
+</tbody>
+</table>
+<h2>Clean Architecture and CQRS - where they meet</h2>
+<p>In Clean Architecture the Application layer consists of <strong>use cases</strong>, and the most convenient way to write them down is <strong>commands and queries</strong> - exactly what the CQRS pattern describes. The details of the pattern (separating the write and read models, eventual consistency, Event Sourcing) are in separate topics:</p>
+<ul>
+<li><a href="cqrs-what.html">What CQRS is</a> - the idea, when it makes sense and when it is overkill,</li>
+<li><a href="cqrs-mediatr.html">MediatR - how it works and how to use it</a> - <code>IRequest</code>, <code>IRequestHandler</code>, <code>Send</code> and pipeline behaviors.</li>
+</ul>
+<p>How this fits with the layers:</p>
+<table>
+<thead>
+<tr>
+<th>Side</th>
+<th>What it does</th>
+<th>Which way it goes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Command</strong> (write)</td>
+<td>Changes state, returns at most an Id or the result of the operation</td>
+<td>Handler → <strong>aggregate in Domain</strong> (business rules) → repository → save in one transaction</td>
+</tr>
+<tr>
+<td><strong>Query</strong> (read)</td>
+<td>Doesn't change state, returns a DTO</td>
+<td>Handler → <strong>directly</strong> to the database (projection to a DTO) - without loading aggregates</td>
+</tr>
+</tbody>
+</table>
+<p>The write side goes through the domain model, because <strong>the invariants live there</strong> (cf. the section on aggregates). The read side has nothing to protect, so it can <strong>bypass</strong> it and read data by the shortest path. The interface for such a read also belongs to Application, and the implementation to Infrastructure:</p>
+<pre><code class="language-csharp">// Application - a port for reads, without aggregates and without EF Core
+public interface IOrderQueries
+{
+    Task&lt;OrderDetailsDto?&gt; GetDetailsAsync(int id, CancellationToken ct);
+}
+
+public record GetOrderQuery(int Id) : IRequest&lt;OrderDetailsDto?&gt;;
+
+public class GetOrderHandler : IRequestHandler&lt;GetOrderQuery, OrderDetailsDto?&gt;
+{
+    private readonly IOrderQueries _queries;
+    public GetOrderHandler(IOrderQueries queries) =&gt; _queries = queries;
+
+    public Task&lt;OrderDetailsDto?&gt; Handle(GetOrderQuery query, CancellationToken ct)
+        =&gt; _queries.GetDetailsAsync(query.Id, ct);
+}
+</code></pre>
+<pre><code class="language-csharp">// Infrastructure - a fast projection to a DTO, without change tracking
+public class OrderQueries : IOrderQueries
+{
+    private readonly AppDbContext _context;
+    public OrderQueries(AppDbContext context) =&gt; _context = context;
+
+    public Task&lt;OrderDetailsDto?&gt; GetDetailsAsync(int id, CancellationToken ct)
+        =&gt; _context.Orders
+            .AsNoTracking()
+            .Where(o =&gt; o.Id == id)
+            .Select(o =&gt; new OrderDetailsDto(o.Id, o.CustomerId, o.Status.ToString(), o.Items.Sum(i =&gt; i.UnitPrice * i.Quantity)))
+            .FirstOrDefaultAsync(ct);
+}
+</code></pre>
+<p>Thanks to this, the repository (<code>IOrderRepository</code>) handles only <strong>aggregates on the write side</strong>, and reads go through a separate path - this is a common, pragmatic compromise in Clean Architecture that doesn't require separate databases (that is already the level of "full" CQRS). An extra benefit of MediatR: <strong>pipeline behaviors</strong> let you add validation, logging or a transaction to all use cases in one place.</p>
+<h2>Connections to other topics on this site</h2>
+<ul>
+<li><strong>SOLID / DIP</strong> - the dependency rule is the Dependency Inversion Principle applied at the scale of the whole application,</li>
+<li><strong>IoC and DI</strong> - the DI container in the Composition Root wires the layers together, thanks to which Application doesn't create infrastructure itself,</li>
+<li><strong>CQRS and MediatR</strong> - use cases naturally take the form of commands and queries with handlers: <a href="cqrs-what.html">What CQRS is</a>, <a href="cqrs-mediatr.html">MediatR</a>,</li>
+<li><strong>Repository + Unit of Work</strong> - interfaces in Application, implementations in Infrastructure,</li>
+<li><strong>Aggregates and DDD</strong> - organising the inside of the Domain layer: the aggregate root guards invariants, one repository per aggregate,</li>
+<li><strong>Saga and Outbox</strong> - extending communication between aggregates (events) to the level of many services,</li>
+<li><strong>AutoMapper</strong> - mapping entities to DTOs at the layer boundary,</li>
+<li><strong>Tests (xUnit, Moq)</strong> - Application is tested with mocks of ports, without a database.</li>
+</ul>
+<h2>How to answer in an interview</h2>
+<p>The question asked in an interview is usually: <em>"What is Clean Architecture and how does it differ from ordinary layered architecture?"</em></p>
+<blockquote>
+<p><em>"Clean Architecture organises code into concentric circles - domain entities in the middle, then use cases, adapters and finally technical details such as the database or the web framework. The most important thing is the dependency rule: dependencies in code point only inwards, so business logic knows nothing about EF Core, ASP.NET or the database. This is achieved by inverting dependencies - Application defines interfaces, for example a repository, and Infrastructure implements them, with the whole thing wired up by a DI container in the Composition Root. In classic three-tier architecture the business layer depends on the data layer, here it is the opposite. I gain testability and the ability to replace technical details, and I pay with more projects and interfaces, so in simple CRUD I wouldn't use it."</em></p>
+</blockquote>
+<p>A good answer shows three things: that you understand the <strong>direction of dependencies</strong> (not just the names of layers), that you know <strong>how to achieve it</strong> in .NET (DIP, DI, separate projects), and that you know the <strong>cost</strong> of this approach and can judge when it doesn't pay off.</p>
+<h2>Summary</h2>
+<blockquote>
+<p>Clean Architecture places business logic at the centre of the application and subordinates all technical details to it with one rule: <strong>dependencies in code point only inwards</strong>. In .NET this is implemented with four projects (Domain, Application, Infrastructure, WebApi), interfaces defined in the inner layer and implemented on the outside (Dependency Inversion), and a DI container wiring everything together in the Composition Root. The inside of the Domain layer is organised by <strong>aggregates</strong> - groups of objects with one root that guards the invariants, saved in one transaction, linked to other aggregates by Id and domain events. You gain testability of use cases without a database, replaceable frameworks and protection of business rules, and you pay with more code and projects - so it pays off with a complex domain and long-lived systems, and in simple CRUD it is overkill.</p>
+</blockquote>
+  <div class="topic-nav"><a class="prev" href="ioc.html"><span class="lbl">← back</span>Inversion of Control (IoC)</a><a class="next" href="ddd.html"><span class="lbl">next →</span>DDD - Domain-Driven Design</a></div>
+</div>
+    </div>
+  </main>
+</div>
+
+<a class="fab coffee-btn" href="https://www.naffy.io/radoslaw-jaszek-znpwl/net-csharp-kompendium" target="_blank" rel="noopener noreferrer" aria-label="Buy me a coffee" title="Buy me a coffee">
+  <span class="coffee-label">Buy me a coffee</span>
+  <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M6 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/></svg>
+</a>
+
+<button type="button" class="fab theme-toggle" id="themeToggle" aria-label="Switch dark/light mode" title="Light mode">
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4" y1="12" x2="2" y2="12"/><line x1="22" y1="12" x2="20" y2="12"/><line x1="19.07" y1="4.93" x2="17.66" y2="6.34"/><line x1="6.34" y1="17.66" x2="4.93" y2="19.07"/><line x1="19.07" y1="19.07" x2="17.66" y2="17.66"/><line x1="6.34" y1="6.34" x2="4.93" y2="4.93"/>
+  </svg>
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </svg>
+</button>
+
+<button type="button" class="fab width-toggle" id="widthToggle" aria-label="Full width" title="Narrow content">
+  <svg id="widthToggleIcon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="10" y1="14" x2="3" y2="21"/>
+  </svg>
+</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
+<script src="../../app.js?v=3"></script>
+</body>
+</html>

@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Cryptography: symmetric and asymmetric encryption, TLS — .NET / C# Interview Compendium</title>
+<link rel="alternate" hreflang="pl" href="https://net-csharp-kompendium.rhoster.pl/topics/crypto-basics.html" />
+<link rel="alternate" hreflang="en" href="https://net-csharp-kompendium.rhoster.pl/en/topics/crypto-basics.html" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/nord.min.css">
+<link rel="stylesheet" href="../../styles.css?v=3">
+</head>
+<body>
+
+<div class="topbar">
+  <button class="burger" id="burgerBtn" aria-label="Menu">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <a class="brand" id="topbarBrand" href="../index.html"><b>C#</b> / .NET Compendium</a>
+  <span class="lang-bar"><a data-lang-switch href="../../topics/crypto-basics.html" hreflang="pl" lang="pl" title="Polska wersja">PL</a><a class="active" data-lang-switch href="crypto-basics.html" hreflang="en" lang="en" title="English version">EN</a></span>
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <span class="lang-bar"><a data-lang-switch href="../../topics/crypto-basics.html" hreflang="pl" lang="pl" title="Polska wersja">PL</a><a class="active" data-lang-switch href="crypto-basics.html" hreflang="en" lang="en" title="English version">EN</a></span>
+    <a class="sidebar-head" id="sidebarHead" href="../index.html">
+      <h1>.NET &amp; C# Compendium</h1>
+      <div class="sub">Interview notes organised as section → topic</div>
+    </a>
+    <div class="search-wrap">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="searchInput" placeholder="Search topics…" autocomplete="off" />
+      </div>
+      <div class="search-count" id="searchCount"></div>
+    </div>
+    <nav class="nav" id="navList">
+<details class="nav-group" data-cat-id="solid">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      SOLID, Clean Code, DI
+    </span>
+    <span class="n">11</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="oop-enterprise" data-tags="oop encapsulation inheritance polymorphism abstraction enterprise overengineering yagni" href="../topics/oop-enterprise.html">OOP and &quot;Enterprise OOP&quot;</a>
+    <a class="nav-item" data-topic-id="solid-basics" data-tags="solid srp ocp lsp isp dip" href="../topics/solid-basics.html">SOLID principles</a>
+    <a class="nav-item" data-topic-id="clean-code" data-tags="clean code readability naming dry" href="../topics/clean-code.html">Clean Code</a>
+    <a class="nav-item" data-topic-id="di-mvvm-concept" data-tags="di dependency injection mvvm viewmodel" href="../topics/di-mvvm-concept.html">DI in MVVM — the concept</a>
+    <a class="nav-item" data-topic-id="di-mvvm-wpf" data-tags="wpf mvvm di viewmodelbase servicecollection" href="../topics/di-mvvm-wpf.html">MVVM + DI in WPF (full example)</a>
+    <a class="nav-item" data-topic-id="lifetimes" data-tags="di lifetime singleton transient scoped captive dependency" href="../topics/lifetimes.html">Singleton vs Transient vs Scoped</a>
+    <a class="nav-item" data-topic-id="scope-factory-threadsafe" data-tags="scope factory singleton thread safe lock interlocked" href="../topics/scope-factory-threadsafe.html">IServiceScopeFactory and thread-safety</a>
+    <a class="nav-item" data-topic-id="di-methods" data-tags="constructor property method injection service locator anti-pattern" href="../topics/di-methods.html">Ways to implement DI</a>
+    <a class="nav-item" data-topic-id="ioc" data-tags="ioc di hollywood principle template method middleware" href="../topics/ioc.html">Inversion of Control (IoC)</a>
+    <a class="nav-item" data-topic-id="clean-architecture" data-tags="clean architecture dependency rule onion hexagonal domain application infrastructure use case ports adapters composition root netarchtest vertical slice aggregate root ddd domain events cqrs commands queries mediatr" href="../topics/clean-architecture.html">Clean Architecture</a>
+    <a class="nav-item" data-topic-id="ddd" data-tags="ddd domain driven design aggregate entity value object bounded context ubiquitous language domain service domain events repository anemic model rich model strategic tactical" href="../topics/ddd.html">DDD - Domain-Driven Design</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="wpf">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      WPF
+    </span>
+    <span class="n">4</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="wpf-recap" data-tags="wpf dependency property routed event data binding visual tree" href="../topics/wpf-recap.html">WPF — what to refresh</a>
+    <a class="nav-item" data-topic-id="synccontext" data-tags="async await synchronizationcontext configureawait deadlock ui thread" href="../topics/synccontext.html">SynchronizationContext and ConfigureAwait</a>
+    <a class="nav-item" data-topic-id="icommand" data-tags="icommand relaycommand canexecute commandmanager async void" href="../topics/icommand.html">ICommand and RelayCommand</a>
+    <a class="nav-item" data-topic-id="callermembername" data-tags="callermembername inotifypropertychanged magic string nameof" href="../topics/callermembername.html">[CallerMemberName]</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="csharp">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      C# — language fundamentals
+    </span>
+    <span class="n">14</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="delegates" data-tags="delegate action func predicate multicast event" href="../topics/delegates.html">Delegates</a>
+    <a class="nav-item" data-topic-id="callback-vs-function" data-tags="callback function control flow inversion" href="../topics/callback-vs-function.html">Callback vs function</a>
+    <a class="nav-item" data-topic-id="underscore" data-tags="discard underscore lambda separator digit" href="../topics/underscore.html">The &quot;_&quot; character in C#</a>
+    <a class="nav-item" data-topic-id="class-vs-record" data-tags="record class equality value reference with init" href="../topics/class-vs-record.html">Class vs record</a>
+    <a class="nav-item" data-topic-id="record-declaration" data-tags="record positional syntax deconstruct equals hashcode generated code" href="../topics/record-declaration.html">record vs class declaration</a>
+    <a class="nav-item" data-topic-id="record-vs-class-compare" data-tags="equals gethashcode referenceequals iequatable iequalitycomparer" href="../topics/record-vs-class-compare.html">How to compare record and class</a>
+    <a class="nav-item" data-topic-id="abstract-vs-interface" data-tags="abstract interface multiple inheritance template method" href="../topics/abstract-vs-interface.html">Abstract class vs interface</a>
+    <a class="nav-item" data-topic-id="access-modifiers" data-tags="public private protected internal protected internal private protected" href="../topics/access-modifiers.html">Access modifiers</a>
+    <a class="nav-item" data-topic-id="inheritance-modifiers" data-tags="virtual abstract override sealed new method hiding polymorphism" href="../topics/inheritance-modifiers.html">Inheritance modifiers</a>
+    <a class="nav-item" data-topic-id="lock-mutex-semaphore" data-tags="lock mutex semaphore semaphoreslim thread synchronization async" href="../topics/lock-mutex-semaphore.html">lock, Mutex, Semaphore</a>
+    <a class="nav-item" data-topic-id="struct" data-tags="struct value type stack boxing readonly struct" href="../topics/struct.html">struct</a>
+    <a class="nav-item" data-topic-id="struct-vs-record" data-tags="record struct readonly record struct value reference" href="../topics/struct-vs-record.html">struct vs record</a>
+    <a class="nav-item" data-topic-id="icomparable" data-tags="icomparable compareto sorting comparer sort orderby" href="../topics/icomparable.html">IComparable</a>
+    <a class="nav-item" data-topic-id="ienumerable-iqueryable" data-tags="ienumerable iqueryable expression func deferred execution ef core" href="../topics/ienumerable-iqueryable.html">IEnumerable vs IQueryable</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="web">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Web API, Blazor
+    </span>
+    <span class="n">12</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="webapi-mvc" data-tags="webapi mvc controller dto apicontroller minimal api" href="../topics/webapi-mvc.html">Web API as an implementation of MVC</a>
+    <a class="nav-item" data-topic-id="model-binding" data-tags="fromroute fromquery frombody fromheader fromservices apicontroller" href="../topics/model-binding.html">Model Binding and [FromBody]</a>
+    <a class="nav-item" data-topic-id="actionresult" data-tags="actionresult ok notfound badrequest problemdetails result pattern" href="../topics/actionresult.html">ActionResult&lt;T&gt; — returning results and errors</a>
+    <a class="nav-item" data-topic-id="actionresult-client" data-tags="httpclient apiresult wpf blazor consuming api statuscode" href="../topics/actionresult-client.html">ActionResult on the client side</a>
+    <a class="nav-item" data-topic-id="db-webapi" data-tags="dbcontext connection string appsettings migrations di" href="../topics/db-webapi.html">Connecting a database to Web API</a>
+    <a class="nav-item" data-topic-id="blazor-mvc" data-tags="blazor component mvvm razor lifecycle" href="../topics/blazor-mvc.html">Blazor — is NOT MVC</a>
+    <a class="nav-item" data-topic-id="signalr-blazor" data-tags="signalr circuit websocket blazor server sticky sessions" href="../topics/signalr-blazor.html">SignalR in Blazor Server</a>
+    <a class="nav-item" data-topic-id="pwa-rendermodes" data-tags="pwa progressive web app service worker render modes blazor united" href="../topics/pwa-rendermodes.html">PWA and Render Modes</a>
+    <a class="nav-item" data-topic-id="blazor-structure" data-tags="blazor wasm server project structure shared client program.cs" href="../topics/blazor-structure.html">Blazor project structure</a>
+    <a class="nav-item" data-topic-id="endpoint-routing" data-tags="endpoint routing middleware useendpoints minimal api authorization metadata" href="../topics/endpoint-routing.html">Endpoint Routing in ASP.NET Core</a>
+    <a class="nav-item" data-topic-id="iis-hosting-models" data-tags="iis ancm kestrel w3wp hosting model inprocess outofprocess" href="../topics/iis-hosting-models.html">In-process vs Out-of-process (IIS)</a>
+    <a class="nav-item" data-topic-id="rate-limiting" data-tags="rate limiting throttling fixed window sliding token bucket concurrency 429" href="../topics/rate-limiting.html">Rate Limiting in ASP.NET Core</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="ef">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Entity Framework Core
+    </span>
+    <span class="n">6</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="ef-basics" data-tags="dbcontext dbset asnotracking include n+1 migrations" href="../topics/ef-basics.html">EF Core basics</a>
+    <a class="nav-item" data-topic-id="repo-uow" data-tags="repository unit of work dbset savechanges extension methods" href="../topics/repo-uow.html">Repository + Unit of Work over EF Core</a>
+    <a class="nav-item" data-topic-id="ef-async" data-tags="async await io cpu bound task run layers" href="../topics/ef-async.html">Async in EF Core — when yes, when no</a>
+    <a class="nav-item" data-topic-id="change-tracking" data-tags="snapshot statemanager detectchanges identity map entitystate" href="../topics/change-tracking.html">Change Tracking under the hood</a>
+    <a class="nav-item" data-topic-id="migrations-team" data-tags="migrations modelsnapshot conflicts git idempotent script sql" href="../topics/migrations-team.html">Migrations in a team</a>
+    <a class="nav-item" data-topic-id="ef-transactions" data-tags="savechangesasync begintransaction executionstrategy isolation level savepoints" href="../topics/ef-transactions.html">EF Core and transactions</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="cqrs">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      CQRS, MediatR
+    </span>
+    <span class="n">2</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="cqrs-what" data-tags="cqrs cqs command query segregation event sourcing eventual consistency" href="../topics/cqrs-what.html">What CQRS is</a>
+    <a class="nav-item" data-topic-id="cqrs-mediatr" data-tags="mediatr irequest irequesthandler pipeline behavior send" href="../topics/cqrs-mediatr.html">MediatR — how it works and how to use it</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="testing">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Testing
+    </span>
+    <span class="n">3</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="xunit" data-tags="xunit fact theory inlinedata memberdata classfixture aaa" href="../topics/xunit.html">xUnit — the basics</a>
+    <a class="nav-item" data-topic-id="moq" data-tags="moq mock setup verify times itisany callback" href="../topics/moq.html">Moq — mocking</a>
+    <a class="nav-item" data-topic-id="integration-tests" data-tags="webapplicationfactory testcontainers test pyramid inmemory" href="../topics/integration-tests.html">Integration tests</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="algo">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Algorithms, data structures
+    </span>
+    <span class="n">5</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="bigo" data-tags="big o complexity hashset dictionary list queue stack" href="../topics/bigo.html">Big O and .NET data structures</a>
+    <a class="nav-item" data-topic-id="hashset" data-tags="hashset unique elements equalitycomparer intersect union except" href="../topics/hashset.html">HashSet&lt;T&gt;</a>
+    <a class="nav-item" data-topic-id="extension-methods" data-tags="extension methods this static linq where select" href="../topics/extension-methods.html">Extension Methods</a>
+    <a class="nav-item" data-topic-id="iequatable" data-tags="iequatable equals gethashcode boxing struct record" href="../topics/iequatable.html">IEquatable&lt;T&gt;</a>
+    <a class="nav-item" data-topic-id="concurrentqueue" data-tags="concurrentqueue concurrent collections thread lock-free producer consumer channel" href="../topics/concurrentqueue.html">ConcurrentQueue&lt;T&gt;</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="automapper">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      AutoMapper
+    </span>
+    <span class="n">1</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="automapper-basics" data-tags="automapper profile projectto reversemap assertconfigurationisvalid" href="../topics/automapper-basics.html">AutoMapper</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="distributed">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Distributed architecture
+    </span>
+    <span class="n">8</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="saga" data-tags="saga orchestration choreography compensating transaction idempotency" href="../topics/saga.html">Saga Pattern</a>
+    <a class="nav-item" data-topic-id="outbox" data-tags="outbox pattern dual write at least once idempotent cdc debezium" href="../topics/outbox.html">Outbox Pattern</a>
+    <a class="nav-item" data-topic-id="reference-data" data-tags="reference data dictionaries denormalization synchronous polling cache ttl" href="../topics/reference-data.html">Reference data across microservices</a>
+    <a class="nav-item" data-topic-id="kafka" data-tags="kafka topic partition consumer group retention at least once producer consumer" href="../topics/kafka.html">Apache Kafka</a>
+    <a class="nav-item" data-topic-id="docker-k8s" data-tags="docker container image kubernetes pod deployment service self healing" href="../topics/docker-k8s.html">Docker, containers, Kubernetes</a>
+    <a class="nav-item" data-topic-id="rebus-servicebus" data-tags="rebus servicebus messagebus rabbitmq masstransit saga" href="../topics/rebus-servicebus.html">Rebus (.NET Service Bus)</a>
+    <a class="nav-item" data-topic-id="rabbitmq-fundamentals" data-tags="rabbitmq amqp broker exchange queue push pull" href="../topics/rabbitmq-fundamentals.html">How RabbitMQ works (AMQP vs HTTP)</a>
+    <a class="nav-item" data-topic-id="kafka-vs-rabbitmq" data-tags="kafka rabbitmq comparison confluent rabbitmq.client producer consumer" href="../topics/kafka-vs-rabbitmq.html">Kafka vs RabbitMQ - comparison and implementation</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="memory">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Memory and threads
+    </span>
+    <span class="n">2</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="memory-management" data-tags="garbage collector gc generations loh workstation server gc cgroups datas" href="../topics/memory-management.html">Memory management: Framework, Core, .NET</a>
+    <a class="nav-item" data-topic-id="async-thread" data-tags="async await thread pool i/o completion ports task run state machine" href="../topics/async-thread.html">Does async create a new thread?</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="recap">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Refresher / web patterns
+    </span>
+    <span class="n">3</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="mvc-mvvm-mvp" data-tags="mvc mvvm mvp controller presenter viewmodel examples" href="../topics/mvc-mvvm-mvp.html">MVC, MVVM, MVP — comparison</a>
+    <a class="nav-item" data-topic-id="dto-mvvm-placement" data-tags="dto models folder project structure wpf" href="../topics/dto-mvvm-placement.html">Where to put DTOs in an MVVM project</a>
+    <a class="nav-item" data-topic-id="code-review-example" data-tags="singleton anti-pattern socket exhaustion httpclientfactory code review" href="../topics/code-review-example.html">Code review example — HttpClientFactory</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="process">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Process and methodologies
+    </span>
+    <span class="n">1</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="sdlc" data-tags="sdlc waterfall agile scrum devops ci cd v-model process methodology" href="../topics/sdlc.html">SDLC - Software Development Life Cycle</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="security" open>
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Security
+    </span>
+    <span class="n">5</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="crypto-basics" data-tags="cryptography encryption symmetric asymmetric aes rsa ecdh diffie hellman tls handshake forward secrecy hash hmac pbkdf2 signature public key private key gcm" href="../topics/crypto-basics.html">Cryptography: symmetric and asymmetric encryption, TLS</a>
+    <a class="nav-item" data-topic-id="webapi-security" data-tags="security webapi jwt oauth oauth2 oidc openid connect sso saml certificate tls mtls certificate pinning authentication authorization bearer idor bola scope policy jwks" href="../topics/webapi-security.html">Securing a Web API: JWT, OAuth2, OIDC, SSO, certificates</a>
+    <a class="nav-item" data-topic-id="multi-tenancy" data-tags="tenant multi-tenancy multitenancy saas entra azure ad data isolation global query filter tenantid cross-tenant bola idor" href="../topics/multi-tenancy.html">Multi-tenancy and Web API security: what a tenant is</a>
+    <a class="nav-item" data-topic-id="refresh-token" data-tags="refresh token access token rotation reuse detection offline_access oauth jwt session logout bff httponly cookie token family" href="../topics/refresh-token.html">Refresh token: how it works and when to use it</a>
+    <a class="nav-item" data-topic-id="api-client-credentials" data-tags="client credentials oauth2 openiddict api key m2m machine server-to-server scope pricing rate limiting client_id client_secret" href="../topics/api-client-credentials.html">API for companies: Client Credentials, API keys and OpenIddict</a>
+  </div>
+</details>
+    </nav>
+  </aside>
+
+  <main class="main wide" id="mainArea">
+    <div class="content" id="content">
+<div class="topic">
+  <div class="crumb">.NET / C# <span class="sep">/</span> <span class="cat">Security</span></div>
+  
+  <h1>Cryptography: symmetric and asymmetric encryption, hashing, TLS</h1>
+<h2>Four basic tools</h2>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>What it is for</th>
+<th>Key</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Symmetric encryption</strong></td>
+<td>confidentiality of large data</td>
+<td>one shared, secret</td>
+<td>AES-GCM, ChaCha20-Poly1305</td>
+</tr>
+<tr>
+<td><strong>Asymmetric encryption</strong></td>
+<td>key exchange, confidentiality of short data</td>
+<td>a pair: public and private</td>
+<td>RSA, ECDH</td>
+</tr>
+<tr>
+<td><strong>Digital signature</strong></td>
+<td>authenticity and integrity, non-repudiation</td>
+<td>the private key signs, the public key verifies</td>
+<td>RSA-PSS, ECDSA, Ed25519</td>
+</tr>
+<tr>
+<td><strong>Hash / HMAC</strong></td>
+<td>a digest of data, integrity checks, passwords</td>
+<td>none (hash) or secret (HMAC)</td>
+<td>SHA-256, HMAC-SHA256, PBKDF2, Argon2</td>
+</tr>
+</tbody>
+</table>
+<h2>Symmetric encryption</h2>
+<p>The same key encrypts and decrypts:</p>
+<pre><code>tekst jawny --[ klucz K ]--&gt; szyfrogram --[ ten sam klucz K ]--&gt; tekst jawny
+</code></pre>
+<ul>
+<li><strong>Algorithms:</strong> AES (128/192/256-bit keys), ChaCha20. DES and 3DES are obsolete.</li>
+<li><strong>Advantages:</strong> very fast (hardware AES-NI), suitable for large data: files, disks, network traffic.</li>
+<li><strong>Disadvantage:</strong> the <strong>key distribution problem</strong> - both sides must know the same secret and it has to be passed on securely somehow.</li>
+<li><strong>Modes of operation:</strong> AES encrypts a single 16 B block, and the mode decides how to combine the blocks. <strong>ECB is dangerous</strong> (identical blocks give identical ciphertexts and patterns are visible). Use <strong>AES-GCM</strong> (it encrypts and at the same time detects modification, so-called <strong>AEAD</strong>) or CBC with a separate HMAC.</li>
+<li><strong>A critical rule:</strong> never use the same <strong>nonce</strong> with the same key twice in GCM - it breaks security.</li>
+</ul>
+<h2>Asymmetric encryption</h2>
+<p>The keys work as a pair: what you encrypt with one, you can decrypt only with the other. The private key can't practically be computed from the public one (RSA relies on the difficulty of factoring large numbers, ECC on the discrete logarithm problem on elliptic curves).</p>
+<p>Two uses that are easy to confuse:</p>
+<ol>
+<li><strong>Confidentiality:</strong> you encrypt with the <strong>recipient's public key</strong>, and only the owner of the private key can decrypt.</li>
+<li>
+<p><strong>Digital signature:</strong> you sign with <strong>your own private key</strong>, and everyone checks the signature with your public key. This proves that the document comes from you and hasn't been altered.</p>
+</li>
+<li>
+<p><strong>Advantages:</strong> no key distribution problem (the public key can be shared), enables signatures and certificates.</p>
+</li>
+<li><strong>Disadvantages:</strong> <strong>slow</strong> (hundreds of times slower than AES), RSA encrypts only short data, the keys are long. AES-128, RSA-3072 and ECC P-256 give similar strength, so ECC is much shorter and faster than RSA.</li>
+</ol>
+<h3>Comparison</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Symmetric</th>
+<th>Asymmetric</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Keys</td>
+<td>one shared, secret</td>
+<td>a pair: public and private</td>
+</tr>
+<tr>
+<td>Speed</td>
+<td>very fast</td>
+<td>slow</td>
+</tr>
+<tr>
+<td>Data size</td>
+<td>any</td>
+<td>small (practically keys, digests)</td>
+</tr>
+<tr>
+<td>Key distribution</td>
+<td>a problem</td>
+<td>solved (the public key is open)</td>
+</tr>
+<tr>
+<td>Digital signature</td>
+<td>no</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>Typical use</td>
+<td>data, disks, traffic</td>
+<td>key exchange, signatures, certificates</td>
+</tr>
+</tbody>
+</table>
+<h2>Hybrid encryption - this is how it's done in practice</h2>
+<p>Asymmetric solves the <strong>key exchange</strong>, symmetric <strong>encrypts the data</strong>. This is how HTTPS (TLS) and encrypted email (PGP, S/MIME) work: the content goes through AES, and the AES key is negotiated or encrypted with the recipient's public key.</p>
+<h2>Key agreement in TLS</h2>
+<p><strong>Goal:</strong> the client and server must arrive at a shared, secret symmetric key, even though they talk over a network that someone may be eavesdropping on. The key is never sent anywhere - each side computes it itself.</p>
+<h3>The idea: Diffie-Hellman (DH / ECDHE)</h3>
+<p>Each side picks a <strong>temporary</strong> secret and sends only its "image" (a public value). From its own secret and the other side's public value, both arrive at the same number. An example with small numbers (public: p = 23, g = 5):</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Client</th>
+<th>Server</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>picks a secret</td>
+<td>a = 6</td>
+<td>b = 15</td>
+</tr>
+<tr>
+<td>sends a public value</td>
+<td>A = 5^6 mod 23 = <strong>8</strong></td>
+<td>B = 5^15 mod 23 = <strong>19</strong></td>
+</tr>
+<tr>
+<td>computes the shared secret</td>
+<td>B^a mod 23 = 19^6 mod 23 = <strong>2</strong></td>
+<td>A^b mod 23 = 8^15 mod 23 = <strong>2</strong></td>
+</tr>
+</tbody>
+</table>
+<p>An eavesdropper sees 23, 5, 8 and 19, but without a or b can't compute 2. With real, enormous numbers (or points on an elliptic curve, hence <strong>ECDHE</strong>, e.g. the X25519 and P-256 curves), computing the secret from the public values alone is practically infeasible.</p>
+<h3>The TLS 1.3 handshake flow</h3>
+<ol>
+<li><strong>ClientHello</strong> - the client sends the ciphers it supports, a random value and immediately its <strong>ECDHE public value</strong> (<code>key_share</code>).</li>
+<li><strong>ServerHello</strong> - the server picks a cipher (e.g. <code>TLS_AES_256_GCM_SHA384</code>) and sends back its ECDHE public value. Both sides can now compute the shared secret.</li>
+<li>From the secret and a hash of the conversation so far, the <strong>HKDF</strong> function derives the symmetric keys. <strong>From this moment the rest of the handshake is already encrypted.</strong></li>
+<li><strong>Certificate</strong> - the server sends its certificate (a chain up to a trusted CA).</li>
+<li><strong>CertificateVerify</strong> - the server <strong>signs</strong> a hash of the whole conversation with its private key, and the client verifies the signature with the public key from the certificate.</li>
+<li><strong>Finished</strong> - both sides send an authentication code (an HMAC) of the entire handshake, which confirms that nobody altered it.</li>
+<li>Application data follows, encrypted symmetrically (AES-GCM or ChaCha20-Poly1305).</li>
+</ol>
+<p>The TLS 1.3 handshake takes one round trip (<strong>1-RTT</strong>). There is also a 0-RTT mode when resuming a session (faster, but with the risk of a request being replayed).</p>
+<h3>Why a certificate is indispensable</h3>
+<p>DH on its own <strong>doesn't authenticate anyone</strong>. A man-in-the-middle attacker (<strong>MITM</strong>) could agree one key with the client and another with the server and eavesdrop on both sides. That is why the server <strong>signs</strong> the handshake with its private key, and the client verifies the signature with the certificate of a trusted CA. Asymmetric cryptography plays two roles here: ECDHE creates the key, and the signature (RSA/ECDSA) proves the server's identity. More about certificates: <a href="webapi-security.html">Securing a Web API</a>.</p>
+<h3>Forward secrecy</h3>
+<p>ECDHE keys are <strong>ephemeral</strong> - generated for one session and thrown away afterwards. Even if the server's private key leaks a year from now, <strong>previously recorded traffic can't be decrypted</strong>, because the session key did not derive from the long-term key.</p>
+<h3>The old way: TLS 1.2 with key exchange through RSA</h3>
+<p>The client generated a random <em>pre-master secret</em> and encrypted it with the server's RSA public key. It worked, but <strong>without forward secrecy</strong>: whoever recorded the traffic and later obtained the private key could decrypt everything. TLS 1.3 <strong>removed</strong> key exchange through RSA and left only (EC)DH.</p>
+<h3>Key agreement in TLS in brief (an answer for an interview)</h3>
+<blockquote>
+<p>In TLS 1.3 the client and server exchange ephemeral ECDHE public keys and each side computes from them the same shared secret, which nobody sent. From the secret HKDF derives symmetric keys for AES-GCM. The server proves its identity by signing the handshake with the private key from its certificate, and because the DH keys are ephemeral, the traffic retains forward secrecy.</p>
+</blockquote>
+<h2>Hashing, HMAC and passwords</h2>
+<ul>
+<li>A <strong>hash</strong> (SHA-256) is a <strong>one-way</strong> function: the data yields a fixed-length digest, and the data can't be recovered from the digest. A small change in the data gives a completely different digest. It is used for integrity checks and as part of a signature.</li>
+<li><strong>HMAC</strong> is a hash with a <strong>secret key</strong>: it proves that the message hasn't been altered and that someone who knows the key sent it (e.g. the JWT signature in the HS256 algorithm).</li>
+<li><strong>Passwords:</strong> don't use plain SHA - it is too fast, so an attacker tries billions of guesses a second. Use a <strong>slow function with a salt</strong>: PBKDF2, bcrypt, scrypt or Argon2 (ASP.NET Identity uses PBKDF2 by default). A <strong>salt</strong> (random, unique per password) prevents rainbow-table attacks, and do the comparison in constant time (<code>CryptographicOperations.FixedTimeEquals</code>).</li>
+</ul>
+<h2>A working example - <code>CryptoDemo</code></h2>
+<p>A .NET 8 console application, with no extra packages (<code>dotnet new console -n CryptoDemo</code>, paste in <code>Program.cs</code>, <code>dotnet run</code>). It shows in turn: AES-GCM with modification detection, RSA (encryption and signature), Diffie-Hellman with small numbers (A=8, B=19, shared secret 2), ECDH with AES-GCM (hybrid encryption), ECDSA, and a hash, PBKDF2 and HMAC.</p>
+<pre><code class="language-csharp">using System.Numerics;
+using System.Security.Cryptography;
+using System.Text;
+
+static string Hex(byte[] data) =&gt; Convert.ToHexString(data)[..Math.Min(32, data.Length * 2)] + &quot;...&quot;;
+
+// ---------------------------------------------------------------
+// 1. Symmetric encryption: AES-GCM (confidentiality + integrity)
+// ---------------------------------------------------------------
+Console.WriteLine(&quot;=== 1. AES-GCM (symmetric) ===&quot;);
+byte[] key = RandomNumberGenerator.GetBytes(32);                          // 256-bit secret key
+byte[] nonce = RandomNumberGenerator.GetBytes(AesGcm.NonceByteSizes.MaxSize); // 12 bytes, unique per message
+byte[] plain = Encoding.UTF8.GetBytes(&quot;Top secret message&quot;);
+byte[] cipher = new byte[plain.Length];
+byte[] tag = new byte[AesGcm.TagByteSizes.MaxSize];                       // 16 bytes
+
+using (var aes = new AesGcm(key, tag.Length))
+{
+    aes.Encrypt(nonce, plain, cipher, tag);
+    Console.WriteLine($&quot;cipher: {Hex(cipher)}&quot;);
+
+    var decrypted = new byte[cipher.Length];
+    aes.Decrypt(nonce, cipher, tag, decrypted);
+    Console.WriteLine($&quot;decrypted: {Encoding.UTF8.GetString(decrypted)}&quot;);
+
+    cipher[0] ^= 1; // an attacker flips one bit
+    try { aes.Decrypt(nonce, cipher, tag, new byte[cipher.Length]); }
+    catch (CryptographicException) { Console.WriteLine(&quot;tampered data detected (authentication tag mismatch)&quot;); }
+}
+
+// ---------------------------------------------------------------
+// 2. Asymmetric encryption and signature: RSA
+// ---------------------------------------------------------------
+Console.WriteLine(&quot;\n=== 2. RSA (asymmetric) ===&quot;);
+using (var rsa = RSA.Create(2048))
+{
+    byte[] data = Encoding.UTF8.GetBytes(&quot;short message&quot;);
+
+    // confidentiality: encrypt with the PUBLIC key, decrypt with the PRIVATE key
+    byte[] encrypted = rsa.Encrypt(data, RSAEncryptionPadding.OaepSHA256);
+    byte[] decrypted = rsa.Decrypt(encrypted, RSAEncryptionPadding.OaepSHA256);
+    Console.WriteLine($&quot;RSA decrypted: {Encoding.UTF8.GetString(decrypted)}&quot;);
+
+    // signature: sign with the PRIVATE key, verify with the PUBLIC key
+    byte[] signature = rsa.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pss);
+    bool valid = rsa.VerifyData(data, signature, HashAlgorithmName.SHA256, RSASignaturePadding.Pss);
+    bool validAfterChange = rsa.VerifyData(Encoding.UTF8.GetBytes(&quot;other message&quot;), signature,
+        HashAlgorithmName.SHA256, RSASignaturePadding.Pss);
+    Console.WriteLine($&quot;signature valid: {valid}, after changing the message: {validAfterChange}&quot;);
+}
+
+// ---------------------------------------------------------------
+// 3. Key agreement (what happens in the TLS handshake)
+// ---------------------------------------------------------------
+Console.WriteLine(&quot;\n=== 3a. Diffie-Hellman on small numbers ===&quot;);
+BigInteger p = 23, g = 5;
+BigInteger a = 6, b = 15;                                // private values (never sent)
+BigInteger A = BigInteger.ModPow(g, a, p);               // public value of the client = 8
+BigInteger B = BigInteger.ModPow(g, b, p);               // public value of the server = 19
+Console.WriteLine($&quot;A={A}, B={B}&quot;);
+Console.WriteLine($&quot;client secret = {BigInteger.ModPow(B, a, p)}, server secret = {BigInteger.ModPow(A, b, p)}&quot;);
+
+Console.WriteLine(&quot;\n=== 3b. ECDH (P-256) + AES-GCM: hybrid encryption ===&quot;);
+using var client = ECDiffieHellman.Create(ECCurve.NamedCurves.nistP256);
+using var server = ECDiffieHellman.Create(ECCurve.NamedCurves.nistP256);
+// each side combines ITS private key with the OTHER side's public key
+byte[] clientKey = client.DeriveKeyFromHash(server.PublicKey, HashAlgorithmName.SHA256);
+byte[] serverKey = server.DeriveKeyFromHash(client.PublicKey, HashAlgorithmName.SHA256);
+Console.WriteLine($&quot;both sides derived the same 256-bit key: {clientKey.SequenceEqual(serverKey)}&quot;);
+
+byte[] n2 = RandomNumberGenerator.GetBytes(12);
+byte[] msg = Encoding.UTF8.GetBytes(&quot;hello over the 'TLS' channel&quot;);
+byte[] ct = new byte[msg.Length];
+byte[] t2 = new byte[16];
+using (var sender = new AesGcm(clientKey, 16)) sender.Encrypt(n2, msg, ct, t2);
+var pt = new byte[ct.Length];
+using (var receiver = new AesGcm(serverKey, 16)) receiver.Decrypt(n2, ct, t2, pt);
+Console.WriteLine($&quot;server read: {Encoding.UTF8.GetString(pt)}&quot;);
+
+// ---------------------------------------------------------------
+// 4. Digital signature with elliptic curves: ECDSA
+// ---------------------------------------------------------------
+Console.WriteLine(&quot;\n=== 4. ECDSA (signature) ===&quot;);
+using (var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256))
+{
+    byte[] document = Encoding.UTF8.GetBytes(&quot;Invoice #123, total 100 PLN&quot;);
+    byte[] sig = ecdsa.SignData(document, HashAlgorithmName.SHA256);
+    Console.WriteLine($&quot;valid: {ecdsa.VerifyData(document, sig, HashAlgorithmName.SHA256)}&quot;);
+}
+
+// ---------------------------------------------------------------
+// 5. Hashing and password storage
+// ---------------------------------------------------------------
+Console.WriteLine(&quot;\n=== 5. Hash and password hashing ===&quot;);
+byte[] sha = SHA256.HashData(Encoding.UTF8.GetBytes(&quot;abc&quot;));          // one-way, fast: NOT for passwords
+Console.WriteLine($&quot;SHA-256(abc) = {Convert.ToHexString(sha)[..16]}...&quot;);
+
+byte[] salt = RandomNumberGenerator.GetBytes(16);                      // unique per password
+byte[] hash = Rfc2898DeriveBytes.Pbkdf2(&quot;MyPassword!&quot;, salt, 600_000, HashAlgorithmName.SHA256, 32); // slow on purpose
+byte[] attempt = Rfc2898DeriveBytes.Pbkdf2(&quot;MyPassword!&quot;, salt, 600_000, HashAlgorithmName.SHA256, 32);
+Console.WriteLine($&quot;password matches: {CryptographicOperations.FixedTimeEquals(hash, attempt)}&quot;); // constant-time compare
+
+// HMAC: a hash with a secret key (integrity + authenticity of a message)
+byte[] mac = HMACSHA256.HashData(key, Encoding.UTF8.GetBytes(&quot;message&quot;));
+Console.WriteLine($&quot;HMAC = {Hex(mac)}&quot;);
+</code></pre>
+<p>If you prefer to have it in a single snippet, the most important are the three lines illustrating the hybrid: each side combines <strong>its own private key with the other's public key</strong>, and the AES key is created from the result:</p>
+<pre><code class="language-csharp">byte[] clientKey = client.DeriveKeyFromHash(server.PublicKey, HashAlgorithmName.SHA256);
+byte[] serverKey = server.DeriveKeyFromHash(client.PublicKey, HashAlgorithmName.SHA256);
+// clientKey == serverKey, and the key itself never travelled over the network
+</code></pre>
+<h2>The most common mistakes</h2>
+<ul>
+<li><strong>Hashing is not encryption</strong> - a digest can't be decrypted.</li>
+<li><strong>Base64 is an encoding</strong>, not encryption.</li>
+<li><strong>The public key can be disclosed, the private one never</strong> - keep it in Key Vault, an HSM or a certificate store, not in the repository.</li>
+<li><strong>Rolling your own cryptography is a bad idea</strong> - use <code>System.Security.Cryptography</code> and AEAD modes.</li>
+<li><strong>The same nonce twice in AES-GCM</strong> destroys security.</li>
+<li><strong>ECB</strong> reveals patterns in the data.</li>
+<li><strong>A signature is not "encryption with the private key"</strong> - in modern schemes (PSS, ECDSA) it is a separate operation.</li>
+</ul>
+<h2>Interview questions</h2>
+<ul>
+<li><strong>How does symmetric encryption differ from asymmetric?</strong> Symmetric uses one shared key and is fast, but requires the key to be passed on securely. Asymmetric uses a key pair, solves key exchange and enables signatures, but is slow.</li>
+<li><strong>How does HTTPS work?</strong> The client and server agree a session key through ECDHE, the server proves its identity with a signature and a certificate, and the data is encrypted symmetrically (AES-GCM).</li>
+<li><strong>What is forward secrecy?</strong> Session keys are ephemeral, so a leak of the server's private key doesn't allow old traffic to be decrypted.</li>
+<li><strong>Why isn't Diffie-Hellman alone enough?</strong> It doesn't authenticate the parties, so it is vulnerable to MITM. A signature and a certificate are needed.</li>
+<li><strong>Hash, encryption and encoding?</strong> A hash is one-way, encryption is reversible with a key, encoding (Base64) is reversible without a key.</li>
+<li><strong>How should passwords be stored?</strong> A slow function with a salt (PBKDF2, bcrypt, Argon2), never plain SHA or encryption.</li>
+<li><strong>Why is ECB mode bad?</strong> Identical plaintext blocks give identical ciphertexts, so patterns leak.</li>
+</ul>
+  <div class="topic-nav"><a class="prev" href="sdlc.html"><span class="lbl">← back</span>SDLC - Software Development Life Cycle</a><a class="next" href="webapi-security.html"><span class="lbl">next →</span>Securing a Web API: JWT, OAuth2, OIDC, SSO, certificates</a></div>
+</div>
+    </div>
+  </main>
+</div>
+
+<a class="fab coffee-btn" href="https://www.naffy.io/radoslaw-jaszek-znpwl/net-csharp-kompendium" target="_blank" rel="noopener noreferrer" aria-label="Buy me a coffee" title="Buy me a coffee">
+  <span class="coffee-label">Buy me a coffee</span>
+  <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M6 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/></svg>
+</a>
+
+<button type="button" class="fab theme-toggle" id="themeToggle" aria-label="Switch dark/light mode" title="Light mode">
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4" y1="12" x2="2" y2="12"/><line x1="22" y1="12" x2="20" y2="12"/><line x1="19.07" y1="4.93" x2="17.66" y2="6.34"/><line x1="6.34" y1="17.66" x2="4.93" y2="19.07"/><line x1="19.07" y1="19.07" x2="17.66" y2="17.66"/><line x1="6.34" y1="6.34" x2="4.93" y2="4.93"/>
+  </svg>
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </svg>
+</button>
+
+<button type="button" class="fab width-toggle" id="widthToggle" aria-label="Full width" title="Narrow content">
+  <svg id="widthToggleIcon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="10" y1="14" x2="3" y2="21"/>
+  </svg>
+</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
+<script src="../../app.js?v=3"></script>
+</body>
+</html>

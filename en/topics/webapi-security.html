@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Securing a Web API: JWT, OAuth2, OIDC, SSO, certificates — .NET / C# Interview Compendium</title>
+<link rel="alternate" hreflang="pl" href="https://net-csharp-kompendium.rhoster.pl/topics/webapi-security.html" />
+<link rel="alternate" hreflang="en" href="https://net-csharp-kompendium.rhoster.pl/en/topics/webapi-security.html" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/nord.min.css">
+<link rel="stylesheet" href="../../styles.css?v=3">
+</head>
+<body>
+
+<div class="topbar">
+  <button class="burger" id="burgerBtn" aria-label="Menu">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <a class="brand" id="topbarBrand" href="../index.html"><b>C#</b> / .NET Compendium</a>
+  <span class="lang-bar"><a data-lang-switch href="../../topics/webapi-security.html" hreflang="pl" lang="pl" title="Polska wersja">PL</a><a class="active" data-lang-switch href="webapi-security.html" hreflang="en" lang="en" title="English version">EN</a></span>
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <span class="lang-bar"><a data-lang-switch href="../../topics/webapi-security.html" hreflang="pl" lang="pl" title="Polska wersja">PL</a><a class="active" data-lang-switch href="webapi-security.html" hreflang="en" lang="en" title="English version">EN</a></span>
+    <a class="sidebar-head" id="sidebarHead" href="../index.html">
+      <h1>.NET &amp; C# Compendium</h1>
+      <div class="sub">Interview notes organised as section → topic</div>
+    </a>
+    <div class="search-wrap">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="searchInput" placeholder="Search topics…" autocomplete="off" />
+      </div>
+      <div class="search-count" id="searchCount"></div>
+    </div>
+    <nav class="nav" id="navList">
+<details class="nav-group" data-cat-id="solid">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      SOLID, Clean Code, DI
+    </span>
+    <span class="n">11</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="oop-enterprise" data-tags="oop encapsulation inheritance polymorphism abstraction enterprise overengineering yagni" href="../topics/oop-enterprise.html">OOP and &quot;Enterprise OOP&quot;</a>
+    <a class="nav-item" data-topic-id="solid-basics" data-tags="solid srp ocp lsp isp dip" href="../topics/solid-basics.html">SOLID principles</a>
+    <a class="nav-item" data-topic-id="clean-code" data-tags="clean code readability naming dry" href="../topics/clean-code.html">Clean Code</a>
+    <a class="nav-item" data-topic-id="di-mvvm-concept" data-tags="di dependency injection mvvm viewmodel" href="../topics/di-mvvm-concept.html">DI in MVVM — the concept</a>
+    <a class="nav-item" data-topic-id="di-mvvm-wpf" data-tags="wpf mvvm di viewmodelbase servicecollection" href="../topics/di-mvvm-wpf.html">MVVM + DI in WPF (full example)</a>
+    <a class="nav-item" data-topic-id="lifetimes" data-tags="di lifetime singleton transient scoped captive dependency" href="../topics/lifetimes.html">Singleton vs Transient vs Scoped</a>
+    <a class="nav-item" data-topic-id="scope-factory-threadsafe" data-tags="scope factory singleton thread safe lock interlocked" href="../topics/scope-factory-threadsafe.html">IServiceScopeFactory and thread-safety</a>
+    <a class="nav-item" data-topic-id="di-methods" data-tags="constructor property method injection service locator anti-pattern" href="../topics/di-methods.html">Ways to implement DI</a>
+    <a class="nav-item" data-topic-id="ioc" data-tags="ioc di hollywood principle template method middleware" href="../topics/ioc.html">Inversion of Control (IoC)</a>
+    <a class="nav-item" data-topic-id="clean-architecture" data-tags="clean architecture dependency rule onion hexagonal domain application infrastructure use case ports adapters composition root netarchtest vertical slice aggregate root ddd domain events cqrs commands queries mediatr" href="../topics/clean-architecture.html">Clean Architecture</a>
+    <a class="nav-item" data-topic-id="ddd" data-tags="ddd domain driven design aggregate entity value object bounded context ubiquitous language domain service domain events repository anemic model rich model strategic tactical" href="../topics/ddd.html">DDD - Domain-Driven Design</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="wpf">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      WPF
+    </span>
+    <span class="n">4</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="wpf-recap" data-tags="wpf dependency property routed event data binding visual tree" href="../topics/wpf-recap.html">WPF — what to refresh</a>
+    <a class="nav-item" data-topic-id="synccontext" data-tags="async await synchronizationcontext configureawait deadlock ui thread" href="../topics/synccontext.html">SynchronizationContext and ConfigureAwait</a>
+    <a class="nav-item" data-topic-id="icommand" data-tags="icommand relaycommand canexecute commandmanager async void" href="../topics/icommand.html">ICommand and RelayCommand</a>
+    <a class="nav-item" data-topic-id="callermembername" data-tags="callermembername inotifypropertychanged magic string nameof" href="../topics/callermembername.html">[CallerMemberName]</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="csharp">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      C# — language fundamentals
+    </span>
+    <span class="n">14</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="delegates" data-tags="delegate action func predicate multicast event" href="../topics/delegates.html">Delegates</a>
+    <a class="nav-item" data-topic-id="callback-vs-function" data-tags="callback function control flow inversion" href="../topics/callback-vs-function.html">Callback vs function</a>
+    <a class="nav-item" data-topic-id="underscore" data-tags="discard underscore lambda separator digit" href="../topics/underscore.html">The &quot;_&quot; character in C#</a>
+    <a class="nav-item" data-topic-id="class-vs-record" data-tags="record class equality value reference with init" href="../topics/class-vs-record.html">Class vs record</a>
+    <a class="nav-item" data-topic-id="record-declaration" data-tags="record positional syntax deconstruct equals hashcode generated code" href="../topics/record-declaration.html">record vs class declaration</a>
+    <a class="nav-item" data-topic-id="record-vs-class-compare" data-tags="equals gethashcode referenceequals iequatable iequalitycomparer" href="../topics/record-vs-class-compare.html">How to compare record and class</a>
+    <a class="nav-item" data-topic-id="abstract-vs-interface" data-tags="abstract interface multiple inheritance template method" href="../topics/abstract-vs-interface.html">Abstract class vs interface</a>
+    <a class="nav-item" data-topic-id="access-modifiers" data-tags="public private protected internal protected internal private protected" href="../topics/access-modifiers.html">Access modifiers</a>
+    <a class="nav-item" data-topic-id="inheritance-modifiers" data-tags="virtual abstract override sealed new method hiding polymorphism" href="../topics/inheritance-modifiers.html">Inheritance modifiers</a>
+    <a class="nav-item" data-topic-id="lock-mutex-semaphore" data-tags="lock mutex semaphore semaphoreslim thread synchronization async" href="../topics/lock-mutex-semaphore.html">lock, Mutex, Semaphore</a>
+    <a class="nav-item" data-topic-id="struct" data-tags="struct value type stack boxing readonly struct" href="../topics/struct.html">struct</a>
+    <a class="nav-item" data-topic-id="struct-vs-record" data-tags="record struct readonly record struct value reference" href="../topics/struct-vs-record.html">struct vs record</a>
+    <a class="nav-item" data-topic-id="icomparable" data-tags="icomparable compareto sorting comparer sort orderby" href="../topics/icomparable.html">IComparable</a>
+    <a class="nav-item" data-topic-id="ienumerable-iqueryable" data-tags="ienumerable iqueryable expression func deferred execution ef core" href="../topics/ienumerable-iqueryable.html">IEnumerable vs IQueryable</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="web">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Web API, Blazor
+    </span>
+    <span class="n">12</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="webapi-mvc" data-tags="webapi mvc controller dto apicontroller minimal api" href="../topics/webapi-mvc.html">Web API as an implementation of MVC</a>
+    <a class="nav-item" data-topic-id="model-binding" data-tags="fromroute fromquery frombody fromheader fromservices apicontroller" href="../topics/model-binding.html">Model Binding and [FromBody]</a>
+    <a class="nav-item" data-topic-id="actionresult" data-tags="actionresult ok notfound badrequest problemdetails result pattern" href="../topics/actionresult.html">ActionResult&lt;T&gt; — returning results and errors</a>
+    <a class="nav-item" data-topic-id="actionresult-client" data-tags="httpclient apiresult wpf blazor consuming api statuscode" href="../topics/actionresult-client.html">ActionResult on the client side</a>
+    <a class="nav-item" data-topic-id="db-webapi" data-tags="dbcontext connection string appsettings migrations di" href="../topics/db-webapi.html">Connecting a database to Web API</a>
+    <a class="nav-item" data-topic-id="blazor-mvc" data-tags="blazor component mvvm razor lifecycle" href="../topics/blazor-mvc.html">Blazor — is NOT MVC</a>
+    <a class="nav-item" data-topic-id="signalr-blazor" data-tags="signalr circuit websocket blazor server sticky sessions" href="../topics/signalr-blazor.html">SignalR in Blazor Server</a>
+    <a class="nav-item" data-topic-id="pwa-rendermodes" data-tags="pwa progressive web app service worker render modes blazor united" href="../topics/pwa-rendermodes.html">PWA and Render Modes</a>
+    <a class="nav-item" data-topic-id="blazor-structure" data-tags="blazor wasm server project structure shared client program.cs" href="../topics/blazor-structure.html">Blazor project structure</a>
+    <a class="nav-item" data-topic-id="endpoint-routing" data-tags="endpoint routing middleware useendpoints minimal api authorization metadata" href="../topics/endpoint-routing.html">Endpoint Routing in ASP.NET Core</a>
+    <a class="nav-item" data-topic-id="iis-hosting-models" data-tags="iis ancm kestrel w3wp hosting model inprocess outofprocess" href="../topics/iis-hosting-models.html">In-process vs Out-of-process (IIS)</a>
+    <a class="nav-item" data-topic-id="rate-limiting" data-tags="rate limiting throttling fixed window sliding token bucket concurrency 429" href="../topics/rate-limiting.html">Rate Limiting in ASP.NET Core</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="ef">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Entity Framework Core
+    </span>
+    <span class="n">6</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="ef-basics" data-tags="dbcontext dbset asnotracking include n+1 migrations" href="../topics/ef-basics.html">EF Core basics</a>
+    <a class="nav-item" data-topic-id="repo-uow" data-tags="repository unit of work dbset savechanges extension methods" href="../topics/repo-uow.html">Repository + Unit of Work over EF Core</a>
+    <a class="nav-item" data-topic-id="ef-async" data-tags="async await io cpu bound task run layers" href="../topics/ef-async.html">Async in EF Core — when yes, when no</a>
+    <a class="nav-item" data-topic-id="change-tracking" data-tags="snapshot statemanager detectchanges identity map entitystate" href="../topics/change-tracking.html">Change Tracking under the hood</a>
+    <a class="nav-item" data-topic-id="migrations-team" data-tags="migrations modelsnapshot conflicts git idempotent script sql" href="../topics/migrations-team.html">Migrations in a team</a>
+    <a class="nav-item" data-topic-id="ef-transactions" data-tags="savechangesasync begintransaction executionstrategy isolation level savepoints" href="../topics/ef-transactions.html">EF Core and transactions</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="cqrs">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      CQRS, MediatR
+    </span>
+    <span class="n">2</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="cqrs-what" data-tags="cqrs cqs command query segregation event sourcing eventual consistency" href="../topics/cqrs-what.html">What CQRS is</a>
+    <a class="nav-item" data-topic-id="cqrs-mediatr" data-tags="mediatr irequest irequesthandler pipeline behavior send" href="../topics/cqrs-mediatr.html">MediatR — how it works and how to use it</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="testing">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Testing
+    </span>
+    <span class="n">3</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="xunit" data-tags="xunit fact theory inlinedata memberdata classfixture aaa" href="../topics/xunit.html">xUnit — the basics</a>
+    <a class="nav-item" data-topic-id="moq" data-tags="moq mock setup verify times itisany callback" href="../topics/moq.html">Moq — mocking</a>
+    <a class="nav-item" data-topic-id="integration-tests" data-tags="webapplicationfactory testcontainers test pyramid inmemory" href="../topics/integration-tests.html">Integration tests</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="algo">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Algorithms, data structures
+    </span>
+    <span class="n">5</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="bigo" data-tags="big o complexity hashset dictionary list queue stack" href="../topics/bigo.html">Big O and .NET data structures</a>
+    <a class="nav-item" data-topic-id="hashset" data-tags="hashset unique elements equalitycomparer intersect union except" href="../topics/hashset.html">HashSet&lt;T&gt;</a>
+    <a class="nav-item" data-topic-id="extension-methods" data-tags="extension methods this static linq where select" href="../topics/extension-methods.html">Extension Methods</a>
+    <a class="nav-item" data-topic-id="iequatable" data-tags="iequatable equals gethashcode boxing struct record" href="../topics/iequatable.html">IEquatable&lt;T&gt;</a>
+    <a class="nav-item" data-topic-id="concurrentqueue" data-tags="concurrentqueue concurrent collections thread lock-free producer consumer channel" href="../topics/concurrentqueue.html">ConcurrentQueue&lt;T&gt;</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="automapper">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      AutoMapper
+    </span>
+    <span class="n">1</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="automapper-basics" data-tags="automapper profile projectto reversemap assertconfigurationisvalid" href="../topics/automapper-basics.html">AutoMapper</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="distributed">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Distributed architecture
+    </span>
+    <span class="n">8</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="saga" data-tags="saga orchestration choreography compensating transaction idempotency" href="../topics/saga.html">Saga Pattern</a>
+    <a class="nav-item" data-topic-id="outbox" data-tags="outbox pattern dual write at least once idempotent cdc debezium" href="../topics/outbox.html">Outbox Pattern</a>
+    <a class="nav-item" data-topic-id="reference-data" data-tags="reference data dictionaries denormalization synchronous polling cache ttl" href="../topics/reference-data.html">Reference data across microservices</a>
+    <a class="nav-item" data-topic-id="kafka" data-tags="kafka topic partition consumer group retention at least once producer consumer" href="../topics/kafka.html">Apache Kafka</a>
+    <a class="nav-item" data-topic-id="docker-k8s" data-tags="docker container image kubernetes pod deployment service self healing" href="../topics/docker-k8s.html">Docker, containers, Kubernetes</a>
+    <a class="nav-item" data-topic-id="rebus-servicebus" data-tags="rebus servicebus messagebus rabbitmq masstransit saga" href="../topics/rebus-servicebus.html">Rebus (.NET Service Bus)</a>
+    <a class="nav-item" data-topic-id="rabbitmq-fundamentals" data-tags="rabbitmq amqp broker exchange queue push pull" href="../topics/rabbitmq-fundamentals.html">How RabbitMQ works (AMQP vs HTTP)</a>
+    <a class="nav-item" data-topic-id="kafka-vs-rabbitmq" data-tags="kafka rabbitmq comparison confluent rabbitmq.client producer consumer" href="../topics/kafka-vs-rabbitmq.html">Kafka vs RabbitMQ - comparison and implementation</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="memory">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Memory and threads
+    </span>
+    <span class="n">2</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="memory-management" data-tags="garbage collector gc generations loh workstation server gc cgroups datas" href="../topics/memory-management.html">Memory management: Framework, Core, .NET</a>
+    <a class="nav-item" data-topic-id="async-thread" data-tags="async await thread pool i/o completion ports task run state machine" href="../topics/async-thread.html">Does async create a new thread?</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="recap">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Refresher / web patterns
+    </span>
+    <span class="n">3</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="mvc-mvvm-mvp" data-tags="mvc mvvm mvp controller presenter viewmodel examples" href="../topics/mvc-mvvm-mvp.html">MVC, MVVM, MVP — comparison</a>
+    <a class="nav-item" data-topic-id="dto-mvvm-placement" data-tags="dto models folder project structure wpf" href="../topics/dto-mvvm-placement.html">Where to put DTOs in an MVVM project</a>
+    <a class="nav-item" data-topic-id="code-review-example" data-tags="singleton anti-pattern socket exhaustion httpclientfactory code review" href="../topics/code-review-example.html">Code review example — HttpClientFactory</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="process">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Process and methodologies
+    </span>
+    <span class="n">1</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="sdlc" data-tags="sdlc waterfall agile scrum devops ci cd v-model process methodology" href="../topics/sdlc.html">SDLC - Software Development Life Cycle</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="security" open>
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Security
+    </span>
+    <span class="n">5</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="crypto-basics" data-tags="cryptography encryption symmetric asymmetric aes rsa ecdh diffie hellman tls handshake forward secrecy hash hmac pbkdf2 signature public key private key gcm" href="../topics/crypto-basics.html">Cryptography: symmetric and asymmetric encryption, TLS</a>
+    <a class="nav-item" data-topic-id="webapi-security" data-tags="security webapi jwt oauth oauth2 oidc openid connect sso saml certificate tls mtls certificate pinning authentication authorization bearer idor bola scope policy jwks" href="../topics/webapi-security.html">Securing a Web API: JWT, OAuth2, OIDC, SSO, certificates</a>
+    <a class="nav-item" data-topic-id="multi-tenancy" data-tags="tenant multi-tenancy multitenancy saas entra azure ad data isolation global query filter tenantid cross-tenant bola idor" href="../topics/multi-tenancy.html">Multi-tenancy and Web API security: what a tenant is</a>
+    <a class="nav-item" data-topic-id="refresh-token" data-tags="refresh token access token rotation reuse detection offline_access oauth jwt session logout bff httponly cookie token family" href="../topics/refresh-token.html">Refresh token: how it works and when to use it</a>
+    <a class="nav-item" data-topic-id="api-client-credentials" data-tags="client credentials oauth2 openiddict api key m2m machine server-to-server scope pricing rate limiting client_id client_secret" href="../topics/api-client-credentials.html">API for companies: Client Credentials, API keys and OpenIddict</a>
+  </div>
+</details>
+    </nav>
+  </aside>
+
+  <main class="main wide" id="mainArea">
+    <div class="content" id="content">
+<div class="topic">
+  <div class="crumb">.NET / C# <span class="sep">/</span> <span class="cat">Security</span></div>
+  
+  <h1>Securing a Web API: JWT, OAuth 2.0, OIDC, SSO and certificates</h1>
+<p>Securing a Web API is several independent layers. You have to distinguish <strong>authentication</strong> (who you are), <strong>authorization</strong> (what you're allowed to do) and protection of the <strong>channel</strong> (TLS, certificates) and of <strong>the application itself</strong> (validation, limits). The cryptography basics this rests on are in the topic <a href="crypto-basics.html">Cryptography: symmetric and asymmetric encryption, hashing, TLS</a>.</p>
+<h2>1. Authentication: how the API knows who is asking</h2>
+<table>
+<thead>
+<tr>
+<th>Mechanism</th>
+<th>How it works</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Basic Auth</strong></td>
+<td><code>Authorization: Basic base64(user:pass)</code> on every request</td>
+<td>only over HTTPS, simple internal tools; avoid in new systems</td>
+</tr>
+<tr>
+<td><strong>API Key</strong></td>
+<td>a fixed key in a header (<code>X-Api-Key</code>)</td>
+<td>machine-to-machine integrations, public APIs with limits; identifies the client, not the user</td>
+</tr>
+<tr>
+<td><strong>JWT Bearer</strong></td>
+<td>the client sends a signed token <code>Authorization: Bearer &lt;jwt&gt;</code>, the API verifies the signature, <code>exp</code>, <code>iss</code>, <code>aud</code> without looking into the database</td>
+<td>SPAs, mobile apps, microservices</td>
+</tr>
+<tr>
+<td><strong>OAuth 2.0 / OIDC</strong></td>
+<td>tokens are issued by an authorization server (see below)</td>
+<td>login through an external provider, SSO, delegated access</td>
+</tr>
+<tr>
+<td><strong>Cookie</strong></td>
+<td>a session in a cookie (<code>HttpOnly</code>, <code>Secure</code>, <code>SameSite</code>)</td>
+<td>MVC/Razor and Blazor Server on a single domain; less common in a pure API</td>
+</tr>
+<tr>
+<td><strong>mTLS</strong> (a client certificate)</td>
+<td>both sides present a certificate</td>
+<td>service-to-service communication, banking, IoT</td>
+</tr>
+</tbody>
+</table>
+<h2>2. JWT, OAuth 2.0, OpenID Connect and SSO are not the same thing</h2>
+<ul>
+<li><strong>JWT</strong> is a <strong>token format</strong>: a header, a payload with claims and a signature (<code>xxxxx.yyyyy.zzzzz</code>, the parts in Base64URL). On its own it is not a login protocol.</li>
+<li><strong>OAuth 2.0</strong> is a <strong>delegated authorization protocol</strong>: "application X may read my data in service Y on my behalf". It issues an <em>access token</em> (often a JWT) and a <em>refresh token</em>. It <strong>is not</strong> a login protocol.</li>
+<li><strong>OpenID Connect (OIDC)</strong> is an <strong>identity layer on top of OAuth 2.0</strong>: it adds an <em>ID token</em> saying who the user is. It is OIDC that implements "sign in with Google/Microsoft".</li>
+<li><strong>SSO (Single Sign-On)</strong> is a <strong>goal</strong>: to log in once and have access to many applications. It is achieved through OIDC or <strong>SAML</strong> (older, popular in corporations) with a central identity provider (Entra ID, Keycloak, Auth0, Okta, Duende IdentityServer).</li>
+</ul>
+<p>In practice the <strong>Identity Provider</strong> issues tokens (OIDC/OAuth 2.0), and the <strong>API</strong> (the resource server) only <strong>validates</strong> them. The API shouldn't handle passwords itself if it can be avoided.</p>
+<h3>OAuth 2.0 flows (grant types)</h3>
+<ul>
+<li><strong>Authorization Code + PKCE</strong> - the standard for SPAs, mobile and web applications with a user. The browser receives a one-time <em>code</em>, exchanges it for a token, and PKCE protects against its interception.</li>
+<li><strong>Client Credentials</strong> - service-to-service communication, with no user (the client authenticates with a secret or a certificate).</li>
+<li><strong>Implicit</strong> and <strong>Password</strong> are obsolete - don't use them in new systems.</li>
+</ul>
+<h2>3. Authorization: what is allowed</h2>
+<p>In ASP.NET Core usually several levels:</p>
+<ul>
+<li><strong>Roles</strong> - <code>[Authorize(Roles = "Admin")]</code>,</li>
+<li><strong>Claims and policies</strong> - <code>[Authorize(Policy = "CanEditOrders")]</code>, i.e. more flexible rules,</li>
+<li><strong>Scopes in the token</strong> - e.g. <code>orders.read</code>, <code>orders.write</code>,</li>
+<li><strong>Resource authorization</strong> - whether this user may edit <em>this specific</em> record (<code>IAuthorizationService</code> or an ownership check in the handler). Omitting it is the most common <strong>BOLA/IDOR</strong> hole: you change <code>/orders/5</code> to <code>/orders/6</code> in the address and see somebody else's data.</li>
+</ul>
+<p>The difference in response codes: <strong>401 Unauthorized</strong> = a missing or bad token (we don't know who you are), <strong>403 Forbidden</strong> = we know who you are, but you're not allowed.</p>
+<h2>4. Certificates in securing an API</h2>
+<h3>4.1 The server certificate (TLS / HTTPS) - the foundation</h3>
+<p>An X.509 certificate binds a <strong>public key</strong> to an <strong>identity</strong> (a domain) and is <strong>signed by a trusted CA</strong>. The client checks the chain of trust, validity, name match (SAN) and revocation (CRL/OCSP). This gives three things: <strong>encryption</strong>, <strong>server authentication</strong> and <strong>integrity</strong>. Details of key agreement: <a href="crypto-basics.html">Cryptography</a>.</p>
+<ul>
+<li>A public API uses a certificate from a public CA (e.g. <strong>Let's Encrypt</strong>, renewed automatically every 90 days).</li>
+<li>TLS is often <strong>terminated at a reverse proxy / load balancer</strong> (nginx, OpenLiteSpeed, Azure Front Door, Cloudflare), and traffic goes to Kestrel locally.</li>
+<li>Enable <strong>HSTS</strong> (<code>app.UseHsts()</code>) and the redirect from HTTP (<code>app.UseHttpsRedirection()</code>).</li>
+<li>Locally: <code>dotnet dev-certs https --trust</code> (a development certificate, <strong>not for production</strong>).</li>
+</ul>
+<h3>4.2 mTLS: authentication with a client certificate</h3>
+<p>In <strong>mutual TLS</strong> the <strong>client</strong> also presents a certificate, and the server checks whether a trusted CA issued it. The private key is never sent, so it can't be intercepted or guessed.</p>
+<ul>
+<li><strong>Makes sense:</strong> service-to-service communication (often automatically in a service mesh: Istio, Linkerd), B2B integrations, banking (PSD2 requires qualified certificates), IoT devices.</li>
+<li><strong>Doesn't make sense:</strong> a public SPA with end users - installing and rotating certificates on every device is too burdensome.</li>
+</ul>
+<p>Kestrel requiring a client certificate (the <code>Microsoft.AspNetCore.Authentication.Certificate</code> package):</p>
+<pre><code class="language-csharp">builder.WebHost.ConfigureKestrel(k =&gt;
+{
+    k.ConfigureHttpsDefaults(https =&gt;
+    {
+        https.ClientCertificateMode = ClientCertificateMode.RequireCertificate;
+    });
+});
+
+builder.Services
+    .AddAuthentication(CertificateAuthenticationDefaults.AuthenticationScheme)
+    .AddCertificate(options =&gt;
+    {
+        options.AllowedCertificateTypes = CertificateTypes.Chained; // only certs chained to a trusted CA
+        options.RevocationMode = X509RevocationMode.Online;         // check CRL/OCSP
+
+        options.Events = new CertificateAuthenticationEvents
+        {
+            OnCertificateValidated = ctx =&gt;
+            {
+                // extra check: allow only known thumbprints
+                var allowed = new[] { &quot;A1B2C3...THUMBPRINT&quot; };
+                if (!allowed.Contains(ctx.ClientCertificate.Thumbprint, StringComparer.OrdinalIgnoreCase))
+                {
+                    ctx.Fail(&quot;Unknown client certificate&quot;);
+                    return Task.CompletedTask;
+                }
+
+                var claims = new[] { new Claim(ClaimTypes.Name, ctx.ClientCertificate.Subject) };
+                ctx.Principal = new ClaimsPrincipal(new ClaimsIdentity(claims, ctx.Scheme.Name));
+                ctx.Success();
+                return Task.CompletedTask;
+            }
+        };
+    });
+</code></pre>
+<p>A C# client (<code>HttpClient</code> with a certificate):</p>
+<pre><code class="language-csharp">var cert = new X509Certificate2(&quot;client.pfx&quot;, &quot;pfx-password&quot;);
+var handler = new HttpClientHandler();
+handler.ClientCertificates.Add(cert);
+
+using var client = new HttpClient(handler) { BaseAddress = new Uri(&quot;https://api.example.com&quot;) };
+var response = await client.GetAsync(&quot;/api/orders&quot;);
+</code></pre>
+<p><strong>A trap - the reverse proxy:</strong> if TLS is terminated at the proxy, Kestrel <strong>won't see</strong> the client certificate. The proxy has to forward it in a header (e.g. <code>X-ARR-ClientCert</code>), and the application read it through <code>AddCertificateForwarding</code> and <code>app.UseCertificateForwarding()</code>. Trust such a header <strong>only from your own proxy</strong>, because otherwise anyone can forge it.</p>
+<h3>4.3 Certificates and keys in JWT tokens</h3>
+<ul>
+<li><strong>The JWT signature:</strong> the identity provider signs the token with a private key (RS256/ES256), and the API checks the signature with a public key fetched from the <strong>JWKS</strong> endpoint (<code>/.well-known/jwks.json</code>). The API knows no secret, and keys can be rotated. A symmetric signature (HS256) requires both sides to know the secret, so with many services it is risky.</li>
+<li><strong>Certificate-bound tokens (RFC 8705):</strong> the token contains a <code>cnf</code> claim with the client certificate's thumbprint, so a stolen token is useless without the private key (used in banking, FAPI).</li>
+<li><strong>Client authentication in OAuth 2.0:</strong> the client proves itself to the authorization server with a certificate (<code>tls_client_auth</code>) or a signed JWT (<code>private_key_jwt</code>) instead of a shared secret.</li>
+</ul>
+<h3>4.4 Certificate pinning</h3>
+<p>The client (usually a mobile app) <strong>knows in advance</strong> the expected certificate or public key of the server and rejects any other, even one issued by a trusted CA. This protects against a forged certificate and MITM if a CA is compromised. The downside: the risk of "killing" the application when the certificate is replaced, so you pin rather the public key or an intermediate certificate and have a contingency plan. In .NET this is done through <code>ServerCertificateCustomValidationCallback</code>.</p>
+<h3>4.5 The certificate life cycle - the most common source of outages</h3>
+<ul>
+<li><strong>Expiry:</strong> a certificate that wasn't renewed can take production down. Automate renewals (ACME/certbot, Azure Key Vault) and monitor the dates.</li>
+<li><strong>Rotation:</strong> plan the replacement without downtime (for a while both the old and the new certificate are valid).</li>
+<li><strong>The private key:</strong> not in the repository or in <code>appsettings.json</code>. Use Key Vault, an HSM or the system's certificate store, and protect the <code>.pfx</code> file with a password.</li>
+<li><strong>Revocation:</strong> after a key leak the certificate has to be revoked (CRL/OCSP). A shorter certificate lifetime reduces the damage.</li>
+<li><strong>Your own CA</strong> for microservices inside the company: step-ca, HashiCorp Vault PKI, Active Directory Certificate Services. Remember to distribute the root certificate.</li>
+</ul>
+<h2>5. Other layers of protection</h2>
+<ul>
+<li><strong>HTTPS and HSTS</strong> - without this, tokens and passwords travel in plain text.</li>
+<li><strong>Input validation</strong> - DTOs instead of entities (against <em>over-posting</em>), FluentValidation, parameterised queries (EF) against SQL injection.</li>
+<li><strong>CORS</strong> restricted to known origins (this is browser protection, not protection of the API as such).</li>
+<li><strong>Rate limiting / throttling</strong> against brute force and abuse - see <a href="rate-limiting.html">Rate limiting</a>.</li>
+<li><strong>Anti-CSRF</strong> - only when you use cookies. With a token in the <code>Authorization</code> header CSRF doesn't apply.</li>
+<li><strong>Passwords</strong> - a salted hash (PBKDF2/bcrypt/Argon2), never encryption or a raw hash.</li>
+<li><strong>Secrets</strong> in Key Vault, environment variables or User Secrets.</li>
+<li><strong>Errors</strong> - no stack traces for the client (<code>ProblemDetails</code>), logging and auditing of security events.</li>
+<li><strong>An API Gateway / WAF</strong> (Azure API Management, Kong, YARP) as a central point for authentication, limits and filtering.</li>
+</ul>
+<h2>6. JWT: the most common pitfalls</h2>
+<ul>
+<li>The token is <strong>signed, not encrypted</strong> - don't put secrets in it, anyone can read the payload.</li>
+<li><strong>Revocation is hard</strong> (the token is self-contained), so use a <strong>short access token lifetime</strong> (5-15 min) and a <strong>refresh token</strong> (rotated, stored securely), optionally a list of revoked tokens.</li>
+<li>Always validate <strong>the signature, <code>exp</code>, <code>iss</code>, <code>aud</code></strong>, and set the allowed algorithms explicitly (the <code>alg: none</code> attack and confusing RS256 with HS256).</li>
+<li><strong>Where to keep the token in a SPA:</strong> <code>localStorage</code> is vulnerable to XSS, and an <code>HttpOnly</code> cookie to CSRF (you need <code>SameSite</code> and CSRF protection). The <strong>BFF (Backend for Frontend)</strong> pattern keeps tokens on the server side.</li>
+</ul>
+<h2>7. A working example - <code>SecureApiDemo</code></h2>
+<p>A minimal API (.NET 8, the <code>Microsoft.AspNetCore.Authentication.JwtBearer</code> package). It shows: issuing a token, JWT validation, a scope-based policy, a role, and <strong>resource authorization</strong> (a user sees only their own order). The token is issued here by the API itself purely for demo purposes - in production the identity provider does it, and the API only validates.</p>
+<pre><code class="language-csharp">using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// DEMO ONLY: in production the key lives in a secret store (Key Vault) and tokens are issued
+// by an identity provider (Entra ID, Keycloak, Duende...). Here the API issues tokens itself.
+const string Issuer = &quot;https://demo.local&quot;;
+const string Audience = &quot;orders-api&quot;;
+var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(&quot;demo-key-change-me-at-least-32-bytes-long!!&quot;));
+
+// ---- AUTHENTICATION: who is calling? ----
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(o =&gt;
+    {
+        o.MapInboundClaims = false; // keep claim names as in the token (&quot;sub&quot;, &quot;role&quot;, &quot;scope&quot;)
+        o.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true, ValidIssuer = Issuer,
+            ValidateAudience = true, ValidAudience = Audience,
+            ValidateLifetime = true, ClockSkew = TimeSpan.FromSeconds(30),
+            ValidateIssuerSigningKey = true, IssuerSigningKey = signingKey,
+            ValidAlgorithms = new[] { SecurityAlgorithms.HmacSha256 }, // never accept &quot;alg: none&quot;
+            NameClaimType = &quot;name&quot;, RoleClaimType = &quot;role&quot;
+        };
+    });
+
+// ---- AUTHORIZATION: what is the caller allowed to do? ----
+builder.Services.AddAuthorization(o =&gt;
+{
+    o.AddPolicy(&quot;CanReadOrders&quot;, p =&gt; p.RequireAssertion(ctx =&gt; HasScope(ctx.User, &quot;orders.read&quot;)));
+    o.AddPolicy(&quot;AdminOnly&quot;, p =&gt; p.RequireRole(&quot;admin&quot;));
+});
+
+var app = builder.Build();
+
+app.UseAuthentication(); // 1st: build the user from the token
+app.UseAuthorization();  // 2nd: check policies
+
+// demo users and data
+var users = new Dictionary&lt;string, (string Password, string Id, string Role)&gt;
+{
+    [&quot;alice&quot;] = (&quot;alice123&quot;, &quot;1&quot;, &quot;user&quot;),
+    [&quot;bob&quot;] = (&quot;bob123&quot;, &quot;2&quot;, &quot;user&quot;),
+    [&quot;admin&quot;] = (&quot;admin123&quot;, &quot;99&quot;, &quot;admin&quot;)
+};
+var orders = new List&lt;Order&gt;
+{
+    new(1, &quot;1&quot;, &quot;Laptop&quot;), new(2, &quot;1&quot;, &quot;Mouse&quot;), new(3, &quot;2&quot;, &quot;Keyboard&quot;)
+};
+
+// anonymous: issue a token (in real life: login + password check + rate limiting)
+app.MapPost(&quot;/login&quot;, (LoginRequest request) =&gt;
+{
+    if (!users.TryGetValue(request.Username, out var u) || u.Password != request.Password)
+        return Results.Unauthorized();
+
+    var claims = new[]
+    {
+        new Claim(&quot;sub&quot;, u.Id),
+        new Claim(&quot;name&quot;, request.Username),
+        new Claim(&quot;role&quot;, u.Role),
+        new Claim(&quot;scope&quot;, &quot;orders.read orders.write&quot;)
+    };
+    var token = new JwtSecurityToken(
+        issuer: Issuer, audience: Audience, claims: claims,
+        expires: DateTime.UtcNow.AddMinutes(10),           // short-lived access token
+        signingCredentials: new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256));
+
+    return Results.Ok(new { access_token = new JwtSecurityTokenHandler().WriteToken(token) });
+});
+
+app.MapGet(&quot;/api/public&quot;, () =&gt; &quot;anyone can see this&quot;);
+
+// policy based on scope: the token needs &quot;orders.read&quot;
+app.MapGet(&quot;/api/orders&quot;, (ClaimsPrincipal user) =&gt;
+{
+    var isAdmin = user.IsInRole(&quot;admin&quot;);
+    var userId = user.FindFirstValue(&quot;sub&quot;);
+    return orders.Where(o =&gt; isAdmin || o.OwnerId == userId);
+}).RequireAuthorization(&quot;CanReadOrders&quot;);
+
+// resource-based authorization: the user may read only HIS OWN order (protection against IDOR/BOLA)
+app.MapGet(&quot;/api/orders/{id:int}&quot;, (int id, ClaimsPrincipal user) =&gt;
+{
+    var order = orders.FirstOrDefault(o =&gt; o.Id == id);
+    if (order is null) return Results.NotFound();
+
+    var isOwner = order.OwnerId == user.FindFirstValue(&quot;sub&quot;);
+    if (!isOwner &amp;&amp; !user.IsInRole(&quot;admin&quot;)) return Results.Forbid(); // 403: authenticated, but not allowed
+    return Results.Ok(order);
+}).RequireAuthorization(); // 401 without a valid token
+
+// role-based
+app.MapDelete(&quot;/api/orders/{id:int}&quot;, (int id) =&gt;
+{
+    var removed = orders.RemoveAll(o =&gt; o.Id == id);
+    return removed &gt; 0 ? Results.NoContent() : Results.NotFound();
+}).RequireAuthorization(&quot;AdminOnly&quot;);
+
+app.Run();
+
+static bool HasScope(ClaimsPrincipal user, string scope) =&gt;
+    (user.FindFirstValue(&quot;scope&quot;) ?? string.Empty).Split(' ').Contains(scope);
+
+record LoginRequest(string Username, string Password);
+record Order(int Id, string OwnerId, string Item);
+</code></pre>
+<p>The project (<code>SecureApiDemo.csproj</code>):</p>
+<pre><code class="language-xml">&lt;Project Sdk=&quot;Microsoft.NET.Sdk.Web&quot;&gt;
+
+  &lt;PropertyGroup&gt;
+    &lt;TargetFramework&gt;net8.0&lt;/TargetFramework&gt;
+    &lt;Nullable&gt;enable&lt;/Nullable&gt;
+    &lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;
+  &lt;/PropertyGroup&gt;
+
+  &lt;ItemGroup&gt;
+    &lt;PackageReference Include=&quot;Microsoft.AspNetCore.Authentication.JwtBearer&quot; Version=&quot;8.0.10&quot; /&gt;
+  &lt;/ItemGroup&gt;
+
+&lt;/Project&gt;
+</code></pre>
+<p>Try it (<code>dotnet run</code>, then <code>curl</code> or a <code>requests.http</code> file):</p>
+<pre><code class="language-bash"># 1) without a token -&gt; 401
+curl -i http://localhost:5000/api/orders
+
+# 2) log in as alice and copy the access_token
+curl -X POST http://localhost:5000/login -H &quot;Content-Type: application/json&quot; \
+     -d '{&quot;username&quot;:&quot;alice&quot;,&quot;password&quot;:&quot;alice123&quot;}'
+
+# 3) alice's orders -&gt; 200
+curl http://localhost:5000/api/orders -H &quot;Authorization: Bearer &lt;access_token&gt;&quot;
+
+# 4) someone else's order (id 3 belongs to bob) -&gt; 403
+curl -i http://localhost:5000/api/orders/3 -H &quot;Authorization: Bearer &lt;access_token&gt;&quot;
+
+# 5) delete without the admin role -&gt; 403 (log in as admin/admin123 to get 204)
+curl -i -X DELETE http://localhost:5000/api/orders/1 -H &quot;Authorization: Bearer &lt;access_token&gt;&quot;
+</code></pre>
+<h3>What this example shows</h3>
+<ul>
+<li><strong>Middleware order:</strong> <code>UseAuthentication()</code> builds the user from the token, and only then does <code>UseAuthorization()</code> check the policies.</li>
+<li><strong>401 vs 403:</strong> no token gives 401, and a lack of permissions with a valid token gives 403.</li>
+<li>A <strong>scope policy</strong> (<code>CanReadOrders</code>) and a <strong>role</strong> (<code>AdminOnly</code>).</li>
+<li><strong>Resource authorization:</strong> <code>[Authorize]</code> alone isn't enough, because it doesn't check whose order it is.</li>
+<li>An <strong>explicit list of algorithms</strong> (<code>ValidAlgorithms</code>) and validation of <code>iss</code>, <code>aud</code>, <code>exp</code>.</li>
+</ul>
+<h2>8. What to choose in typical situations</h2>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Recommendation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Your own SPA or mobile app plus an API</td>
+<td>OIDC with Authorization Code + PKCE, a JWT access token, the API as a resource server</td>
+</tr>
+<tr>
+<td>Many applications in a company, one login (SSO)</td>
+<td>a central IdP (Entra ID, Keycloak) with OIDC or SAML</td>
+</tr>
+<tr>
+<td>A service calls a service</td>
+<td>OAuth 2.0 Client Credentials or mTLS</td>
+</tr>
+<tr>
+<td>A public API for partners</td>
+<td>An API Key plus rate limiting, and OAuth 2.0 when accessing user data</td>
+</tr>
+<tr>
+<td>B2B integration, banking</td>
+<td>mTLS plus tokens, often qualified certificates</td>
+</tr>
+<tr>
+<td>A simple internal MVC on one domain</td>
+<td>cookie authentication</td>
+</tr>
+</tbody>
+</table>
+<p>They are usually <strong>combined in layers</strong>: TLS protects the channel, the client certificate the machine's identity, and the user token what a specific person may do.</p>
+<h2>See also</h2>
+<ul>
+<li><a href="refresh-token.html">Refresh token: how it works and when to use it</a> - rotation, reuse detection and an example.</li>
+<li><a href="multi-tenancy.html">Multi-tenancy and Web API security: what a tenant is</a> - isolating customers in SaaS.</li>
+<li><a href="crypto-basics.html">Cryptography: symmetric and asymmetric encryption, TLS</a> - the basics of cryptography.</li>
+</ul>
+<h2>Interview questions</h2>
+<ul>
+<li><strong>How does authentication differ from authorization?</strong> Authentication establishes who you are, authorization what you're allowed to do (401 vs 403).</li>
+<li><strong>JWT vs OAuth 2.0 vs OIDC vs SSO?</strong> JWT is a token format, OAuth 2.0 is a delegated authorization protocol, OIDC adds identity (login) to it, and SSO is a goal achieved through OIDC or SAML.</li>
+<li><strong>How does an API verify a JWT?</strong> It checks the signature with the public key from the issuer's JWKS (or a shared key with HS256) and <code>exp</code>, <code>iss</code>, <code>aud</code>, without looking into the database.</li>
+<li><strong>How do you revoke a JWT?</strong> A short lifetime plus a refresh token with rotation, optionally a list of revoked tokens.</li>
+<li><strong>Which OAuth flow for a SPA?</strong> Authorization Code with PKCE (not Implicit).</li>
+<li><strong>How does TLS differ from mTLS?</strong> In TLS only the server presents a certificate, in mTLS both sides do.</li>
+<li><strong>Why isn't mTLS suitable for a public SPA?</strong> Managing certificates on end users' devices is impractical.</li>
+<li><strong>What is IDOR/BOLA?</strong> Access to other people's resources by swapping an identifier, when the API checks only that you're logged in, not the owner. Defence: resource authorization.</li>
+<li><strong>Where to store the token in a SPA?</strong> Most safely on the server side (a BFF with an <code>HttpOnly</code> cookie), while <code>localStorage</code> is vulnerable to XSS.</li>
+<li><strong>What to do when a certificate expires?</strong> Clients will reject the connection, which is why we automate renewals and monitor expiry dates.</li>
+</ul>
+  <div class="topic-nav"><a class="prev" href="crypto-basics.html"><span class="lbl">← back</span>Cryptography: symmetric and asymmetric encryption, TLS</a><a class="next" href="multi-tenancy.html"><span class="lbl">next →</span>Multi-tenancy and Web API security: what a tenant is</a></div>
+</div>
+    </div>
+  </main>
+</div>
+
+<a class="fab coffee-btn" href="https://www.naffy.io/radoslaw-jaszek-znpwl/net-csharp-kompendium" target="_blank" rel="noopener noreferrer" aria-label="Buy me a coffee" title="Buy me a coffee">
+  <span class="coffee-label">Buy me a coffee</span>
+  <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M6 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/></svg>
+</a>
+
+<button type="button" class="fab theme-toggle" id="themeToggle" aria-label="Switch dark/light mode" title="Light mode">
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4" y1="12" x2="2" y2="12"/><line x1="22" y1="12" x2="20" y2="12"/><line x1="19.07" y1="4.93" x2="17.66" y2="6.34"/><line x1="6.34" y1="17.66" x2="4.93" y2="19.07"/><line x1="19.07" y1="19.07" x2="17.66" y2="17.66"/><line x1="6.34" y1="6.34" x2="4.93" y2="4.93"/>
+  </svg>
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </svg>
+</button>
+
+<button type="button" class="fab width-toggle" id="widthToggle" aria-label="Full width" title="Narrow content">
+  <svg id="widthToggleIcon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="10" y1="14" x2="3" y2="21"/>
+  </svg>
+</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
+<script src="../../app.js?v=3"></script>
+</body>
+</html>

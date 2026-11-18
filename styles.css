@@ -302,3 +302,11 @@ pre code{font-family:var(--mono); font-size:.8rem; line-height:1.55; background:
   .content{padding:2rem 1.25rem 5rem;}
   .topic h2{font-size:1.5rem;}
 }
+
+/* ---------------- language switch (PL / EN) ---------------- */
+.lang-bar{display:inline-flex; gap:.25rem; font-family:var(--mono); font-size:.72rem;}
+.lang-bar a{padding:.18rem .5rem; border:1px solid var(--line); border-radius:var(--radius); color:var(--text-dim); text-decoration:none; letter-spacing:.06em;}
+.lang-bar a:hover{color:var(--accent); border-color:var(--accent-dim);}
+.lang-bar a.active{color:var(--accent); border-color:var(--accent); background:var(--accent-glow); pointer-events:none;}
+.topbar .lang-bar{margin-left:auto;}
+.sidebar .lang-bar{padding:.7rem 1.1rem 0;}

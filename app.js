@@ -11,6 +11,13 @@
 (function () {
   "use strict";
 
+  // UI language comes from <html lang="..."> (pl at the root, en under /en/)
+  const LANG = (document.documentElement.lang || "pl").slice(0, 2);
+  const T = ({
+    pl: { results: "wyników", narrow: "Wąska treść", wide: "Pełna szerokość", copy: "Kopiuj", copied: "Skopiowano", dark: "Tryb ciemny", light: "Tryb jasny" },
+    en: { results: "results", narrow: "Narrow content", wide: "Full width", copy: "Copy", copied: "Copied", dark: "Dark mode", light: "Light mode" }
+  })[LANG];
+
   const navList = document.getElementById("navList");
   const contentEl = document.getElementById("content");
   const searchInput = document.getElementById("searchInput");
@@ -43,7 +50,7 @@
       if (q !== "" && anyVisibleInGroup) group.open = true;
     });
 
-    searchCount.textContent = q === "" ? "" : `${visibleCount} / ${totalTopicsCount} wyników`;
+    searchCount.textContent = q === "" ? "" : `${visibleCount} / ${totalTopicsCount} ${T.results}`;
   }
 
   if (searchInput) searchInput.addEventListener("input", e => applySearch(e.target.value));
@@ -81,7 +88,7 @@
       const btn = document.createElement("button");
       btn.className = "copy-btn";
       btn.type = "button";
-      btn.innerHTML = `${copyIconSvg}<span>Kopiuj</span>`;
+      btn.innerHTML = `${copyIconSvg}<span>${T.copy}</span>`;
       btn.addEventListener("click", () => copyCodeBlock(pre, btn));
       wrap.appendChild(btn);
     });
@@ -93,10 +100,10 @@
 
     const done = () => {
       btn.classList.add("copied");
-      btn.innerHTML = `${checkIconSvg}<span>Skopiowano</span>`;
+      btn.innerHTML = `${checkIconSvg}<span>${T.copied}</span>`;
       setTimeout(() => {
         btn.classList.remove("copied");
-        btn.innerHTML = `${copyIconSvg}<span>Kopiuj</span>`;
+        btn.innerHTML = `${copyIconSvg}<span>${T.copy}</span>`;
       }, 1600);
     };
 
@@ -130,6 +137,7 @@
   function isPjaxLink(link) {
     if (!link || !link.href) return false;
     if (link.target === "_blank" || link.hasAttribute("download")) return false;
+    if (link.hasAttribute("data-lang-switch")) return false; // the menu differs per language, so do a normal page load
     let url;
     try { url = new URL(link.href, window.location.href); } catch (e) { return false; }
     if (url.origin !== window.location.origin) return false;
@@ -201,7 +209,7 @@
     function setTheme(theme) {
       document.documentElement.setAttribute("data-theme", theme);
       themeToggle.classList.toggle("is-light", theme === "light");
-      themeToggle.title = theme === "light" ? "Tryb ciemny" : "Tryb jasny";
+      themeToggle.title = theme === "light" ? T.dark : T.light;
       try { localStorage.setItem("kompendium-theme", theme); } catch (e) { /* ignore */ }
     }
 
@@ -227,7 +235,7 @@
 
     function setWide(isWide) {
       mainArea.classList.toggle("wide", isWide);
-      widthToggle.title = isWide ? "Wąska treść" : "Pełna szerokość";
+      widthToggle.title = isWide ? T.narrow : T.wide;
       document.getElementById("widthToggleIcon").innerHTML = isWide ? wideIconCollapse : wideIconExpand;
     }
 

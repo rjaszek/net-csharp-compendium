@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>The &quot;_&quot; character in C# — .NET / C# Interview Compendium</title>
+<link rel="alternate" hreflang="pl" href="https://net-csharp-kompendium.rhoster.pl/topics/underscore.html" />
+<link rel="alternate" hreflang="en" href="https://net-csharp-kompendium.rhoster.pl/en/topics/underscore.html" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/nord.min.css">
+<link rel="stylesheet" href="../../styles.css?v=3">
+</head>
+<body>
+
+<div class="topbar">
+  <button class="burger" id="burgerBtn" aria-label="Menu">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <a class="brand" id="topbarBrand" href="../index.html"><b>C#</b> / .NET Compendium</a>
+  <span class="lang-bar"><a data-lang-switch href="../../topics/underscore.html" hreflang="pl" lang="pl" title="Polska wersja">PL</a><a class="active" data-lang-switch href="underscore.html" hreflang="en" lang="en" title="English version">EN</a></span>
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <span class="lang-bar"><a data-lang-switch href="../../topics/underscore.html" hreflang="pl" lang="pl" title="Polska wersja">PL</a><a class="active" data-lang-switch href="underscore.html" hreflang="en" lang="en" title="English version">EN</a></span>
+    <a class="sidebar-head" id="sidebarHead" href="../index.html">
+      <h1>.NET &amp; C# Compendium</h1>
+      <div class="sub">Interview notes organised as section → topic</div>
+    </a>
+    <div class="search-wrap">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="searchInput" placeholder="Search topics…" autocomplete="off" />
+      </div>
+      <div class="search-count" id="searchCount"></div>
+    </div>
+    <nav class="nav" id="navList">
+<details class="nav-group" data-cat-id="solid">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      SOLID, Clean Code, DI
+    </span>
+    <span class="n">11</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="oop-enterprise" data-tags="oop encapsulation inheritance polymorphism abstraction enterprise overengineering yagni" href="../topics/oop-enterprise.html">OOP and &quot;Enterprise OOP&quot;</a>
+    <a class="nav-item" data-topic-id="solid-basics" data-tags="solid srp ocp lsp isp dip" href="../topics/solid-basics.html">SOLID principles</a>
+    <a class="nav-item" data-topic-id="clean-code" data-tags="clean code readability naming dry" href="../topics/clean-code.html">Clean Code</a>
+    <a class="nav-item" data-topic-id="di-mvvm-concept" data-tags="di dependency injection mvvm viewmodel" href="../topics/di-mvvm-concept.html">DI in MVVM — the concept</a>
+    <a class="nav-item" data-topic-id="di-mvvm-wpf" data-tags="wpf mvvm di viewmodelbase servicecollection" href="../topics/di-mvvm-wpf.html">MVVM + DI in WPF (full example)</a>
+    <a class="nav-item" data-topic-id="lifetimes" data-tags="di lifetime singleton transient scoped captive dependency" href="../topics/lifetimes.html">Singleton vs Transient vs Scoped</a>
+    <a class="nav-item" data-topic-id="scope-factory-threadsafe" data-tags="scope factory singleton thread safe lock interlocked" href="../topics/scope-factory-threadsafe.html">IServiceScopeFactory and thread-safety</a>
+    <a class="nav-item" data-topic-id="di-methods" data-tags="constructor property method injection service locator anti-pattern" href="../topics/di-methods.html">Ways to implement DI</a>
+    <a class="nav-item" data-topic-id="ioc" data-tags="ioc di hollywood principle template method middleware" href="../topics/ioc.html">Inversion of Control (IoC)</a>
+    <a class="nav-item" data-topic-id="clean-architecture" data-tags="clean architecture dependency rule onion hexagonal domain application infrastructure use case ports adapters composition root netarchtest vertical slice aggregate root ddd domain events cqrs commands queries mediatr" href="../topics/clean-architecture.html">Clean Architecture</a>
+    <a class="nav-item" data-topic-id="ddd" data-tags="ddd domain driven design aggregate entity value object bounded context ubiquitous language domain service domain events repository anemic model rich model strategic tactical" href="../topics/ddd.html">DDD - Domain-Driven Design</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="wpf">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      WPF
+    </span>
+    <span class="n">4</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="wpf-recap" data-tags="wpf dependency property routed event data binding visual tree" href="../topics/wpf-recap.html">WPF — what to refresh</a>
+    <a class="nav-item" data-topic-id="synccontext" data-tags="async await synchronizationcontext configureawait deadlock ui thread" href="../topics/synccontext.html">SynchronizationContext and ConfigureAwait</a>
+    <a class="nav-item" data-topic-id="icommand" data-tags="icommand relaycommand canexecute commandmanager async void" href="../topics/icommand.html">ICommand and RelayCommand</a>
+    <a class="nav-item" data-topic-id="callermembername" data-tags="callermembername inotifypropertychanged magic string nameof" href="../topics/callermembername.html">[CallerMemberName]</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="csharp" open>
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      C# — language fundamentals
+    </span>
+    <span class="n">14</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="delegates" data-tags="delegate action func predicate multicast event" href="../topics/delegates.html">Delegates</a>
+    <a class="nav-item" data-topic-id="callback-vs-function" data-tags="callback function control flow inversion" href="../topics/callback-vs-function.html">Callback vs function</a>
+    <a class="nav-item" data-topic-id="underscore" data-tags="discard underscore lambda separator digit" href="../topics/underscore.html">The &quot;_&quot; character in C#</a>
+    <a class="nav-item" data-topic-id="class-vs-record" data-tags="record class equality value reference with init" href="../topics/class-vs-record.html">Class vs record</a>
+    <a class="nav-item" data-topic-id="record-declaration" data-tags="record positional syntax deconstruct equals hashcode generated code" href="../topics/record-declaration.html">record vs class declaration</a>
+    <a class="nav-item" data-topic-id="record-vs-class-compare" data-tags="equals gethashcode referenceequals iequatable iequalitycomparer" href="../topics/record-vs-class-compare.html">How to compare record and class</a>
+    <a class="nav-item" data-topic-id="abstract-vs-interface" data-tags="abstract interface multiple inheritance template method" href="../topics/abstract-vs-interface.html">Abstract class vs interface</a>
+    <a class="nav-item" data-topic-id="access-modifiers" data-tags="public private protected internal protected internal private protected" href="../topics/access-modifiers.html">Access modifiers</a>
+    <a class="nav-item" data-topic-id="inheritance-modifiers" data-tags="virtual abstract override sealed new method hiding polymorphism" href="../topics/inheritance-modifiers.html">Inheritance modifiers</a>
+    <a class="nav-item" data-topic-id="lock-mutex-semaphore" data-tags="lock mutex semaphore semaphoreslim thread synchronization async" href="../topics/lock-mutex-semaphore.html">lock, Mutex, Semaphore</a>
+    <a class="nav-item" data-topic-id="struct" data-tags="struct value type stack boxing readonly struct" href="../topics/struct.html">struct</a>
+    <a class="nav-item" data-topic-id="struct-vs-record" data-tags="record struct readonly record struct value reference" href="../topics/struct-vs-record.html">struct vs record</a>
+    <a class="nav-item" data-topic-id="icomparable" data-tags="icomparable compareto sorting comparer sort orderby" href="../topics/icomparable.html">IComparable</a>
+    <a class="nav-item" data-topic-id="ienumerable-iqueryable" data-tags="ienumerable iqueryable expression func deferred execution ef core" href="../topics/ienumerable-iqueryable.html">IEnumerable vs IQueryable</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="web">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Web API, Blazor
+    </span>
+    <span class="n">12</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="webapi-mvc" data-tags="webapi mvc controller dto apicontroller minimal api" href="../topics/webapi-mvc.html">Web API as an implementation of MVC</a>
+    <a class="nav-item" data-topic-id="model-binding" data-tags="fromroute fromquery frombody fromheader fromservices apicontroller" href="../topics/model-binding.html">Model Binding and [FromBody]</a>
+    <a class="nav-item" data-topic-id="actionresult" data-tags="actionresult ok notfound badrequest problemdetails result pattern" href="../topics/actionresult.html">ActionResult&lt;T&gt; — returning results and errors</a>
+    <a class="nav-item" data-topic-id="actionresult-client" data-tags="httpclient apiresult wpf blazor consuming api statuscode" href="../topics/actionresult-client.html">ActionResult on the client side</a>
+    <a class="nav-item" data-topic-id="db-webapi" data-tags="dbcontext connection string appsettings migrations di" href="../topics/db-webapi.html">Connecting a database to Web API</a>
+    <a class="nav-item" data-topic-id="blazor-mvc" data-tags="blazor component mvvm razor lifecycle" href="../topics/blazor-mvc.html">Blazor — is NOT MVC</a>
+    <a class="nav-item" data-topic-id="signalr-blazor" data-tags="signalr circuit websocket blazor server sticky sessions" href="../topics/signalr-blazor.html">SignalR in Blazor Server</a>
+    <a class="nav-item" data-topic-id="pwa-rendermodes" data-tags="pwa progressive web app service worker render modes blazor united" href="../topics/pwa-rendermodes.html">PWA and Render Modes</a>
+    <a class="nav-item" data-topic-id="blazor-structure" data-tags="blazor wasm server project structure shared client program.cs" href="../topics/blazor-structure.html">Blazor project structure</a>
+    <a class="nav-item" data-topic-id="endpoint-routing" data-tags="endpoint routing middleware useendpoints minimal api authorization metadata" href="../topics/endpoint-routing.html">Endpoint Routing in ASP.NET Core</a>
+    <a class="nav-item" data-topic-id="iis-hosting-models" data-tags="iis ancm kestrel w3wp hosting model inprocess outofprocess" href="../topics/iis-hosting-models.html">In-process vs Out-of-process (IIS)</a>
+    <a class="nav-item" data-topic-id="rate-limiting" data-tags="rate limiting throttling fixed window sliding token bucket concurrency 429" href="../topics/rate-limiting.html">Rate Limiting in ASP.NET Core</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="ef">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Entity Framework Core
+    </span>
+    <span class="n">6</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="ef-basics" data-tags="dbcontext dbset asnotracking include n+1 migrations" href="../topics/ef-basics.html">EF Core basics</a>
+    <a class="nav-item" data-topic-id="repo-uow" data-tags="repository unit of work dbset savechanges extension methods" href="../topics/repo-uow.html">Repository + Unit of Work over EF Core</a>
+    <a class="nav-item" data-topic-id="ef-async" data-tags="async await io cpu bound task run layers" href="../topics/ef-async.html">Async in EF Core — when yes, when no</a>
+    <a class="nav-item" data-topic-id="change-tracking" data-tags="snapshot statemanager detectchanges identity map entitystate" href="../topics/change-tracking.html">Change Tracking under the hood</a>
+    <a class="nav-item" data-topic-id="migrations-team" data-tags="migrations modelsnapshot conflicts git idempotent script sql" href="../topics/migrations-team.html">Migrations in a team</a>
+    <a class="nav-item" data-topic-id="ef-transactions" data-tags="savechangesasync begintransaction executionstrategy isolation level savepoints" href="../topics/ef-transactions.html">EF Core and transactions</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="cqrs">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      CQRS, MediatR
+    </span>
+    <span class="n">2</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="cqrs-what" data-tags="cqrs cqs command query segregation event sourcing eventual consistency" href="../topics/cqrs-what.html">What CQRS is</a>
+    <a class="nav-item" data-topic-id="cqrs-mediatr" data-tags="mediatr irequest irequesthandler pipeline behavior send" href="../topics/cqrs-mediatr.html">MediatR — how it works and how to use it</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="testing">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Testing
+    </span>
+    <span class="n">3</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="xunit" data-tags="xunit fact theory inlinedata memberdata classfixture aaa" href="../topics/xunit.html">xUnit — the basics</a>
+    <a class="nav-item" data-topic-id="moq" data-tags="moq mock setup verify times itisany callback" href="../topics/moq.html">Moq — mocking</a>
+    <a class="nav-item" data-topic-id="integration-tests" data-tags="webapplicationfactory testcontainers test pyramid inmemory" href="../topics/integration-tests.html">Integration tests</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="algo">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Algorithms, data structures
+    </span>
+    <span class="n">5</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="bigo" data-tags="big o complexity hashset dictionary list queue stack" href="../topics/bigo.html">Big O and .NET data structures</a>
+    <a class="nav-item" data-topic-id="hashset" data-tags="hashset unique elements equalitycomparer intersect union except" href="../topics/hashset.html">HashSet&lt;T&gt;</a>
+    <a class="nav-item" data-topic-id="extension-methods" data-tags="extension methods this static linq where select" href="../topics/extension-methods.html">Extension Methods</a>
+    <a class="nav-item" data-topic-id="iequatable" data-tags="iequatable equals gethashcode boxing struct record" href="../topics/iequatable.html">IEquatable&lt;T&gt;</a>
+    <a class="nav-item" data-topic-id="concurrentqueue" data-tags="concurrentqueue concurrent collections thread lock-free producer consumer channel" href="../topics/concurrentqueue.html">ConcurrentQueue&lt;T&gt;</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="automapper">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      AutoMapper
+    </span>
+    <span class="n">1</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="automapper-basics" data-tags="automapper profile projectto reversemap assertconfigurationisvalid" href="../topics/automapper-basics.html">AutoMapper</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="distributed">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Distributed architecture
+    </span>
+    <span class="n">8</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="saga" data-tags="saga orchestration choreography compensating transaction idempotency" href="../topics/saga.html">Saga Pattern</a>
+    <a class="nav-item" data-topic-id="outbox" data-tags="outbox pattern dual write at least once idempotent cdc debezium" href="../topics/outbox.html">Outbox Pattern</a>
+    <a class="nav-item" data-topic-id="reference-data" data-tags="reference data dictionaries denormalization synchronous polling cache ttl" href="../topics/reference-data.html">Reference data across microservices</a>
+    <a class="nav-item" data-topic-id="kafka" data-tags="kafka topic partition consumer group retention at least once producer consumer" href="../topics/kafka.html">Apache Kafka</a>
+    <a class="nav-item" data-topic-id="docker-k8s" data-tags="docker container image kubernetes pod deployment service self healing" href="../topics/docker-k8s.html">Docker, containers, Kubernetes</a>
+    <a class="nav-item" data-topic-id="rebus-servicebus" data-tags="rebus servicebus messagebus rabbitmq masstransit saga" href="../topics/rebus-servicebus.html">Rebus (.NET Service Bus)</a>
+    <a class="nav-item" data-topic-id="rabbitmq-fundamentals" data-tags="rabbitmq amqp broker exchange queue push pull" href="../topics/rabbitmq-fundamentals.html">How RabbitMQ works (AMQP vs HTTP)</a>
+    <a class="nav-item" data-topic-id="kafka-vs-rabbitmq" data-tags="kafka rabbitmq comparison confluent rabbitmq.client producer consumer" href="../topics/kafka-vs-rabbitmq.html">Kafka vs RabbitMQ - comparison and implementation</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="memory">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Memory and threads
+    </span>
+    <span class="n">2</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="memory-management" data-tags="garbage collector gc generations loh workstation server gc cgroups datas" href="../topics/memory-management.html">Memory management: Framework, Core, .NET</a>
+    <a class="nav-item" data-topic-id="async-thread" data-tags="async await thread pool i/o completion ports task run state machine" href="../topics/async-thread.html">Does async create a new thread?</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="recap">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Refresher / web patterns
+    </span>
+    <span class="n">3</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="mvc-mvvm-mvp" data-tags="mvc mvvm mvp controller presenter viewmodel examples" href="../topics/mvc-mvvm-mvp.html">MVC, MVVM, MVP — comparison</a>
+    <a class="nav-item" data-topic-id="dto-mvvm-placement" data-tags="dto models folder project structure wpf" href="../topics/dto-mvvm-placement.html">Where to put DTOs in an MVVM project</a>
+    <a class="nav-item" data-topic-id="code-review-example" data-tags="singleton anti-pattern socket exhaustion httpclientfactory code review" href="../topics/code-review-example.html">Code review example — HttpClientFactory</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="process">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Process and methodologies
+    </span>
+    <span class="n">1</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="sdlc" data-tags="sdlc waterfall agile scrum devops ci cd v-model process methodology" href="../topics/sdlc.html">SDLC - Software Development Life Cycle</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="security">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Security
+    </span>
+    <span class="n">5</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="crypto-basics" data-tags="cryptography encryption symmetric asymmetric aes rsa ecdh diffie hellman tls handshake forward secrecy hash hmac pbkdf2 signature public key private key gcm" href="../topics/crypto-basics.html">Cryptography: symmetric and asymmetric encryption, TLS</a>
+    <a class="nav-item" data-topic-id="webapi-security" data-tags="security webapi jwt oauth oauth2 oidc openid connect sso saml certificate tls mtls certificate pinning authentication authorization bearer idor bola scope policy jwks" href="../topics/webapi-security.html">Securing a Web API: JWT, OAuth2, OIDC, SSO, certificates</a>
+    <a class="nav-item" data-topic-id="multi-tenancy" data-tags="tenant multi-tenancy multitenancy saas entra azure ad data isolation global query filter tenantid cross-tenant bola idor" href="../topics/multi-tenancy.html">Multi-tenancy and Web API security: what a tenant is</a>
+    <a class="nav-item" data-topic-id="refresh-token" data-tags="refresh token access token rotation reuse detection offline_access oauth jwt session logout bff httponly cookie token family" href="../topics/refresh-token.html">Refresh token: how it works and when to use it</a>
+    <a class="nav-item" data-topic-id="api-client-credentials" data-tags="client credentials oauth2 openiddict api key m2m machine server-to-server scope pricing rate limiting client_id client_secret" href="../topics/api-client-credentials.html">API for companies: Client Credentials, API keys and OpenIddict</a>
+  </div>
+</details>
+    </nav>
+  </aside>
+
+  <main class="main wide" id="mainArea">
+    <div class="content" id="content">
+<div class="topic">
+  <div class="crumb">.NET / C# <span class="sep">/</span> <span class="cat">C# — language fundamentals</span></div>
+  
+  <h1>The <code>_</code> character in C# - all its meanings</h1>
+<p>This is a good question, because <code>_</code> in C# has <strong>several completely different uses</strong> depending on the context - and it is a frequent "do you really understand the difference" topic in interviews.</p>
+<h2>1. A naming convention - private fields</h2>
+<pre><code class="language-csharp">public class OrderViewModel : ViewModelBase
+{
+    private readonly IOrderService _orderService; // ← prefiks _ dla private fields
+    private readonly ILogger _logger;
+
+    public OrderViewModel(IOrderService orderService)
+    {
+        _orderService = orderService; // distinguishes the field from the constructor parameter
+    }
+}
+</code></pre>
+<p>This is <strong>only a stylistic convention</strong> (from the official .NET coding style, widely adopted), not any special language syntax. <code>_orderService</code> is an ordinary identifier name - the compiler treats <code>_</code> like any other character allowed in a variable name. It is mainly useful for <strong>distinguishing a class field from a parameter/local variable</strong> without needing <code>this.orderService</code>.</p>
+<h2>2. Discard (<code>_</code>) - "I'm throwing this value away, I don't care about it"</h2>
+<p>This is a <strong>real language feature</strong> (since C# 7.0) - <code>_</code> as a <strong>placeholder</strong> telling the compiler "I know something is here, but I consciously won't use it".</p>
+<h3>a) Discard in tuple deconstruction</h3>
+<pre><code class="language-csharp">(string name, int age, string _) = GetPersonData();
+// I care about name and age, I consciously ignore the third element (e.g. email)
+
+var (id, _) = (order.Id, order.InternalDebugCode); // I ignore the second element
+</code></pre>
+<h3>b) Discard in <code>out</code> parameters</h3>
+<pre><code class="language-csharp">// I only care WHETHER it succeeded, not about the value itself
+if (int.TryParse(input, out _))
+{
+    Console.WriteLine(&quot;To jest poprawna liczba&quot;);
+}
+
+// In contrast - if I needed the value:
+if (int.TryParse(input, out int parsedValue))
+{
+    Console.WriteLine($&quot;Sparsowano: {parsedValue}&quot;);
+}
+</code></pre>
+<h3>c) Discard in pattern matching / switch expressions</h3>
+<p>This is especially common in modern C# (8.0+):</p>
+<pre><code class="language-csharp">public string DescribeOrder(Order order) =&gt; order switch
+{
+    { Total: &gt; 1000 } =&gt; &quot;Large order&quot;,
+    { Items.Count: 0 } =&gt; &quot;Empty order&quot;,
+    _ =&gt; &quot;Ordinary order&quot; // ← the &quot;default case&quot;, literally &quot;anything else&quot;
+};
+</code></pre>
+<p>Here <code>_</code> means <strong>"any value that doesn't match the earlier patterns"</strong> - the equivalent of <code>default:</code> in a traditional <code>switch</code>.</p>
+<h3>d) Discard as ignoring the result of a call</h3>
+<pre><code class="language-csharp">_ = _orderService.LogAccessAsync(orderId);
+// I consciously &quot;fire and forget&quot;,
+// explicitly telling the compiler that I DON'T care about the returned Task
+</code></pre>
+<p>This is useful for <strong>silencing the compiler warning</strong> (CS4014 - "call is not awaited") in situations where you really consciously don't want to wait for the result - without <code>_ =</code> you would get a warning suggesting you probably forgot <code>await</code>.</p>
+<h2>3. <code>_</code> as a lambda parameter you don't use</h2>
+<p>A similar idea to a discard, but in the context of lambdas - a convention (not enforced by the compiler, but readable):</p>
+<pre><code class="language-csharp">// Timer callback - I don't care about any of the passed arguments
+timer.Elapsed += (_, _) =&gt; RefreshData();
+
+// W RelayCommand - parametr &quot;object parameter&quot; jest ignorowany
+SaveOrderCommand = new RelayCommand(_ =&gt; SaveOrder());
+</code></pre>
+<p><strong>A technical curiosity:</strong> since C# 9.0 you can use <strong>multiple</strong> <code>_</code> as separate parameters in the same lambda (as in the <code>(_, _) =&gt; ...</code> example above) and the compiler accepts it as two separate discards, even though normally you can't have two variables with the same name in one scope.</p>
+<h2>4. An underscore as a digit separator in numeric literals (C# 7.0+)</h2>
+<p>A completely different use - it improves the readability of large numbers:</p>
+<pre><code class="language-csharp">int million = 1_000_000; // more readable than 1000000
+long bigNumber = 1_000_000_000_000L;
+double pi = 3.14_15_92;
+int binaryFlags = 0b1010_0101_1100_0011; // przydatne przy liczbach binarnych
+int hexColor = 0xFF_EC_A5;
+</code></pre>
+<p>The <code>_</code> is <strong>purely cosmetic</strong> here - the compiler ignores it, <code>1_000_000</code> and <code>1000000</code> are exactly the same value. It doesn't matter where exactly you put the underscores (they don't have to be every 3 digits).</p>
+<h2>How to tell which meaning is meant in a given piece of code</h2>
+<table>
+<thead>
+<tr>
+<th>Context</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>private readonly IFoo _foo;</code></td>
+<td>A field naming convention</td>
+</tr>
+<tr>
+<td><code>out _</code> / <code>(a, _)</code> / <code>_ = SomeCall()</code></td>
+<td>Discard - consciously ignoring a value</td>
+</tr>
+<tr>
+<td><code>_ =&gt; DoSomething()</code> in a lambda</td>
+<td>An unused parameter (a form of discard)</td>
+</tr>
+<tr>
+<td><code>_</code> as the last branch of a <code>switch</code></td>
+<td>The "everything else" pattern (default)</td>
+</tr>
+<tr>
+<td><code>1_000_000</code></td>
+<td>A digit separator in a numeric literal</td>
+</tr>
+</tbody>
+</table>
+<h2>Why this matters in practice - avoiding compiler warnings</h2>
+<p>A common scenario where a discard actually changes the quality of the code:</p>
+<pre><code class="language-csharp">// Bad - you create a variable you will never use - the compiler/analyzer will flag it (CS0168/IDE0059)
+Dictionary&lt;string, Order&gt;.TryGetValue(id, out var unusedOrder);
+
+// Good - you explicitly say &quot;I know this is ignored&quot;
+Dictionary&lt;string, Order&gt;.TryGetValue(id, out _);
+</code></pre>
+<p>This is, incidentally, a difference that some static analyzers (Roslyn analyzers, ReSharper) actually enforce - <code>out _</code> is treated as <strong>cleaner intent-revealing code</strong> than <code>out var ignoredVariable</code>, because it clearly communicates "this value is intentionally unused", rather than "I forgot to use it".</p>
+  <div class="topic-nav"><a class="prev" href="callback-vs-function.html"><span class="lbl">← back</span>Callback vs function</a><a class="next" href="class-vs-record.html"><span class="lbl">next →</span>Class vs record</a></div>
+</div>
+    </div>
+  </main>
+</div>
+
+<a class="fab coffee-btn" href="https://www.naffy.io/radoslaw-jaszek-znpwl/net-csharp-kompendium" target="_blank" rel="noopener noreferrer" aria-label="Buy me a coffee" title="Buy me a coffee">
+  <span class="coffee-label">Buy me a coffee</span>
+  <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M6 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/></svg>
+</a>
+
+<button type="button" class="fab theme-toggle" id="themeToggle" aria-label="Switch dark/light mode" title="Light mode">
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4" y1="12" x2="2" y2="12"/><line x1="22" y1="12" x2="20" y2="12"/><line x1="19.07" y1="4.93" x2="17.66" y2="6.34"/><line x1="6.34" y1="17.66" x2="4.93" y2="19.07"/><line x1="19.07" y1="19.07" x2="17.66" y2="17.66"/><line x1="6.34" y1="6.34" x2="4.93" y2="4.93"/>
+  </svg>
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </svg>
+</button>
+
+<button type="button" class="fab width-toggle" id="widthToggle" aria-label="Full width" title="Narrow content">
+  <svg id="widthToggleIcon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="10" y1="14" x2="3" y2="21"/>
+  </svg>
+</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
+<script src="../../app.js?v=3"></script>
+</body>
+</html>

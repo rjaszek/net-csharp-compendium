@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>How to compare record and class — .NET / C# Interview Compendium</title>
+<link rel="alternate" hreflang="pl" href="https://net-csharp-kompendium.rhoster.pl/topics/record-vs-class-compare.html" />
+<link rel="alternate" hreflang="en" href="https://net-csharp-kompendium.rhoster.pl/en/topics/record-vs-class-compare.html" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/nord.min.css">
+<link rel="stylesheet" href="../../styles.css?v=3">
+</head>
+<body>
+
+<div class="topbar">
+  <button class="burger" id="burgerBtn" aria-label="Menu">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <a class="brand" id="topbarBrand" href="../index.html"><b>C#</b> / .NET Compendium</a>
+  <span class="lang-bar"><a data-lang-switch href="../../topics/record-vs-class-compare.html" hreflang="pl" lang="pl" title="Polska wersja">PL</a><a class="active" data-lang-switch href="record-vs-class-compare.html" hreflang="en" lang="en" title="English version">EN</a></span>
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <span class="lang-bar"><a data-lang-switch href="../../topics/record-vs-class-compare.html" hreflang="pl" lang="pl" title="Polska wersja">PL</a><a class="active" data-lang-switch href="record-vs-class-compare.html" hreflang="en" lang="en" title="English version">EN</a></span>
+    <a class="sidebar-head" id="sidebarHead" href="../index.html">
+      <h1>.NET &amp; C# Compendium</h1>
+      <div class="sub">Interview notes organised as section → topic</div>
+    </a>
+    <div class="search-wrap">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="searchInput" placeholder="Search topics…" autocomplete="off" />
+      </div>
+      <div class="search-count" id="searchCount"></div>
+    </div>
+    <nav class="nav" id="navList">
+<details class="nav-group" data-cat-id="solid">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      SOLID, Clean Code, DI
+    </span>
+    <span class="n">11</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="oop-enterprise" data-tags="oop encapsulation inheritance polymorphism abstraction enterprise overengineering yagni" href="../topics/oop-enterprise.html">OOP and &quot;Enterprise OOP&quot;</a>
+    <a class="nav-item" data-topic-id="solid-basics" data-tags="solid srp ocp lsp isp dip" href="../topics/solid-basics.html">SOLID principles</a>
+    <a class="nav-item" data-topic-id="clean-code" data-tags="clean code readability naming dry" href="../topics/clean-code.html">Clean Code</a>
+    <a class="nav-item" data-topic-id="di-mvvm-concept" data-tags="di dependency injection mvvm viewmodel" href="../topics/di-mvvm-concept.html">DI in MVVM — the concept</a>
+    <a class="nav-item" data-topic-id="di-mvvm-wpf" data-tags="wpf mvvm di viewmodelbase servicecollection" href="../topics/di-mvvm-wpf.html">MVVM + DI in WPF (full example)</a>
+    <a class="nav-item" data-topic-id="lifetimes" data-tags="di lifetime singleton transient scoped captive dependency" href="../topics/lifetimes.html">Singleton vs Transient vs Scoped</a>
+    <a class="nav-item" data-topic-id="scope-factory-threadsafe" data-tags="scope factory singleton thread safe lock interlocked" href="../topics/scope-factory-threadsafe.html">IServiceScopeFactory and thread-safety</a>
+    <a class="nav-item" data-topic-id="di-methods" data-tags="constructor property method injection service locator anti-pattern" href="../topics/di-methods.html">Ways to implement DI</a>
+    <a class="nav-item" data-topic-id="ioc" data-tags="ioc di hollywood principle template method middleware" href="../topics/ioc.html">Inversion of Control (IoC)</a>
+    <a class="nav-item" data-topic-id="clean-architecture" data-tags="clean architecture dependency rule onion hexagonal domain application infrastructure use case ports adapters composition root netarchtest vertical slice aggregate root ddd domain events cqrs commands queries mediatr" href="../topics/clean-architecture.html">Clean Architecture</a>
+    <a class="nav-item" data-topic-id="ddd" data-tags="ddd domain driven design aggregate entity value object bounded context ubiquitous language domain service domain events repository anemic model rich model strategic tactical" href="../topics/ddd.html">DDD - Domain-Driven Design</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="wpf">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      WPF
+    </span>
+    <span class="n">4</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="wpf-recap" data-tags="wpf dependency property routed event data binding visual tree" href="../topics/wpf-recap.html">WPF — what to refresh</a>
+    <a class="nav-item" data-topic-id="synccontext" data-tags="async await synchronizationcontext configureawait deadlock ui thread" href="../topics/synccontext.html">SynchronizationContext and ConfigureAwait</a>
+    <a class="nav-item" data-topic-id="icommand" data-tags="icommand relaycommand canexecute commandmanager async void" href="../topics/icommand.html">ICommand and RelayCommand</a>
+    <a class="nav-item" data-topic-id="callermembername" data-tags="callermembername inotifypropertychanged magic string nameof" href="../topics/callermembername.html">[CallerMemberName]</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="csharp" open>
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      C# — language fundamentals
+    </span>
+    <span class="n">14</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="delegates" data-tags="delegate action func predicate multicast event" href="../topics/delegates.html">Delegates</a>
+    <a class="nav-item" data-topic-id="callback-vs-function" data-tags="callback function control flow inversion" href="../topics/callback-vs-function.html">Callback vs function</a>
+    <a class="nav-item" data-topic-id="underscore" data-tags="discard underscore lambda separator digit" href="../topics/underscore.html">The &quot;_&quot; character in C#</a>
+    <a class="nav-item" data-topic-id="class-vs-record" data-tags="record class equality value reference with init" href="../topics/class-vs-record.html">Class vs record</a>
+    <a class="nav-item" data-topic-id="record-declaration" data-tags="record positional syntax deconstruct equals hashcode generated code" href="../topics/record-declaration.html">record vs class declaration</a>
+    <a class="nav-item" data-topic-id="record-vs-class-compare" data-tags="equals gethashcode referenceequals iequatable iequalitycomparer" href="../topics/record-vs-class-compare.html">How to compare record and class</a>
+    <a class="nav-item" data-topic-id="abstract-vs-interface" data-tags="abstract interface multiple inheritance template method" href="../topics/abstract-vs-interface.html">Abstract class vs interface</a>
+    <a class="nav-item" data-topic-id="access-modifiers" data-tags="public private protected internal protected internal private protected" href="../topics/access-modifiers.html">Access modifiers</a>
+    <a class="nav-item" data-topic-id="inheritance-modifiers" data-tags="virtual abstract override sealed new method hiding polymorphism" href="../topics/inheritance-modifiers.html">Inheritance modifiers</a>
+    <a class="nav-item" data-topic-id="lock-mutex-semaphore" data-tags="lock mutex semaphore semaphoreslim thread synchronization async" href="../topics/lock-mutex-semaphore.html">lock, Mutex, Semaphore</a>
+    <a class="nav-item" data-topic-id="struct" data-tags="struct value type stack boxing readonly struct" href="../topics/struct.html">struct</a>
+    <a class="nav-item" data-topic-id="struct-vs-record" data-tags="record struct readonly record struct value reference" href="../topics/struct-vs-record.html">struct vs record</a>
+    <a class="nav-item" data-topic-id="icomparable" data-tags="icomparable compareto sorting comparer sort orderby" href="../topics/icomparable.html">IComparable</a>
+    <a class="nav-item" data-topic-id="ienumerable-iqueryable" data-tags="ienumerable iqueryable expression func deferred execution ef core" href="../topics/ienumerable-iqueryable.html">IEnumerable vs IQueryable</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="web">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Web API, Blazor
+    </span>
+    <span class="n">12</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="webapi-mvc" data-tags="webapi mvc controller dto apicontroller minimal api" href="../topics/webapi-mvc.html">Web API as an implementation of MVC</a>
+    <a class="nav-item" data-topic-id="model-binding" data-tags="fromroute fromquery frombody fromheader fromservices apicontroller" href="../topics/model-binding.html">Model Binding and [FromBody]</a>
+    <a class="nav-item" data-topic-id="actionresult" data-tags="actionresult ok notfound badrequest problemdetails result pattern" href="../topics/actionresult.html">ActionResult&lt;T&gt; — returning results and errors</a>
+    <a class="nav-item" data-topic-id="actionresult-client" data-tags="httpclient apiresult wpf blazor consuming api statuscode" href="../topics/actionresult-client.html">ActionResult on the client side</a>
+    <a class="nav-item" data-topic-id="db-webapi" data-tags="dbcontext connection string appsettings migrations di" href="../topics/db-webapi.html">Connecting a database to Web API</a>
+    <a class="nav-item" data-topic-id="blazor-mvc" data-tags="blazor component mvvm razor lifecycle" href="../topics/blazor-mvc.html">Blazor — is NOT MVC</a>
+    <a class="nav-item" data-topic-id="signalr-blazor" data-tags="signalr circuit websocket blazor server sticky sessions" href="../topics/signalr-blazor.html">SignalR in Blazor Server</a>
+    <a class="nav-item" data-topic-id="pwa-rendermodes" data-tags="pwa progressive web app service worker render modes blazor united" href="../topics/pwa-rendermodes.html">PWA and Render Modes</a>
+    <a class="nav-item" data-topic-id="blazor-structure" data-tags="blazor wasm server project structure shared client program.cs" href="../topics/blazor-structure.html">Blazor project structure</a>
+    <a class="nav-item" data-topic-id="endpoint-routing" data-tags="endpoint routing middleware useendpoints minimal api authorization metadata" href="../topics/endpoint-routing.html">Endpoint Routing in ASP.NET Core</a>
+    <a class="nav-item" data-topic-id="iis-hosting-models" data-tags="iis ancm kestrel w3wp hosting model inprocess outofprocess" href="../topics/iis-hosting-models.html">In-process vs Out-of-process (IIS)</a>
+    <a class="nav-item" data-topic-id="rate-limiting" data-tags="rate limiting throttling fixed window sliding token bucket concurrency 429" href="../topics/rate-limiting.html">Rate Limiting in ASP.NET Core</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="ef">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Entity Framework Core
+    </span>
+    <span class="n">6</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="ef-basics" data-tags="dbcontext dbset asnotracking include n+1 migrations" href="../topics/ef-basics.html">EF Core basics</a>
+    <a class="nav-item" data-topic-id="repo-uow" data-tags="repository unit of work dbset savechanges extension methods" href="../topics/repo-uow.html">Repository + Unit of Work over EF Core</a>
+    <a class="nav-item" data-topic-id="ef-async" data-tags="async await io cpu bound task run layers" href="../topics/ef-async.html">Async in EF Core — when yes, when no</a>
+    <a class="nav-item" data-topic-id="change-tracking" data-tags="snapshot statemanager detectchanges identity map entitystate" href="../topics/change-tracking.html">Change Tracking under the hood</a>
+    <a class="nav-item" data-topic-id="migrations-team" data-tags="migrations modelsnapshot conflicts git idempotent script sql" href="../topics/migrations-team.html">Migrations in a team</a>
+    <a class="nav-item" data-topic-id="ef-transactions" data-tags="savechangesasync begintransaction executionstrategy isolation level savepoints" href="../topics/ef-transactions.html">EF Core and transactions</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="cqrs">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      CQRS, MediatR
+    </span>
+    <span class="n">2</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="cqrs-what" data-tags="cqrs cqs command query segregation event sourcing eventual consistency" href="../topics/cqrs-what.html">What CQRS is</a>
+    <a class="nav-item" data-topic-id="cqrs-mediatr" data-tags="mediatr irequest irequesthandler pipeline behavior send" href="../topics/cqrs-mediatr.html">MediatR — how it works and how to use it</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="testing">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Testing
+    </span>
+    <span class="n">3</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="xunit" data-tags="xunit fact theory inlinedata memberdata classfixture aaa" href="../topics/xunit.html">xUnit — the basics</a>
+    <a class="nav-item" data-topic-id="moq" data-tags="moq mock setup verify times itisany callback" href="../topics/moq.html">Moq — mocking</a>
+    <a class="nav-item" data-topic-id="integration-tests" data-tags="webapplicationfactory testcontainers test pyramid inmemory" href="../topics/integration-tests.html">Integration tests</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="algo">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Algorithms, data structures
+    </span>
+    <span class="n">5</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="bigo" data-tags="big o complexity hashset dictionary list queue stack" href="../topics/bigo.html">Big O and .NET data structures</a>
+    <a class="nav-item" data-topic-id="hashset" data-tags="hashset unique elements equalitycomparer intersect union except" href="../topics/hashset.html">HashSet&lt;T&gt;</a>
+    <a class="nav-item" data-topic-id="extension-methods" data-tags="extension methods this static linq where select" href="../topics/extension-methods.html">Extension Methods</a>
+    <a class="nav-item" data-topic-id="iequatable" data-tags="iequatable equals gethashcode boxing struct record" href="../topics/iequatable.html">IEquatable&lt;T&gt;</a>
+    <a class="nav-item" data-topic-id="concurrentqueue" data-tags="concurrentqueue concurrent collections thread lock-free producer consumer channel" href="../topics/concurrentqueue.html">ConcurrentQueue&lt;T&gt;</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="automapper">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      AutoMapper
+    </span>
+    <span class="n">1</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="automapper-basics" data-tags="automapper profile projectto reversemap assertconfigurationisvalid" href="../topics/automapper-basics.html">AutoMapper</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="distributed">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Distributed architecture
+    </span>
+    <span class="n">8</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="saga" data-tags="saga orchestration choreography compensating transaction idempotency" href="../topics/saga.html">Saga Pattern</a>
+    <a class="nav-item" data-topic-id="outbox" data-tags="outbox pattern dual write at least once idempotent cdc debezium" href="../topics/outbox.html">Outbox Pattern</a>
+    <a class="nav-item" data-topic-id="reference-data" data-tags="reference data dictionaries denormalization synchronous polling cache ttl" href="../topics/reference-data.html">Reference data across microservices</a>
+    <a class="nav-item" data-topic-id="kafka" data-tags="kafka topic partition consumer group retention at least once producer consumer" href="../topics/kafka.html">Apache Kafka</a>
+    <a class="nav-item" data-topic-id="docker-k8s" data-tags="docker container image kubernetes pod deployment service self healing" href="../topics/docker-k8s.html">Docker, containers, Kubernetes</a>
+    <a class="nav-item" data-topic-id="rebus-servicebus" data-tags="rebus servicebus messagebus rabbitmq masstransit saga" href="../topics/rebus-servicebus.html">Rebus (.NET Service Bus)</a>
+    <a class="nav-item" data-topic-id="rabbitmq-fundamentals" data-tags="rabbitmq amqp broker exchange queue push pull" href="../topics/rabbitmq-fundamentals.html">How RabbitMQ works (AMQP vs HTTP)</a>
+    <a class="nav-item" data-topic-id="kafka-vs-rabbitmq" data-tags="kafka rabbitmq comparison confluent rabbitmq.client producer consumer" href="../topics/kafka-vs-rabbitmq.html">Kafka vs RabbitMQ - comparison and implementation</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="memory">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Memory and threads
+    </span>
+    <span class="n">2</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="memory-management" data-tags="garbage collector gc generations loh workstation server gc cgroups datas" href="../topics/memory-management.html">Memory management: Framework, Core, .NET</a>
+    <a class="nav-item" data-topic-id="async-thread" data-tags="async await thread pool i/o completion ports task run state machine" href="../topics/async-thread.html">Does async create a new thread?</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="recap">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Refresher / web patterns
+    </span>
+    <span class="n">3</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="mvc-mvvm-mvp" data-tags="mvc mvvm mvp controller presenter viewmodel examples" href="../topics/mvc-mvvm-mvp.html">MVC, MVVM, MVP — comparison</a>
+    <a class="nav-item" data-topic-id="dto-mvvm-placement" data-tags="dto models folder project structure wpf" href="../topics/dto-mvvm-placement.html">Where to put DTOs in an MVVM project</a>
+    <a class="nav-item" data-topic-id="code-review-example" data-tags="singleton anti-pattern socket exhaustion httpclientfactory code review" href="../topics/code-review-example.html">Code review example — HttpClientFactory</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="process">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Process and methodologies
+    </span>
+    <span class="n">1</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="sdlc" data-tags="sdlc waterfall agile scrum devops ci cd v-model process methodology" href="../topics/sdlc.html">SDLC - Software Development Life Cycle</a>
+  </div>
+</details>
+<details class="nav-group" data-cat-id="security">
+  <summary class="nav-group-btn">
+    <span style="display:flex;align-items:center;gap:.5rem;">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+      Security
+    </span>
+    <span class="n">5</span>
+  </summary>
+  <div class="nav-items">
+    <a class="nav-item" data-topic-id="crypto-basics" data-tags="cryptography encryption symmetric asymmetric aes rsa ecdh diffie hellman tls handshake forward secrecy hash hmac pbkdf2 signature public key private key gcm" href="../topics/crypto-basics.html">Cryptography: symmetric and asymmetric encryption, TLS</a>
+    <a class="nav-item" data-topic-id="webapi-security" data-tags="security webapi jwt oauth oauth2 oidc openid connect sso saml certificate tls mtls certificate pinning authentication authorization bearer idor bola scope policy jwks" href="../topics/webapi-security.html">Securing a Web API: JWT, OAuth2, OIDC, SSO, certificates</a>
+    <a class="nav-item" data-topic-id="multi-tenancy" data-tags="tenant multi-tenancy multitenancy saas entra azure ad data isolation global query filter tenantid cross-tenant bola idor" href="../topics/multi-tenancy.html">Multi-tenancy and Web API security: what a tenant is</a>
+    <a class="nav-item" data-topic-id="refresh-token" data-tags="refresh token access token rotation reuse detection offline_access oauth jwt session logout bff httponly cookie token family" href="../topics/refresh-token.html">Refresh token: how it works and when to use it</a>
+    <a class="nav-item" data-topic-id="api-client-credentials" data-tags="client credentials oauth2 openiddict api key m2m machine server-to-server scope pricing rate limiting client_id client_secret" href="../topics/api-client-credentials.html">API for companies: Client Credentials, API keys and OpenIddict</a>
+  </div>
+</details>
+    </nav>
+  </aside>
+
+  <main class="main wide" id="mainArea">
+    <div class="content" id="content">
+<div class="topic">
+  <div class="crumb">.NET / C# <span class="sep">/</span> <span class="cat">C# — language fundamentals</span></div>
+  
+  <h1>How to compare instances of <code>record</code> and <code>class</code> in C#</h1>
+<h2>Default behaviour - overview</h2>
+<pre><code class="language-csharp">public class OrderClass { public int Id { get; set; } public string CustomerName { get; set; } }
+public record OrderRecord(int Id, string CustomerName);
+
+var c1 = new OrderClass { Id = 1, CustomerName = &quot;Jan&quot; };
+var c2 = new OrderClass { Id = 1, CustomerName = &quot;Jan&quot; };
+
+var r1 = new OrderRecord(1, &quot;Jan&quot;);
+var r2 = new OrderRecord(1, &quot;Jan&quot;);
+
+// CLASS - reference comparison
+Console.WriteLine(c1 == c2);         // false
+Console.WriteLine(c1.Equals(c2));    // false
+Console.WriteLine(ReferenceEquals(c1, c2)); // false
+
+// RECORD - value comparison
+Console.WriteLine(r1 == r2);         // true
+Console.WriteLine(r1.Equals(r2));    // true
+Console.WriteLine(ReferenceEquals(r1, r2)); // false - they are STILL different objects in memory!
+</code></pre>
+<p><strong>The key observation:</strong> <code>ReferenceEquals</code> <strong>always</strong> checks the identity of the object in memory, whether it is a <code>class</code> or a <code>record</code> - <code>record</code> doesn't change what physically happens in memory, it only <strong>overrides</strong> what <code>Equals()</code>/<code>==</code> do.</p>
+<h2>Three ways of comparing - and which apply to which type</h2>
+<h3>1. <code>ReferenceEquals()</code> - always an identity comparison, regardless of type</h3>
+<pre><code class="language-csharp">object.ReferenceEquals(c1, c2); // false - different objects in memory (applies to BOTH class and record)
+object.ReferenceEquals(r1, r1); // true - to TEN SAM obiekt
+</code></pre>
+<p>This is the only way that <strong>always</strong> works identically, whether you have a <code>class</code> or a <code>record</code> - because it checks physical identity in memory, ignoring any overridden <code>Equals</code> logic.</p>
+<h3>2. <code>Equals()</code> - depends on what the given class/record defines</h3>
+<pre><code class="language-csharp">c1.Equals(c2); // false for a plain class (inherits Equals from object = reference equality)
+r1.Equals(r2); // true for a record (the compiler generated a value-based Equals)
+</code></pre>
+<h3>3. The <code>==</code> operator - for <code>class</code> by default the same as <code>ReferenceEquals</code>, for <code>record</code> the same as <code>Equals</code></h3>
+<pre><code class="language-csharp">c1 == c2; // false - for a plain class, == is an alias for ReferenceEquals (unless you overload the operator)
+r1 == r2; // true - a record AUTOMATICALLY overloads == so that it calls Equals (value comparison)
+</code></pre>
+<h2>How to make a <code>class</code> compare like a <code>record</code> - overriding <code>Equals</code>/<code>GetHashCode</code></h2>
+<p>If you want <strong>value equality</strong> for a plain class (without switching to <code>record</code>, e.g. because you need mutability AND comparison by value), you have to write it by hand:</p>
+<pre><code class="language-csharp">public class OrderClass : IEquatable&lt;OrderClass&gt;
+{
+    public int Id { get; set; }
+    public string CustomerName { get; set; }
+
+    // Nadpisanie Equals(object) - wymagane, dziedziczone z object
+    public override bool Equals(object obj) =&gt; Equals(obj as OrderClass);
+
+    // IEquatable&lt;T&gt;.Equals - bardziej wydajne (bez boxing/rzutowania), dobra praktyka
+    public bool Equals(OrderClass other)
+    {
+        if (other is null) return false;
+        if (ReferenceEquals(this, other)) return true; // optymalizacja - ten sam obiekt
+        return Id == other.Id &amp;&amp; CustomerName == other.CustomerName;
+    }
+
+    // GetHashCode MUST be consistent with Equals - if Equals returns true, the hash MUST be identical
+    public override int GetHashCode() =&gt; HashCode.Combine(Id, CustomerName);
+
+    // Overloading the == and != operators - so that they behave like Equals
+    public static bool operator ==(OrderClass left, OrderClass right)
+        =&gt; left is null ? right is null : left.Equals(right);
+
+    public static bool operator !=(OrderClass left, OrderClass right) =&gt; !(left == right);
+}
+</code></pre>
+<pre><code class="language-csharp">var c1 = new OrderClass { Id = 1, CustomerName = &quot;Jan&quot; };
+var c2 = new OrderClass { Id = 1, CustomerName = &quot;Jan&quot; };
+c1 == c2;       // NOW true - because we overloaded the operator
+c1.Equals(c2);  // true
+</code></pre>
+<p><strong>This is exactly the code that <code>record</code> generates for you automatically</strong> - you can now see the "price" of this convenience: for a <code>class</code> you have to write it by hand (and remember about <code>GetHashCode</code>, <code>IEquatable&lt;T&gt;</code>, operator overloading), for a <code>record</code> you get it for free from a single line.</p>
+<h2>The key rule: <code>Equals</code> and <code>GetHashCode</code> MUST be consistent</h2>
+<p>This is a <strong>classic trick question</strong> in an interview - if you override <code>Equals()</code>, you <strong>must</strong> also override <code>GetHashCode()</code>, otherwise you break the contract:</p>
+<pre><code class="language-csharp">// ❌ ERROR - Equals overridden, GetHashCode NOT
+public class Order
+{
+    public int Id { get; set; }
+    public override bool Equals(object obj) =&gt; obj is Order o &amp;&amp; o.Id == Id;
+    // NO GetHashCode() - the compiler gives a WARNING (CS0659), but it compiles
+}
+</code></pre>
+<p><strong>The practical consequence</strong> - this breaks <code>HashSet</code>/<code>Dictionary</code>:</p>
+<pre><code class="language-csharp">var order1 = new Order { Id = 1 };
+var order2 = new Order { Id = 1 };
+
+order1.Equals(order2); // true - &quot;logicznie&quot; to ten sam order
+
+var set = new HashSet&lt;Order&gt;();
+set.Add(order1);
+set.Contains(order2); // MAY return false! - because GetHashCode() inherited from object
+                        // gives DIFFERENT hashes for order1 and order2 (since they are different objects in memory),
+                        // so the HashSet looks in the WRONG &quot;bucket&quot; and never finds a match
+</code></pre>
+<p><code>record</code> <strong>always</strong> generates a consistent <code>Equals</code>/<code>GetHashCode</code> pair, so this particular bug is <strong>impossible</strong> in records - it is one of the real, practical advantages, not just syntactic convenience.</p>
+<h2>Comparing collections - <code>record</code> vs <code>class</code> in LINQ</h2>
+<pre><code class="language-csharp">var records1 = new List&lt;OrderRecord&gt; { new(1, &quot;Jan&quot;), new(2, &quot;Anna&quot;) };
+var records2 = new List&lt;OrderRecord&gt; { new(1, &quot;Jan&quot;), new(2, &quot;Anna&quot;) };
+
+records1.SequenceEqual(records2); // true - compares element by element via Equals (by value)
+</code></pre>
+<pre><code class="language-csharp">var classes1 = new List&lt;OrderClass&gt; { new() { Id = 1 }, new() { Id = 2 } };
+var classes2 = new List&lt;OrderClass&gt; { new() { Id = 1 }, new() { Id = 2 } };
+
+classes1.SequenceEqual(classes2); // false - because Equals for a class is reference equality, the objects are different
+</code></pre>
+<h2>Comparing <code>record</code>s with inheritance - the exact type is taken into account</h2>
+<pre><code class="language-csharp">public record Animal(string Name);
+public record Dog(string Name, string Breed) : Animal(Name);
+
+Animal a = new Dog(&quot;Rex&quot;, &quot;Labrador&quot;);
+Animal b = new Animal(&quot;Rex&quot;); // TYLKO Animal, nie Dog
+
+a.Equals(b); // false - although Name=&quot;Rex&quot; matches, the RUNTIME TYPE differs (Dog vs Animal)
+</code></pre>
+<p>This is a difference compared to a "naive" hand-written <code>Equals</code> in a <code>class</code>, where <strong>you have to remember</strong> to check the type yourself (<code>obj is Order o</code>), and with inheritance it is easy to get wrong - <code>record</code> does it correctly automatically through the generated <code>EqualityContract</code> property.</p>
+<h2><code>IEqualityComparer&lt;T&gt;</code> - custom comparison, independent of the class's <code>Equals</code>/<code>GetHashCode</code></h2>
+<p>Sometimes you want to compare objects <strong>differently</strong> from the class's default behaviour - then instead of overriding <code>Equals</code> on the class itself, you create a <strong>separate comparer</strong>:</p>
+<pre><code class="language-csharp">public class OrderByIdComparer : IEqualityComparer&lt;OrderClass&gt;
+{
+    public bool Equals(OrderClass x, OrderClass y) =&gt; x?.Id == y?.Id; // comparison ONLY by Id
+    public int GetHashCode(OrderClass obj) =&gt; obj.Id.GetHashCode();
+}
+
+var set = new HashSet&lt;OrderClass&gt;(new OrderByIdComparer());
+</code></pre>
+<p>This works <strong>identically</strong> for <code>record</code> and <code>class</code> - <code>IEqualityComparer&lt;T&gt;</code> is an external mechanism, independent of how the type itself defines its "default" equality.</p>
+<h2>Summary table</h2>
+<table>
+<thead>
+<tr>
+<th>Comparison method</th>
+<th><code>class</code> (default)</th>
+<th><code>record</code> (default)</th>
+<th>After a manual override in a <code>class</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ReferenceEquals()</code></td>
+<td>Identity in memory</td>
+<td>Identity in memory</td>
+<td>Identity in memory (unchanged)</td>
+</tr>
+<tr>
+<td><code>Equals()</code></td>
+<td>Identity (= <code>ReferenceEquals</code>)</td>
+<td>Value of all fields</td>
+<td>Value (if you implement it that way)</td>
+</tr>
+<tr>
+<td><code>==</code></td>
+<td>Identity (alias for <code>ReferenceEquals</code>)</td>
+<td>Value (through the generated <code>Equals</code>)</td>
+<td>Value (if you overload the operator)</td>
+</tr>
+<tr>
+<td><code>GetHashCode()</code></td>
+<td>Based on identity (the default from <code>object</code>)</td>
+<td>Based on the field values</td>
+<td>You have to match it to <code>Equals</code> by hand</td>
+</tr>
+</tbody>
+</table>
+<h2>Practical interview advice</h2>
+<blockquote>
+<p><em>"By default a <code>class</code> compares by reference, a <code>record</code> by the value of all properties - this follows from the compiler automatically generating <code>Equals</code>/<code>GetHashCode</code>/the <code>==</code>/<code>!=</code> operators for records. If I need value equality for a <code>class</code> (e.g. because I have to keep mutability, which a <code>record</code> with <code>init</code> doesn't give), I implement <code>IEquatable&lt;T&gt;</code> by hand, remembering the key rule: <code>Equals</code> and <code>GetHashCode</code> must be consistent, otherwise behaviour in <code>HashSet</code>/<code>Dictionary</code> breaks. <code>ReferenceEquals</code> always stays unchanged - it checks physical identity in memory, regardless of type."</em></p>
+</blockquote>
+  <div class="topic-nav"><a class="prev" href="record-declaration.html"><span class="lbl">← back</span>record vs class declaration</a><a class="next" href="abstract-vs-interface.html"><span class="lbl">next →</span>Abstract class vs interface</a></div>
+</div>
+    </div>
+  </main>
+</div>
+
+<a class="fab coffee-btn" href="https://www.naffy.io/radoslaw-jaszek-znpwl/net-csharp-kompendium" target="_blank" rel="noopener noreferrer" aria-label="Buy me a coffee" title="Buy me a coffee">
+  <span class="coffee-label">Buy me a coffee</span>
+  <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M6 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/></svg>
+</a>
+
+<button type="button" class="fab theme-toggle" id="themeToggle" aria-label="Switch dark/light mode" title="Light mode">
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4" y1="12" x2="2" y2="12"/><line x1="22" y1="12" x2="20" y2="12"/><line x1="19.07" y1="4.93" x2="17.66" y2="6.34"/><line x1="6.34" y1="17.66" x2="4.93" y2="19.07"/><line x1="19.07" y1="19.07" x2="17.66" y2="17.66"/><line x1="6.34" y1="6.34" x2="4.93" y2="4.93"/>
+  </svg>
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </svg>
+</button>
+
+<button type="button" class="fab width-toggle" id="widthToggle" aria-label="Full width" title="Narrow content">
+  <svg id="widthToggleIcon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="10" y1="14" x2="3" y2="21"/>
+  </svg>
+</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
+<script src="../../app.js?v=3"></script>
+</body>
+</html>

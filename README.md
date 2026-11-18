@@ -1,8 +1,11 @@
 # Kompendium .NET / C# przed rozmową rekrutacyjną
 
-Polskojęzyczny zbiór notatek do przygotowania się do rozmowy rekrutacyjnej na stanowisko .NET / C# developera. To nie jest kurs „od zera”, tylko zwięzłe omówienia tematów, o które pytają na rozmowach, razem z przykładami kodu, typowymi pułapkami i pytaniami rekrutacyjnymi na końcu każdego tematu.
+Dwujęzyczny (polski i angielski) zbiór notatek do przygotowania się do rozmowy rekrutacyjnej na stanowisko .NET / C# developera. To nie jest kurs „od zera”, tylko zwięzłe omówienia tematów, o które pytają na rozmowach, razem z przykładami kodu, typowymi pułapkami i pytaniami rekrutacyjnymi na końcu każdego tematu.
 
-**Strona:** https://net-csharp-kompendium.rhoster.pl/
+**Strona (PL):** https://net-csharp-kompendium.rhoster.pl/
+**Site (EN):** https://net-csharp-kompendium.rhoster.pl/en/
+
+Przełącznik języka PL/EN jest w nagłówku każdej strony i prowadzi do tego samego tematu w drugim języku. Wszystkie 77 tematów jest dostępnych w obu językach.
 
 ## Co jest w środku
 
@@ -29,13 +32,15 @@ Każdy temat ma wyszukiwalne tagi. Wyszukiwarka na stronie głównej przeszukuje
 To jest **wygenerowana strona statyczna** (bez frameworka i bez kroku budowania po stronie serwera):
 
 ```
-index.html          <- strona główna: menu działów, wyszukiwarka
-topics/<id>.html    <- jeden plik na temat
-styles.css          <- style
-app.js              <- wyszukiwarka i nawigacja
+index.html             <- strona główna (PL): menu działów, wyszukiwarka
+topics/<id>.html       <- jeden plik na temat (PL)
+en/index.html          <- strona główna (EN)
+en/topics/<id>.html    <- jeden plik na temat (EN)
+styles.css             <- style (wspólne dla obu języków)
+app.js                 <- wyszukiwarka i nawigacja (wspólne, wybiera język po adresie)
 ```
 
-Pliki `index.html` i `topics/*.html` są **generowane** ze źródłowego pliku `data.js` (osobny folder źródłowy, poza tym repozytorium), więc ręczne poprawki w tych plikach zostaną nadpisane przy następnym generowaniu. Treść zmienia się w źródle, a tutaj trafia gotowy wynik. Pliki `styles.css` i `app.js` edytuje się bezpośrednio w tym repozytorium; po ich zmianie trzeba zwiększyć numer wersji zasobów, żeby przeglądarki pobrały świeże pliki.
+Pliki `index.html`, `topics/*.html` oraz `en/**` są **generowane** ze źródłowych plików `data.js` (polski) i `data.en.js` (angielski, powstaje z tłumaczeń w `i18n/`) w osobnym folderze źródłowym, poza tym repozytorium, więc ręczne poprawki w tych plikach zostaną nadpisane przy następnym generowaniu. Treść zmienia się w źródle, a tutaj trafia gotowy wynik. Pliki `styles.css` i `app.js` edytuje się bezpośrednio w tym repozytorium; po ich zmianie trzeba zwiększyć numer wersji zasobów, żeby przeglądarki pobrały świeże pliki.
 
 Ta sama treść jest też dostępna jako jednoplikowa wersja interaktywna (Claude Artifact), utrzymywana równolegle z tą stroną.
 
