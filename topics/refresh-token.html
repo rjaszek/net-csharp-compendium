@@ -253,13 +253,14 @@
       <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
       Bezpieczeństwo
     </span>
-    <span class="n">4</span>
+    <span class="n">5</span>
   </summary>
   <div class="nav-items">
     <a class="nav-item" data-topic-id="crypto-basics" data-tags="kryptografia szyfrowanie symetryczne asymetryczne aes rsa ecdh diffie hellman tls handshake forward secrecy hash hmac pbkdf2 podpis cyfrowy klucz publiczny prywatny gcm" href="../topics/crypto-basics.html">Kryptografia: szyfrowanie symetryczne i asymetryczne, TLS</a>
     <a class="nav-item" data-topic-id="webapi-security" data-tags="bezpieczeństwo webapi jwt oauth oauth2 oidc openid connect sso saml certyfikat tls mtls certificate pinning authentication authorization uwierzytelnianie autoryzacja bearer idor bola scope policy jwks" href="../topics/webapi-security.html">Zabezpieczanie WebAPI: JWT, OAuth2, OIDC, SSO, certyfikaty</a>
     <a class="nav-item" data-topic-id="multi-tenancy" data-tags="tenant multi-tenancy multitenancy saas najemca tid entra azure ad izolacja danych global query filter tenantid cross-tenant bola idor" href="../topics/multi-tenancy.html">Multi-tenancy i bezpieczeństwo WebAPI: czym jest tenant</a>
     <a class="nav-item" data-topic-id="refresh-token" data-tags="refresh token access token rotacja reuse detection offline_access oauth jwt sesja wylogowanie bff httponly cookie rodzina tokenów" href="../topics/refresh-token.html">Refresh token: jak działa i kiedy go używać</a>
+    <a class="nav-item" data-topic-id="api-client-credentials" data-tags="client credentials oauth2 openiddict klucz api api key m2m maszyna serwer-serwer scope zakres cennik rate limiting client_id client_secret" href="../topics/api-client-credentials.html">API dla firm: Client Credentials, klucze API i OpenIddict</a>
   </div>
 </details>
     </nav>
@@ -727,7 +728,7 @@ public class DbRefreshTokenStore(AppDb db)
 <p>Pisanie własnego serwera tokenów (jak w przykładach powyżej) służy nauce. W prawdziwym projekcie zwykle sięgasz po gotowe narzędzie:</p>
 <ul>
 <li><strong>Identity API endpoints (.NET 8)</strong> - <code>AddIdentityApiEndpoints&lt;TUser&gt;()</code> i <code>MapIdentityApi&lt;TUser&gt;()</code> dodają gotowe endpointy <code>/register</code>, <code>/login</code>, <code>/refresh</code>, <code>/manage/info</code> i inne, a pod spodem działa <code>AddBearerToken</code>. Dostajesz access token i refresh token bez pisania kodu. <strong>Ograniczenia:</strong> tokeny nie są JWT, tylko zabezpieczonymi przez Data Protection biletami (nieprzezroczystymi dla klienta); refresh token jest bezstanowy (nie ma tabeli, więc <strong>nie ma rotacji, wykrywania ponownego użycia ani unieważniania pojedynczej sesji</strong>, a unieważnienie wszystkich sesji użytkownika to zmiana jego <code>SecurityStamp</code>); to rozwiązanie dla aplikacji własnych (first-party), <strong>bez OpenID Connect</strong>.</li>
-<li><strong>OpenIddict</strong> - darmowy, otwarty serwer OAuth 2.0 / OpenID Connect dla ASP.NET Core. Przechowuje tokeny w bazie (EF Core), obsługuje rotację refresh tokenów i pełne przepływy (Authorization Code + PKCE, Client Credentials).</li>
+<li><strong>OpenIddict</strong> (zobacz <a href="api-client-credentials.html">API dla firm: Client Credentials i OpenIddict</a>) - darmowy, otwarty <strong>framework</strong> do zbudowania własnego serwera OAuth 2.0 / OpenID Connect w ASP.NET Core (nie gotowy produkt). Przechowuje tokeny w bazie (EF Core), obsługuje rotację refresh tokenów i pełne przepływy (Authorization Code + PKCE, Client Credentials).</li>
 <li><strong>Duende IdentityServer</strong> - dojrzały, komercyjny (licencja dla większych firm) serwer OIDC.</li>
 <li><strong>Zewnętrzny dostawca</strong> (Microsoft Entra ID, Auth0, Keycloak) - najmniej własnego kodu, serwer tokenów i przechowywanie refresh tokenów są po ich stronie, a Twoje API tylko waliduje JWT.</li>
 </ul>
@@ -776,7 +777,7 @@ private async Task&lt;string&gt; GetFreshAccessTokenAsync(string staleToken, Can
 </ul>
   
   
-  <div class="topic-nav"><a class="prev" href="multi-tenancy.html"><span class="lbl">← wstecz</span>Multi-tenancy i bezpieczeństwo WebAPI: czym jest tenant</a><span></span></div>
+  <div class="topic-nav"><a class="prev" href="multi-tenancy.html"><span class="lbl">← wstecz</span>Multi-tenancy i bezpieczeństwo WebAPI: czym jest tenant</a><a class="next" href="api-client-credentials.html"><span class="lbl">dalej →</span>API dla firm: Client Credentials, klucze API i OpenIddict</a></div>
 </div>
     </div>
   </main>
