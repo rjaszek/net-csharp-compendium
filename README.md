@@ -7,11 +7,11 @@ A bilingual (English and Polish) set of notes for preparing for a .NET / C# deve
 **Site (EN):** https://net-csharp-kompendium.rhoster.pl/en/
 **Strona (PL):** https://net-csharp-kompendium.rhoster.pl/
 
-The PL/EN switch is in the header of every page and leads to the same topic in the other language. All 77 topics are available in both languages.
+The PL/EN switch is in the header of every page and leads to the same topic in the other language. All 78 topics are available in both languages.
 
 ## What is inside
 
-77 topics in 14 sections:
+78 topics in 14 sections:
 
 | Section | Example subjects |
 |---|---|
@@ -69,11 +69,11 @@ Dwujęzyczny (polski i angielski) zbiór notatek do przygotowania się do rozmow
 **Strona (PL):** https://net-csharp-kompendium.rhoster.pl/
 **Site (EN):** https://net-csharp-kompendium.rhoster.pl/en/
 
-Przełącznik języka PL/EN jest w nagłówku każdej strony i prowadzi do tego samego tematu w drugim języku. Wszystkie 77 tematów jest dostępnych w obu językach.
+Przełącznik języka PL/EN jest w nagłówku każdej strony i prowadzi do tego samego tematu w drugim języku. Wszystkie 78 tematów jest dostępnych w obu językach.
 
 ## Co jest w środku
 
-77 tematów w 14 działach:
+78 tematów w 14 działach:
 
 | Dział | Przykładowe zagadnienia |
 |---|---|
